@@ -1,8 +1,11 @@
 # UI: 3D Moon globe
 
 Vite + TypeScript + three.js. It shows the Moon orientation, Sun lighting (terminator),
-Earth direction, the sub-solar and sub-Earth points, and the local Sun/Earth azimuth and
-elevation for a clicked point (flat 0° horizon).
+Earth direction, the sub-solar and sub-Earth points, a latitude/longitude grid and the
+curated sites. For a selected point (site picker, typed lat/lon or a click on the globe) it
+shows Sun and Earth visibility from `/v1/series`: the time to the next sunset and Earthset,
+current values, a summary, the event list and a local sky plot. The horizon is flat (0°) for
+now.
 
 The UI needs the API (`api/`). Start both:
 
@@ -29,14 +32,19 @@ Set `VITE_API_URL` to use another API address (default `http://127.0.0.1:8000`),
   time window and interpolates between samples: quaternion slerp for the MOON_ME → J2000
   rotation, linear interpolation for vectors. When time leaves the middle of the window,
   the UI loads a new batch.
-- `src/main.ts`: scene, controls, readouts, local-sky plot.
+- `src/main.ts`: scene, camera, time controls, readouts.
+- `src/grid.ts`: latitude/longitude grid (10°, plus rings at 80°, 85°, 88° S and N).
+- `src/point.ts`: lat/lon input validation and the site picker.
+- `src/results.ts`: results panel (`/v1/series`), countdowns, summary, events, observer height.
+- `src/skyplot.ts`: local sky plot. `drawHorizonMask()` is ready for a terrain mask.
 - `scripts/validate.ts`: Horizons comparison. `scripts/sectigo-root-r46.pem` is the public
   root CA for `ssd.jpl.nasa.gov`. The local CA store lacks it, so curl gets it with `--cacert`.
   Set `HORIZONS_NO_CA=1` to use the system store only.
 
 ## Frames and accuracy
 
-- The scene uses the J2000 equatorial frame (celestial north = screen up by default).
+- The scene uses the J2000 frame, turned so that the Moon's north pole is screen up. The
+  "True sky orientation" checkbox puts celestial north (J2000 +z) up instead, as seen from Earth.
 - All geometry comes from the API (SPICE, DE440, MOON_ME frame). Sub-points agree with
   JPL Horizons (MOON_ME) to about 0.005°.
 - Azimuth and elevation follow `CONTRACTS.md`. They are topocentric: the observer is on the

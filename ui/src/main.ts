@@ -296,6 +296,9 @@ function setLineEnd(l: THREE.Line, end: THREE.Vector3) {
 const v3 = (v: Vec3) => new THREE.Vector3(v[0], v[1], v[2]);
 const onSurface = (lat: number, lon: number, r = 1.004) => v3(bodyVecOf(lat, lon)).multiplyScalar(r);
 
+// Hidden until the first Moon state arrives from the API.
+sunMarker.visible = earthMesh.visible = sunLine.visible = earthLine.visible = false;
+
 // ---------- State ----------
 let baseMs = Math.round(Date.now() / 60000) * 60000;
 let offsetS = 0;
@@ -385,6 +388,7 @@ function requestBatch() {
       apiMsg.hidden = true;
       computeTracks();
       requestSeries(); // retry after an API outage
+      loadSites();
     })
     .catch((e) => {
       if ((e as Error).name === 'AbortError') return;
@@ -481,23 +485,30 @@ function selectPoint(ll: LatLon, site: Site | null, fly: boolean) {
   if (fly) flyTo(selected);
 }
 
-fetchSites()
-  .then((sites) => {
-    pointUi.setSites(sites);
-    for (const s of sites) {
-      const m = new THREE.Mesh(
-        new THREE.SphereGeometry(0.006, 10, 6),
-        new THREE.MeshBasicMaterial({ color: STATUS_COLOR[s.status] ?? 0xffffff }),
-      );
-      m.position.copy(onSurface(s.lat_deg, s.lon_deg, 1.002));
-      m.userData.site = s;
-      siteGroup.add(m);
-    }
-  })
-  .catch((e) => {
-    console.error(e);
-    pointUi.setSitesError('Site list not available (API)');
-  });
+let sitesLoaded = false;
+function loadSites() {
+  if (sitesLoaded) return;
+  fetchSites()
+    .then((sites) => {
+      if (sitesLoaded) return;
+      sitesLoaded = true;
+      pointUi.setSites(sites);
+      for (const s of sites) {
+        const m = new THREE.Mesh(
+          new THREE.SphereGeometry(0.006, 10, 6),
+          new THREE.MeshBasicMaterial({ color: STATUS_COLOR[s.status] ?? 0xffffff }),
+        );
+        m.position.copy(onSurface(s.lat_deg, s.lon_deg, 1.002));
+        m.userData.site = s;
+        siteGroup.add(m);
+      }
+    })
+    .catch((e) => {
+      console.error(e);
+      pointUi.setSitesError('Site list not available (API)');
+    });
+}
+loadSites();
 
 // Camera flight to a point: the camera ends above the point, looking at the Moon centre.
 let flight: { from: THREE.Vector3; to: THREE.Vector3; fromD: number; toD: number; t0: number } | null = null;
@@ -552,7 +563,7 @@ const tmpQ = new THREE.Quaternion();
 function update() {
   const nowMs = baseMs + offsetS * 1000;
   const utc = new Date(nowMs);
-  $('utc').textContent = utc.toISOString().replace('.000', '');
+  $('utc').textContent = utc.toISOString().replace(/\.\d{3}Z$/, 'Z');
   const days = Math.trunc(offsetS / DAY_S);
   const hours = Math.trunc(Math.abs(offsetS % DAY_S) / 3600);
   $('offsetLabel').textContent = `${offsetS < 0 ? '-' : '+'}${Math.abs(days)} d ${String(hours).padStart(2, '0')} h`;
@@ -593,6 +604,7 @@ function update() {
   prevMoonQuat.copy(q);
   havePrevQuat = true;
 
+  sunMarker.visible = earthMesh.visible = sunLine.visible = earthLine.visible = true;
   const sunDir = v3(state.sunDirInertial);
   const earthDir = v3(state.earthDirInertial);
   sunLight.position.copy(sunDir).multiplyScalar(20);
