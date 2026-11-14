@@ -4,8 +4,8 @@ Both parts run on Google Cloud Run in project `lunar-site-select`, region `europ
 
 | Service | URL | Source |
 |---|---|---|
-| `lunarsite-api` | https://lunarsite-api-763981639147.europe-west1.run.app | `api/Dockerfile` (build context: repository root) |
-| `lunarsite-ui` | https://lunarsite-ui-763981639147.europe-west1.run.app | `ui/Dockerfile` (build context: `ui/`) |
+| `lunarsite-api` | https://api.lunarsite.select (also https://lunarsite-api-763981639147.europe-west1.run.app) | `api/Dockerfile` (build context: repository root) |
+| `lunarsite-ui` | https://lunarsite.select (also https://lunarsite-ui-763981639147.europe-west1.run.app) | `ui/Dockerfile` (build context: `ui/`) |
 
 ## Deploy the API
 
