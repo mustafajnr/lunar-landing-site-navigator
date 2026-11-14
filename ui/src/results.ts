@@ -31,7 +31,7 @@ export interface HorizonInfo {
 
 const FLAT: HorizonInfo = { kind: 'flat', label: 'Flat horizon (0°)', mask: null };
 
-function horizonOf(d: SeriesOut, sent: HorizonMask | null): HorizonInfo {
+export function horizonOf(d: SeriesOut, sent: HorizonMask | null): HorizonInfo {
   const h = d.horizon;
   if (!h) {
     // Older API: no horizon block. It used the mask we sent, or a flat horizon.
@@ -130,6 +130,7 @@ export class ResultsPanel {
   private timer = 0;
   private lastNowText = '';
   private readonly onData: () => void;
+  private applyHeight: (v: number) => void = () => {};
 
   constructor(onData: () => void) {
     this.onData = onData;
@@ -165,11 +166,17 @@ export class ResultsPanel {
     for (const b of document.querySelectorAll<HTMLButtonElement>('[data-height]')) {
       b.addEventListener('click', () => apply(Number(b.dataset.height)));
     }
+    this.applyHeight = apply;
     apply(this.heightM);
   }
 
   get observerHeightM() {
     return this.heightM;
+  }
+
+  /** Set the observer height (for example from a saved search). 0 to 1000 m. */
+  setObserverHeight(v: number) {
+    if (Number.isFinite(v) && v >= 0 && v <= 1000 && v !== this.heightM) this.applyHeight(v);
   }
 
   /** Set the point and the time window. Loads a new series if anything changed. */

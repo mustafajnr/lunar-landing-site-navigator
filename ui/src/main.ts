@@ -14,7 +14,9 @@ import {
 } from './ephemeris';
 import { createGrid } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
-import { ResultsPanel } from './results';
+import { ResultsPanel, SERIES_STEP_MIN } from './results';
+import { setupSaved } from './saved';
+import { openCompare } from './compare';
 import { setupMapPanel } from './mappanel';
 import { drawSkyPlot, type AzMode, type ElZoom, type TrackPt } from './skyplot';
 
@@ -311,6 +313,8 @@ let playing = false;
 // about 20 km from the Shackleton centre.
 const DEFAULT_POINT = { latDeg: -89.45, lonDeg: -137.31, name: 'Shackleton–de Gerlache ridge' };
 let selected: LatLon = { latDeg: DEFAULT_POINT.latDeg, lonDeg: DEFAULT_POINT.lonDeg };
+let selectedSite: Site | null = null;
+let siteList: Site[] = [];
 let state: MoonState | null = null;
 let batch: MoonStateBatch | null = null;
 let batchReq: AbortController | null = null;
@@ -535,6 +539,7 @@ const mapPanel = setupMapPanel(
 
 function selectPoint(ll: LatLon, site: Site | null, fly: boolean, fromMap = false) {
   selected = { latDeg: ll.latDeg, lonDeg: ll.lonDeg };
+  selectedSite = site;
   pointUi.show(selected, site);
   const name = pointName(selected, site);
   $('selName').textContent = name;
@@ -557,6 +562,7 @@ function loadSites() {
     .then((sites) => {
       if (sitesLoaded) return;
       sitesLoaded = true;
+      siteList = sites;
       pointUi.setSites(sites);
       for (const s of sites) {
         const m = new THREE.Mesh(
@@ -574,6 +580,32 @@ function loadSites() {
     });
 }
 loadSites();
+
+// ---------- Saved searches and comparison (saved.ts, compare.ts) ----------
+setupSaved({
+  current: () => ({
+    siteName: pointName(selected, selectedSite) || fmtLL(selected),
+    siteId: selectedSite?.id ?? null,
+    latDeg: selected.latDeg,
+    lonDeg: selected.lonDeg,
+    radiusM: selectedSite?.radius_m ?? null,
+    observerHeightM: results.observerHeightM,
+    startUtc: new Date(baseMs - WINDOW_S * 1000).toISOString(),
+    stopUtc: new Date(baseMs + WINDOW_S * 1000).toISOString(),
+    stepMinutes: SERIES_STEP_MIN,
+    terrain: 'auto',
+  }),
+  load: (s) => {
+    // The main view always uses a ±30 day window with terrain "auto": restore the
+    // point, the height and the window centre.
+    const site = (s.siteId && siteList.find((x) => x.id === s.siteId)) || null;
+    results.setObserverHeight(s.observerHeightM);
+    selectPoint({ latDeg: s.latDeg, lonDeg: s.lonDeg }, site, true);
+    const mid = (Date.parse(s.startUtc) + Date.parse(s.stopUtc)) / 2;
+    setBase(Math.round(mid / 60000) * 60000);
+  },
+  compare: (list) => openCompare(list),
+});
 
 // Camera flight to a point: the camera ends above the point, looking at the Moon centre.
 let flight: { from: THREE.Vector3; to: THREE.Vector3; fromD: number; toD: number; t0: number } | null = null;
