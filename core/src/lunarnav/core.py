@@ -15,6 +15,7 @@ from .spice import ensure_loaded
 MOON_RADIUS_M = 1_737_400.0
 FRAME = "MOON_ME"
 ABCORR = "LT+S"
+MASK_HEIGHT_TOL_M = 1e-6
 _Z = np.array([0.0, 0.0, 1.0])
 _sun_radius_km: float | None = None
 
@@ -101,6 +102,20 @@ def apparent_vector_km(target: str, et: float, site_km) -> np.ndarray:
     return np.asarray(state[:3])
 
 
+def check_mask_height(mask: HorizonMask | None, observer_height_m: float) -> None:
+    """A mask is valid for one observer height only (CONTRACTS.md section 4).
+
+    A mask without observer_height_m is accepted (synthetic or legacy masks).
+    """
+    if mask is None or mask.observer_height_m is None:
+        return
+    if abs(float(mask.observer_height_m) - float(observer_height_m)) > MASK_HEIGHT_TOL_M:
+        raise ValueError(
+            f"horizon mask is for observer_height_m={mask.observer_height_m}, "
+            f"but observer_height_m={observer_height_m} was requested"
+        )
+
+
 def evaluate(
     lat_deg: float,
     lon_deg: float,
@@ -117,6 +132,7 @@ def evaluate(
     """
     ensure_loaded()
     mask = as_mask(horizon_mask)
+    check_mask_height(mask, observer_height_m)
     et = utc_to_et(utc)
     site = site_position_km(lat_deg, lon_deg, surface_height_m + observer_height_m)
     enu = local_frame(site)
