@@ -121,6 +121,8 @@ export interface SeriesHorizon {
   az_step_deg: number | null;
   elevation_deg: number[] | null;
   dem_source: string | null;
+  /** Newer API only. "unavailable" means the flat horizon can be wrong. */
+  terrain_status?: 'ok' | 'no_coverage' | 'unavailable' | 'not_requested';
 }
 
 export interface NextEvents {

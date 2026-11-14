@@ -21,8 +21,10 @@ export interface SkyNow {
 
 /** The horizon in use for the loaded series. */
 export interface HorizonInfo {
-  kind: 'terrain' | 'flat' | 'provided' | 'unknown';
+  kind: 'terrain' | 'flat' | 'provided' | 'unknown' | 'warn';
   label: string;
+  /** Longer explanation for the tag tooltip. */
+  title?: string;
   /** Terrain outline for the sky plot, or null for a flat horizon. */
   mask: { elevationDeg: number[]; azStepDeg: number } | null;
 }
@@ -45,6 +47,17 @@ function horizonOf(d: SeriesOut, sent: HorizonMask | null): HorizonInfo {
     return { kind: 'terrain', label: mpp ? `Terrain (LOLA ${mpp} m)` : 'Terrain (LOLA)', mask };
   }
   if (h.source === 'provided') return { kind: 'provided', label: 'Provided', mask };
+  if (h.terrain_status === 'unavailable') {
+    return {
+      kind: 'warn',
+      label: 'Flat horizon: terrain not available. Results can be wrong.',
+      title:
+        'This server has no terrain data for this point. The results use a flat horizon (0°). ' +
+        'Near the pole, terrain can block the Sun or Earth, so the real values can be very different. ' +
+        'Pick a curated site to get terrain.',
+      mask: null,
+    };
+  }
   return { kind: 'flat', label: 'Flat horizon (no terrain data here)', mask: null };
 }
 
@@ -283,6 +296,7 @@ export class ResultsPanel {
     const text = h ? h.label : this.key ? 'Horizon: loading…' : '–';
     if (tag.textContent !== text) tag.textContent = text;
     tag.className = `tag ${h ? h.kind : ''}`;
+    tag.title = h?.title ?? '';
     $('legendTerrain').hidden = !h?.mask;
   }
 

@@ -296,6 +296,11 @@ button.info {
   color: #d7a65a;
   border-color: #d7a65a;
 }
+.tag.warn {
+  color: #ff7a6b;
+  border-color: #ff7a6b;
+  font-weight: 600;
+}
 .tag.provided {
   color: #8cc4ff;
   border-color: #8cc4ff;
