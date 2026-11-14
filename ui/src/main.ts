@@ -12,7 +12,7 @@ import {
   type MoonStateBatch,
   type Vec3,
 } from './ephemeris';
-import { createGrid } from './grid';
+import { createGrid, updateGridLabels } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel } from './results';
 import { setupMapPanel } from './mappanel';
@@ -801,6 +801,7 @@ function frame(now: number) {
   stepFlight(now);
   update();
   controls.update();
+  updateGridLabels(grid, camera, window.innerHeight);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
