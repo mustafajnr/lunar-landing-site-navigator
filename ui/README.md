@@ -61,3 +61,17 @@ polar fill (`lroc_color_poles_8k.tif`). Relief: LRO LOLA elevation map (`ldem_16
 of the script). The south polar cap is a separate mesh. An equirectangular map smears near the
 pole; the cap does not. The normal maps give crater relief near the terminator. They do not
 cast shadows, so do not use the globe shading to judge if a point is lit. Use the results panel.
+
+Earth texture: NASA Earth Observatory, Blue Marble Next Generation, January 2004
+(Reto Stöckli, NASA GSFC), public domain.
+Source: `world.200401.3x5400x2700.jpg` from assets.science.nasa.gov (BMNG base, January).
+File: `public/textures/earth_bluemarble_2k.jpg` (2048 × 1024, 0.25 MB). The Earth turns about
+the J2000 pole by the Greenwich mean sidereal angle, so the side that faces the Moon is correct
+(precession and nutation are ignored, less than 0.5°).
+
+Sun texture: NASA SDO/HMI quick-look continuum image, 2026-11-14 16:00 UTC
+(`latest_1024_HMIIC.jpg` from sdo.gsfc.nasa.gov). Courtesy of NASA/SDO and the AIA, EVE and HMI
+science teams. File: `public/textures/sun_sdo_512.jpg` (512 × 512, disk only, 0.03 MB).
+The glow around it is drawn in code.
+
+`scripts/make_body_textures.py` makes the Earth and Sun files from the downloads.

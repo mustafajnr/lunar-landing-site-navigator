@@ -213,19 +213,76 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.04));
 const sunLight = new THREE.DirectionalLight(0xffffff, 3);
 inertial.add(sunLight); // target defaults to origin = Moon centre
 
-// Sun and Earth markers in the inertial frame.
-const sunMarker = new THREE.Mesh(
-  new THREE.SphereGeometry(0.4, 24, 12),
-  new THREE.MeshBasicMaterial({ color: 0xffe27a }),
+// Sun and Earth in the inertial frame.
+// Sun: NASA SDO/HMI disk image on a sprite, with a soft glow behind it.
+const SUN_RADIUS = 0.4; // scaled, not true
+function glowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d')!;
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, 'rgba(255,230,160,1)');
+  g.addColorStop(0.25, 'rgba(255,200,90,0.55)');
+  g.addColorStop(0.6, 'rgba(255,160,40,0.12)');
+  g.addColorStop(1, 'rgba(255,140,20,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const sunMarker = new THREE.Group();
+const sunGlow = new THREE.Sprite(
+  new THREE.SpriteMaterial({ map: glowTexture(), blending: THREE.AdditiveBlending, depthWrite: false }),
 );
+sunGlow.scale.setScalar(SUN_RADIUS * 7);
+const sunDiskMat = new THREE.SpriteMaterial({ color: 0xffe27a, transparent: true, depthWrite: false });
+const sunDisk = new THREE.Sprite(sunDiskMat);
+sunDisk.scale.setScalar(SUN_RADIUS * 2 * 1.02);
+sunDisk.renderOrder = 1;
+sunMarker.add(sunGlow, sunDisk);
 inertial.add(sunMarker);
+texLoader.load(TEX + 'sun_sdo_512.jpg', (jpg) => {
+  // Cut the disk out (JPEG has no alpha), so the glow shows around it.
+  const img = jpg.image as HTMLImageElement;
+  const c = document.createElement('canvas');
+  c.width = img.width;
+  c.height = img.height;
+  const ctx = c.getContext('2d')!;
+  ctx.beginPath();
+  ctx.arc(c.width / 2, c.height / 2, (c.width / 2) / 1.02, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.drawImage(img, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  sunDiskMat.map = tex;
+  sunDiskMat.color.set(0xffffff);
+  sunDiskMat.needsUpdate = true;
+});
 const sunLine = line([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)], 0xffd54a, inertial, true);
 
-const earthMesh = new THREE.Mesh(
-  new THREE.SphereGeometry(EARTH_RADIUS, 32, 16),
-  new THREE.MeshStandardMaterial({ color: 0x3d7fd9, roughness: 0.8 }),
-);
+// Earth: NASA Blue Marble. The mesh frame is Earth-fixed (+x Greenwich, +z north). It turns
+// about J2000 +z by the Greenwich mean sidereal angle, so the correct side faces the Moon.
+// Precession and nutation (< 0.5°) are ignored.
+const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS, 64, 32);
+earthGeo.rotateX(Math.PI / 2);
+const earthMat = new THREE.MeshStandardMaterial({ color: 0x3d7fd9, roughness: 0.85, metalness: 0 });
+const earthMesh = new THREE.Mesh(earthGeo, earthMat);
 inertial.add(earthMesh);
+texLoader.load(TEX + 'earth_bluemarble_2k.jpg', (tex) => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  earthMat.map = tex;
+  earthMat.color.set(0xffffff);
+  earthMat.needsUpdate = true;
+});
+
+/** Greenwich mean sidereal angle in radians (IAU 1982 linear term, UT1 ~ UTC). */
+function gmstRad(ms: number) {
+  const d = (ms - Date.UTC(2000, 0, 1, 12)) / 86400000;
+  const deg = 280.46061837 + 360.98564736629 * d;
+  return THREE.MathUtils.degToRad(((deg % 360) + 360) % 360);
+}
 const earthLine = line([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)], 0x4aa3ff, inertial);
 
 function setLineEnd(l: THREE.Line, end: THREE.Vector3) {
@@ -542,6 +599,7 @@ function update() {
   sunMarker.position.copy(sunDir).multiplyScalar(SUN_DIST);
   setLineEnd(sunLine, sunMarker.position);
   earthMesh.position.copy(earthDir).multiplyScalar(EARTH_DIST);
+  earthMesh.rotation.set(0, 0, gmstRad(nowMs));
   setLineEnd(earthLine, earthDir.clone().multiplyScalar(EARTH_DIST - EARTH_RADIUS));
 
   subSunMarker.position.copy(onSurface(state.subSolar.latDeg, state.subSolar.lonDeg));
@@ -605,3 +663,8 @@ pointUi.show(selected, null);
 requestSeries();
 viewEarth();
 requestAnimationFrame(frame);
+
+// Dev builds only: handles for debugging in the browser console.
+if (import.meta.env.DEV) {
+  (window as unknown as Record<string, unknown>).__lunarnav = { camera, controls, earthMesh, sunMarker, moonBody };
+}
