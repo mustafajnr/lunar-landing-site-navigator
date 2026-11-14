@@ -8,9 +8,12 @@ export const API_URL: string = (
 export class ApiError extends Error {
   /** true if the server did not answer at all (not running, CORS, network). */
   readonly unreachable: boolean;
-  constructor(message: string, unreachable: boolean) {
+  /** HTTP status, 0 if the server did not answer. */
+  readonly status: number;
+  constructor(message: string, unreachable: boolean, status = 0) {
     super(message);
     this.unreachable = unreachable;
+    this.status = status;
   }
 }
 
@@ -35,7 +38,7 @@ async function call<T>(path: string, body?: unknown, signal?: AbortSignal): Prom
     } catch {
       /* no JSON body */
     }
-    throw new ApiError(`API error ${res.status} on ${path}${detail ? `: ${detail}` : ''}`, false);
+    throw new ApiError(`API error ${res.status} on ${path}${detail ? `: ${detail}` : ''}`, false, res.status);
   }
   return (await res.json()) as T;
 }
@@ -106,14 +109,33 @@ export interface SeriesOut {
   };
   events: SeriesEvent[];
   summary: SeriesSummary;
+  /** New API field (increment 3). Missing in older API versions. */
+  horizon?: SeriesHorizon | null;
+  /** First events after stop_utc, searched over 400 days. Missing in older API versions. */
+  next_events?: NextEvents | null;
 }
 
-/** Horizon mask, CONTRACTS.md section 6. Not used yet (flat horizon). */
+export interface SeriesHorizon {
+  source: 'terrain' | 'flat' | 'provided';
+  surface_height_m: number | null;
+  az_step_deg: number | null;
+  elevation_deg: number[] | null;
+  dem_source: string | null;
+}
+
+export interface NextEvents {
+  sunrise: string | null;
+  sunset: string | null;
+  earthrise: string | null;
+  earthset: string | null;
+}
+
+/** Horizon mask, CONTRACTS.md section 6. */
 export interface HorizonMask {
   lat_deg: number;
   lon_deg: number;
-  observer_height_m: number;
-  dem_source: string;
+  observer_height_m?: number;
+  dem_source?: string;
   az_step_deg: number;
   elevation_deg: number[];
 }
@@ -126,6 +148,8 @@ export interface SeriesRequest {
   stopMs: number;
   stepMinutes: number;
   mask?: HorizonMask | null;
+  /** "auto": the API uses terrain data if it has some for the point. Ignored by older APIs. */
+  terrain?: 'auto' | 'none';
 }
 
 export function fetchSeries(r: SeriesRequest, signal?: AbortSignal) {
@@ -139,6 +163,7 @@ export function fetchSeries(r: SeriesRequest, signal?: AbortSignal) {
       stop_utc: isoUtc(r.stopMs),
       step_minutes: r.stepMinutes,
       mask: r.mask ?? null,
+      terrain: r.terrain ?? 'auto',
     },
     signal,
   );

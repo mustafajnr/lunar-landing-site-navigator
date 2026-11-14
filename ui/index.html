@@ -81,7 +81,7 @@
 
     <aside id="results" class="panel">
       <section class="first">
-        <h2>Selected point <span class="tag">flat horizon</span></h2>
+        <h2>Selected point <span id="horizonTag" class="tag">–</span></h2>
         <div class="row mono"><span><span class="dot sel"></span><span id="selLatLon"></span></span><span id="selName" class="small"></span></div>
         <div class="cd">
           <span id="cdSunState" class="state"></span>
@@ -132,7 +132,8 @@
           <span><span class="dot sun"></span>Sun track</span>
           <span><span class="dot earth"></span>Earth track</span>
           <span><span class="dot ring"></span>Now</span>
-          <span><span class="dash"></span>Horizon (flat, 0°)</span>
+          <span><span class="dash"></span>Flat horizon, 0°</span>
+          <span id="legendTerrain" hidden><span class="terr"></span>Terrain horizon</span>
         </div>
       </section>
 

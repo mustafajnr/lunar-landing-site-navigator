@@ -282,3 +282,21 @@ button.info {
   white-space: nowrap;
   padding-right: 8px;
 }
+
+.terr {
+  display: inline-block;
+  width: 14px;
+  height: 8px;
+  background: rgba(120, 95, 60, 0.9);
+  border-top: 1.5px solid #d7a65a;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+.tag.terrain {
+  color: #d7a65a;
+  border-color: #d7a65a;
+}
+.tag.provided {
+  color: #8cc4ff;
+  border-color: #8cc4ff;
+}

@@ -155,8 +155,8 @@ export function drawSkyPlot(canvas: HTMLCanvasElement, d: SkyPlotData) {
 }
 
 /**
- * Terrain horizon outline. Not used yet: the API and UI use a flat horizon.
- * When the terrain workstream supplies masks, pass `mask` in SkyPlotData: the area
+ * Terrain horizon outline (from the API `horizon` block, or a provided mask).
+ * The area
  * below the outline is filled as terrain, and the outline is drawn on top.
  */
 function drawHorizonMask(

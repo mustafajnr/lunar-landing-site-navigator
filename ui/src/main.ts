@@ -303,7 +303,10 @@ sunMarker.visible = earthMesh.visible = sunLine.visible = earthLine.visible = fa
 let baseMs = Math.round(Date.now() / 60000) * 60000;
 let offsetS = 0;
 let playing = false;
-let selected: LatLon = { latDeg: -89.45, lonDeg: -137.31 }; // example point from CONTRACTS.md
+// Default point (CONTRACTS.md example): on the ridge between Shackleton and de Gerlache,
+// about 20 km from the Shackleton centre.
+const DEFAULT_POINT = { latDeg: -89.45, lonDeg: -137.31, name: 'Shackleton–de Gerlache ridge' };
+let selected: LatLon = { latDeg: DEFAULT_POINT.latDeg, lonDeg: DEFAULT_POINT.lonDeg };
 let state: MoonState | null = null;
 let batch: MoonStateBatch | null = null;
 let batchReq: AbortController | null = null;
@@ -439,7 +442,7 @@ function computeTracks() {
 }
 
 function drawSky(nowSun: TrackPt | null, nowEarth: TrackPt | null) {
-  drawSkyPlot(skyCanvas, { sunTrack, earthTrack, sunNow: nowSun, earthNow: nowEarth, mask: null });
+  drawSkyPlot(skyCanvas, { sunTrack, earthTrack, sunNow: nowSun, earthNow: nowEarth, mask: results.horizon?.mask ?? null });
 }
 
 const skyHelpBtn = $<HTMLButtonElement>('skyHelpBtn');
@@ -479,10 +482,16 @@ const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true));
 function selectPoint(ll: LatLon, site: Site | null, fly: boolean) {
   selected = { latDeg: ll.latDeg, lonDeg: ll.lonDeg };
   pointUi.show(selected, site);
-  $('selName').textContent = site ? site.name : '';
+  $('selName').textContent = pointName(selected, site);
   requestSeries();
   computeTracks();
   if (fly) flyTo(selected);
+}
+
+function pointName(ll: LatLon, site: Site | null) {
+  if (site) return site.name;
+  if (Math.abs(ll.latDeg - DEFAULT_POINT.latDeg) < 1e-6 && Math.abs(ll.lonDeg - DEFAULT_POINT.lonDeg) < 1e-6) return DEFAULT_POINT.name;
+  return '';
 }
 
 let sitesLoaded = false;
@@ -672,6 +681,7 @@ resize();
 dtInput.value = toInputValue(baseMs);
 requestBatch();
 pointUi.show(selected, null);
+$('selName').textContent = pointName(selected, null);
 requestSeries();
 viewEarth();
 requestAnimationFrame(frame);
