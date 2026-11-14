@@ -13,9 +13,10 @@ import {
 } from './ephemeris';
 
 // ---------- Scene layout ----------
-// Scene units: 1 = Moon radius. `inertial` group holds the J2000 equatorial frame (EQJ),
-// rotated so EQJ +z (celestial north) is three.js +Y. `moonBody` holds the Moon body frame:
-// body +x = lon 0, body +y = lon 90 E, body +z = north pole.
+// Scene units: 1 = Moon radius. `inertial` group holds the J2000 frame. Its rotation puts
+// the Moon's north pole at three.js +Y (screen up). With "True sky orientation" it puts
+// J2000 +z (celestial north) at +Y instead, as seen from Earth. `moonBody` holds the
+// Moon ME frame: body +x = lon 0, body +y = lon 90 E, body +z = north pole.
 const EARTH_DIST = 8; // scaled, not true (true ~221 Moon radii)
 const EARTH_RADIUS = 0.35; // scaled, not true (true ~3.67 Moon radii)
 const SUN_DIST = 14;
@@ -37,7 +38,9 @@ controls.minDistance = 1.2;
 controls.maxDistance = 60;
 
 const inertial = new THREE.Group();
-inertial.rotation.x = -Math.PI / 2;
+// J2000 +z -> three.js +Y.
+const CELESTIAL_UP = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+inertial.quaternion.copy(CELESTIAL_UP);
 scene.add(inertial);
 
 const moonBody = new THREE.Group();
@@ -141,6 +144,7 @@ const playBtn = $<HTMLButtonElement>('play');
 const speedSel = $<HTMLSelectElement>('speed');
 const offsetInput = $<HTMLInputElement>('offset');
 const followChk = $<HTMLInputElement>('follow');
+const trueSkyChk = $<HTMLInputElement>('trueSky');
 const skyCanvas = $<HTMLCanvasElement>('sky');
 
 const fmtLat = (d: number) => `${Math.abs(d).toFixed(2)}° ${d >= 0 ? 'N' : 'S'}`;
@@ -330,7 +334,13 @@ function viewEarth() {
   viewFrom(state ? worldDir(state.earthDirInertial, inertial) : new THREE.Vector3(0, 0, 1), 4.5);
 }
 $('viewEarth').addEventListener('click', viewEarth);
-$('viewSouth').addEventListener('click', () => viewFrom(worldDir([0, 0, -1], moonBody), 3.5));
+// From below the south pole. The camera is 0.5° off the axis toward lon 0, so lon 0 is
+// at the top of the screen.
+$('viewSouth').addEventListener('click', () => viewFrom(worldDir(bodyVecOf(-89.5, 0), moonBody), 3.5));
+trueSkyChk.addEventListener('change', () => {
+  update();
+  viewEarth();
+});
 
 // ---------- Update loop ----------
 const m4 = new THREE.Matrix4();
@@ -354,6 +364,13 @@ function update() {
   const m = state.bodyToInertial;
   m4.set(m[0], m[1], m[2], 0, m[3], m[4], m[5], 0, m[6], m[7], m[8], 0, 0, 0, 0, 1);
   moonBody.quaternion.setFromRotationMatrix(m4);
+  // Screen up: Moon north pole (default) or celestial north (true sky orientation).
+  if (trueSkyChk.checked) {
+    inertial.quaternion.copy(CELESTIAL_UP);
+  } else {
+    const pole = new THREE.Vector3(m[2], m[5], m[8]).applyQuaternion(CELESTIAL_UP);
+    inertial.quaternion.setFromUnitVectors(pole, new THREE.Vector3(0, 1, 0)).multiply(CELESTIAL_UP);
+  }
   moonBody.updateMatrixWorld(true);
 
   // Keep the camera fixed relative to the Moon surface, if asked.
