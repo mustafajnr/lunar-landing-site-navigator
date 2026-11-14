@@ -102,8 +102,8 @@ class _DemWindow:
 
     def __init__(self, ds, x_min, x_max, y_min, y_max):
         inv = ~ds.transform
-        c0, r0 = inv * (x_min, y_max)
-        c1, r1 = inv * (x_max, y_min)
+        c0, r0 = inv @ (x_min, y_max)
+        c1, r1 = inv @ (x_max, y_min)
         col0, row0 = int(math.floor(c0)) - 1, int(math.floor(r0)) - 1
         col1, row1 = int(math.ceil(c1)) + 1, int(math.ceil(r1)) + 1
         win = Window(col0, row0, col1 - col0, row1 - row0)

@@ -12,6 +12,7 @@ build/
 
 # Large data (SPICE kernels, DEMs)
 data/raw/
+data/cache/
 *.bsp
 *.tif
 *.img

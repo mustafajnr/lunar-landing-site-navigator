@@ -79,7 +79,8 @@ def test_series_step_limit(client):
 
 @pytest.mark.parametrize("bad", [
     {"lat_deg": 90.0},
-    {"lon_deg": 200.0},
+    {"lon_deg": 400.0},
+    {"lon_deg": -181.0},
     {"step_minutes": 0},
     {"stop_utc": "2026-11-01T00:00:00Z"},
     {"start_utc": "not a date"},
