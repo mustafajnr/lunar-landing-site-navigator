@@ -1,7 +1,16 @@
 import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { bodyVecOf, latLonOf, localSky, moonState, type MoonState, type Vec3 } from './ephemeris';
+import { ApiError, API_URL } from './api';
+import {
+  bodyVecOf,
+  latLonOf,
+  loadMoonStates,
+  localSky,
+  type MoonState,
+  type MoonStateBatch,
+  type Vec3,
+} from './ephemeris';
 
 // ---------- Scene layout ----------
 // Scene units: 1 = Moon radius. `inertial` group holds the J2000 equatorial frame (EQJ),
@@ -119,7 +128,10 @@ let baseMs = Math.round(Date.now() / 60000) * 60000;
 let offsetS = 0;
 let playing = false;
 let selected = { latDeg: -89.45, lonDeg: -137.31 }; // example point from CONTRACTS.md
-let state: MoonState = moonState(new Date(baseMs));
+let state: MoonState | null = null;
+let batch: MoonStateBatch | null = null;
+let batchReq: AbortController | null = null;
+let batchFor = NaN; // baseMs of the batch being loaded or loaded
 const prevMoonQuat = new THREE.Quaternion();
 let havePrevQuat = false;
 
@@ -145,7 +157,59 @@ function setBase(ms: number) {
   offsetS = 0;
   offsetInput.value = '0';
   dtInput.value = toInputValue(baseMs);
-  computeTracks();
+  requestBatch();
+}
+
+// ---------- API: Moon-state batch for the time window ----------
+const BATCH_STEP_MIN = 60;
+const apiMsg = $<HTMLDivElement>('apiMsg');
+
+function showApiError(e: unknown) {
+  const unreachable = e instanceof ApiError && e.unreachable;
+  apiMsg.hidden = false;
+  apiMsg.innerHTML = '';
+  const p = document.createElement('p');
+  p.textContent = unreachable
+    ? `The API is not available at ${API_URL}. Sun and Earth positions cannot load.`
+    : `The API returned an error: ${(e as Error).message}`;
+  apiMsg.append(p);
+  if (unreachable) {
+    const code = document.createElement('code');
+    code.textContent = 'cd api && uv run uvicorn lunarnav_api.main:app --port 8000';
+    const p2 = document.createElement('p');
+    p2.append('Start it with: ', code);
+    apiMsg.append(p2);
+  }
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = 'Try again';
+  btn.addEventListener('click', () => {
+    batchFor = NaN;
+    requestBatch();
+  });
+  apiMsg.append(btn);
+}
+
+function requestBatch() {
+  if (batchFor === baseMs) return;
+  batchFor = baseMs;
+  batchReq?.abort();
+  const ctrl = new AbortController();
+  batchReq = ctrl;
+  const pad = 3600 * 1000;
+  loadMoonStates(baseMs - WINDOW_S * 1000 - pad, baseMs + WINDOW_S * 1000 + pad, BATCH_STEP_MIN, ctrl.signal)
+    .then((b) => {
+      if (ctrl.signal.aborted) return;
+      batch = b;
+      apiMsg.hidden = true;
+      computeTracks();
+    })
+    .catch((e) => {
+      if ((e as Error).name === 'AbortError') return;
+      batchFor = NaN;
+      console.error(e);
+      showApiError(e);
+    });
 }
 
 dtInput.addEventListener('change', () => {
@@ -169,16 +233,17 @@ let earthTrack: TrackPt[] = [];
 function computeTracks() {
   sunTrack = [];
   earthTrack = [];
+  if (!batch) return;
   const step = 2 * 3600;
   for (let t = -WINDOW_S; t <= WINDOW_S; t += step) {
-    const s = moonState(new Date(baseMs + t * 1000));
+    const s = batch.at(baseMs + t * 1000);
     const sky = localSky(selected.latDeg, selected.lonDeg, s);
     sunTrack.push([sky.sunAzDeg, sky.sunElDeg]);
     earthTrack.push([sky.earthAzDeg, sky.earthElDeg]);
   }
 }
 
-function drawSky(nowSun: TrackPt, nowEarth: TrackPt) {
+function drawSky(nowSun: TrackPt | null, nowEarth: TrackPt | null) {
   const ctx = skyCanvas.getContext('2d');
   if (!ctx) return;
   const w = skyCanvas.width;
@@ -217,7 +282,9 @@ function drawSky(nowSun: TrackPt, nowEarth: TrackPt) {
   };
   dots(sunTrack, 'rgba(255,213,74,0.55)');
   dots(earthTrack, 'rgba(74,163,255,0.7)');
-  const big = ([az, el]: TrackPt, color: string) => {
+  const big = (p: TrackPt | null, color: string) => {
+    if (!p) return;
+    const [az, el] = p;
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(x(az), Math.max(3, Math.min(h - 3, y(el))), 4, 0, Math.PI * 2);
@@ -259,7 +326,10 @@ function viewFrom(dir: THREE.Vector3, dist: number) {
   controls.target.set(0, 0, 0);
   controls.update();
 }
-$('viewEarth').addEventListener('click', () => viewFrom(worldDir(state.earthDirInertial, inertial), 4.5));
+function viewEarth() {
+  viewFrom(state ? worldDir(state.earthDirInertial, inertial) : new THREE.Vector3(0, 0, 1), 4.5);
+}
+$('viewEarth').addEventListener('click', viewEarth);
 $('viewSouth').addEventListener('click', () => viewFrom(worldDir([0, 0, -1], moonBody), 3.5));
 
 // ---------- Update loop ----------
@@ -267,8 +337,20 @@ const m4 = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
 
 function update() {
-  const utc = new Date(baseMs + offsetS * 1000);
-  state = moonState(utc);
+  const nowMs = baseMs + offsetS * 1000;
+  const utc = new Date(nowMs);
+  $('utc').textContent = utc.toISOString().replace('.000', '');
+  const days = Math.trunc(offsetS / DAY_S);
+  const hours = Math.trunc(Math.abs(offsetS % DAY_S) / 3600);
+  $('offsetLabel').textContent = `${offsetS < 0 ? '-' : '+'}${Math.abs(days)} d ${String(hours).padStart(2, '0')} h`;
+  $('selLatLon').textContent = fmtLL(selected);
+  selMarker.position.copy(onSurface(selected.latDeg, selected.lonDeg));
+  if (!batch) {
+    drawSky(null, null);
+    return;
+  }
+  const first = state === null;
+  state = batch.at(nowMs);
   const m = state.bodyToInertial;
   m4.set(m[0], m[1], m[2], 0, m[3], m[4], m[5], 0, m[6], m[7], m[8], 0, 0, 0, 0, 1);
   moonBody.quaternion.setFromRotationMatrix(m4);
@@ -293,21 +375,16 @@ function update() {
 
   subSunMarker.position.copy(onSurface(state.subSolar.latDeg, state.subSolar.lonDeg));
   subEarthMarker.position.copy(onSurface(state.subEarth.latDeg, state.subEarth.lonDeg));
-  selMarker.position.copy(onSurface(selected.latDeg, selected.lonDeg));
 
   // Text readouts.
-  $('utc').textContent = utc.toISOString().replace('.000', '');
-  const days = Math.trunc(offsetS / DAY_S);
-  const hours = Math.trunc(Math.abs(offsetS % DAY_S) / 3600);
-  $('offsetLabel').textContent = `${offsetS < 0 ? '-' : '+'}${Math.abs(days)} d ${String(hours).padStart(2, '0')} h`;
   $('subSun').textContent = fmtLL(state.subSolar);
   $('subEarth').textContent = fmtLL(state.subEarth);
   $('earthDist').textContent = `${Math.round(state.earthDistanceKm).toLocaleString('en-US')} km`;
   const sky = localSky(selected.latDeg, selected.lonDeg, state);
-  $('selLatLon').textContent = fmtLL(selected);
   $('selSun').textContent = fmtAzEl(sky.sunAzDeg, sky.sunElDeg);
   $('selEarth').textContent = fmtAzEl(sky.earthAzDeg, sky.earthElDeg);
   drawSky([sky.sunAzDeg, sky.sunElDeg], [sky.earthAzDeg, sky.earthElDeg]);
+  if (first) viewEarth();
 }
 
 function resize() {
@@ -325,7 +402,16 @@ function frame(now: number) {
   last = now;
   if (playing) {
     offsetS += dt * Number(speedSel.value);
-    if (offsetS > WINDOW_S) offsetS = -WINDOW_S; // loop over the ±30 day window
+    if (offsetS > WINDOW_S / 2) {
+      // Time leaves the middle of the window: move the window forward and load a new
+      // batch. The old batch still covers 15 more days, so it stays in use until the
+      // new one arrives.
+      const nowMs = baseMs + offsetS * 1000;
+      baseMs = Math.round(nowMs / 60000) * 60000;
+      offsetS = (nowMs - baseMs) / 1000;
+      dtInput.value = toInputValue(baseMs);
+      requestBatch();
+    }
     offsetInput.value = String(Math.round(offsetS / 60));
   }
   update();
@@ -337,7 +423,6 @@ function frame(now: number) {
 // ---------- Start ----------
 resize();
 dtInput.value = toInputValue(baseMs);
-computeTracks();
-update();
-viewFrom(worldDir(state.earthDirInertial, inertial), 4.5);
+requestBatch();
+viewEarth();
 requestAnimationFrame(frame);

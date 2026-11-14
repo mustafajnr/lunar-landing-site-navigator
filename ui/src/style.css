@@ -113,3 +113,24 @@ td:last-child {
   border-top: 1px solid #333;
   padding-top: 6px;
 }
+#apiMsg {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 460px;
+  background: #3a1010;
+  border: 1px solid #c44;
+  border-radius: 6px;
+  padding: 6px 12px 10px;
+  color: #fdd;
+  z-index: 10;
+}
+#apiMsg p {
+  margin: 6px 0;
+}
+#apiMsg code {
+  font-size: 12px;
+  background: #000;
+  padding: 1px 4px;
+}

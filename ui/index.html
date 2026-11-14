@@ -7,8 +7,9 @@
   </head>
   <body>
     <canvas id="globe"></canvas>
+    <div id="apiMsg" role="alert" hidden></div>
     <aside id="panel">
-      <h1>Lunar Landing Site Navigator <small>spike</small></h1>
+      <h1>Lunar Landing Site Navigator</h1>
 
       <section>
         <h2>Time (UTC)</h2>
@@ -31,7 +32,7 @@
       </section>
 
       <section>
-        <h2>Moon geometry <span class="approx">approx.</span></h2>
+        <h2>Moon geometry</h2>
         <table class="mono">
           <tr><td><span class="dot sun"></span>Sub-solar</td><td id="subSun"></td></tr>
           <tr><td><span class="dot earth"></span>Sub-Earth</td><td id="subEarth"></td></tr>
@@ -62,8 +63,7 @@
       </section>
 
       <p class="small note">
-        Approximate: Moon orientation from the IAU rotation model (astronomy-engine), not the
-        DE/LE-based Moon ME frame. Sub-points agree with JPL Horizons to about 0.01°.
+        Sun, Earth and Moon orientation come from the API (NASA SPICE kernels, DE440, MOON_ME frame).
         Earth size and distance are not to scale.
       </p>
     </aside>
