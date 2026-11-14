@@ -36,7 +36,7 @@ const TREK = 'https://trek.nasa.gov/tiles/Moon';
 // (scripts/seed_tiles.ts). It serves HTTP/2 and is much faster than Trek. The bucket keeps
 // the Trek path: {base}/{EQ|SP}/{LAYER}/1.0.0/default/default028mm/{z}/{row}/{col}.{ext}.
 // {base}/manifest.json gives, for each layer and zoom, the tile ranges in the bucket and the
-// tiles that Trek does not have. Tiles outside the ranges come from Trek.
+// tiles that have no data. Tiles outside the ranges come from Trek.
 // VITE_TILE_CACHE_URL empty: no cache, all tiles come from Trek.
 
 /** One tile range: [minCol, maxCol, minRow, maxRow], inclusive. */
@@ -45,8 +45,9 @@ export interface TileManifest {
   version: 1;
   /** "{EQ|SP}/{LAYER}" -> zoom -> ranges in the bucket. */
   layers: Record<string, Record<string, TileRange[]>>;
-  /** "{EQ|SP}/{LAYER}" -> zoom -> [col, row] of tiles that Trek does not have (HTTP 404). */
-  missing?: Record<string, Record<string, [number, number][]>>;
+  /** "{EQ|SP}/{LAYER}" -> zoom -> row runs [row, firstCol, lastCol] of tiles inside the
+   *  ranges that have no data (Trek gives 404 or a fully transparent tile). No request. */
+  skip?: Record<string, Record<string, [number, number, number][]>>;
 }
 
 const CACHE_BASE = ((import.meta.env?.VITE_TILE_CACHE_URL as string | undefined) ?? '').replace(/\/+$/, '');
@@ -63,9 +64,13 @@ export function tileCacheOn(): boolean {
 export function setTileManifest(m: TileManifest | null) {
   manifest = m;
   missingSets = {};
-  for (const [key, zs] of Object.entries(m?.missing ?? {})) {
+  for (const [key, zs] of Object.entries(m?.skip ?? {})) {
     missingSets[key] = {};
-    for (const [z, list] of Object.entries(zs)) missingSets[key][z] = new Set(list.map(([c, r]) => r * 2 ** 21 + c));
+    for (const [z, runs] of Object.entries(zs)) {
+      const set = new Set<number>();
+      for (const [r, c0, c1] of runs) for (let c = c0; c <= c1; c++) set.add(r * 2 ** 21 + c);
+      missingSets[key][z] = set;
+    }
   }
 }
 

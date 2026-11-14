@@ -14,7 +14,8 @@
 //
 // Output:
 //   DIR/tiles/{EQ|SP}/{LAYER}/1.0.0/default/default028mm/{z}/{row}/{col}.{ext}
-//   DIR/manifest.json  tile ranges per layer and zoom, and the tiles Trek does not have
+//   DIR/manifest.json  tile ranges per layer and zoom, and the tiles that the UI must not load
+//                      (404 or fully transparent)
 //   DIR/missing.json   the tiles that gave HTTP 404 (kept for resume)
 //
 // Rules (the same as the map, from src/detail/stack.ts):
@@ -25,6 +26,7 @@
 //   Finer levels get the same square, but with a half-width of at most --cap-km.
 import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { inflateSync } from 'node:zlib';
 import { transform } from 'ol/proj.js';
 import type { Extent } from 'ol/extent.js';
 import type TileGrid from 'ol/tilegrid/TileGrid.js';
@@ -190,6 +192,33 @@ async function runPool<T>(items: T[], fn: (x: T) => Promise<void>) {
   );
 }
 
+/** True if the PNG is 8-bit grey+alpha or RGBA and all its image data bytes are 0 (fully
+ *  transparent). Any other PNG gives false. */
+function isTransparentPng(buf: Buffer): boolean {
+  if (buf.readUInt32BE(0) !== 0x89504e47) return false;
+  let p = 8;
+  let colorType = -1;
+  let depth = 0;
+  let width = 0;
+  const idat: Buffer[] = [];
+  while (p + 8 <= buf.length) {
+    const len = buf.readUInt32BE(p);
+    const type = buf.toString('ascii', p + 4, p + 8);
+    const data = buf.subarray(p + 8, p + 8 + len);
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0);
+      depth = data[8];
+      colorType = data[9];
+    } else if (type === 'IDAT') idat.push(data);
+    p += 12 + len;
+  }
+  if (depth !== 8 || (colorType !== 4 && colorType !== 6)) return false;
+  const raw = inflateSync(Buffer.concat(idat));
+  const stride = width * (colorType === 4 ? 2 : 4) + 1;
+  for (let i = 0; i < raw.length; i++) if (i % stride !== 0 && raw[i] !== 0) return false;
+  return raw.length > 0;
+}
+
 const fmtMB = (b: number) => `${(b / 1e6).toFixed(1)} MB`;
 
 async function main() {
@@ -290,7 +319,8 @@ async function main() {
   }, 15000);
   await runPool(all, async (t) => {
     try {
-      bytes += await fetchTile(t, missing);
+      const n = await fetchTile(t, missing);
+      bytes += n;
     } catch (e) {
       errors.push((e as Error).message);
     }
@@ -305,16 +335,30 @@ async function main() {
     process.exit(1);
   }
 
-  // Manifest: ranges per layer and zoom; 404 tiles inside the ranges.
-  const manifest = { version: 1, created: new Date().toISOString(), layers: {} as Record<string, Record<string, Range[]>>, missing: {} as Record<string, Record<string, [number, number][]>> };
+  // Trek sends HTTP 200 with a fully transparent PNG for many tiles without data. The UI
+  // does not need to load those either.
+  const empty: Tile[] = [];
+  await runPool(all, async (t) => {
+    const file = join(OUT, 'tiles', tilePath(t));
+    if (!missing.has(tileId(t)) && t.ext === 'png' && (await stat(file)).size < 4096 && isTransparentPng(await readFile(file)))
+      empty.push(t);
+  });
+  console.log(`${empty.length} tiles are fully transparent.`);
+
+  // Manifest: ranges per layer and zoom; the tiles inside the ranges that the UI must not
+  // load (404 or fully transparent), as row runs [row, firstCol, lastCol].
+  const manifest = { version: 1, created: new Date().toISOString(), layers: {} as Record<string, Record<string, Range[]>>, skip: {} as Record<string, Record<string, [number, number, number][]>> };
   for (const [key, zr] of ranges) {
     manifest.layers[key] = {};
     for (const [z, list] of [...zr].sort((a, b) => a[0] - b[0])) manifest.layers[key][z] = list;
   }
-  for (const id of [...missing].sort()) {
-    const t = tiles.get(id);
-    if (!t) continue;
-    ((manifest.missing[t.key] ??= {})[t.z] ??= []).push([t.col, t.row]);
+  const skip = [...[...missing].map((id) => tiles.get(id)).filter((t): t is Tile => !!t), ...empty];
+  skip.sort((a, b) => a.key.localeCompare(b.key) || a.z - b.z || a.row - b.row || a.col - b.col);
+  for (const t of skip) {
+    const runs = ((manifest.skip[t.key] ??= {})[t.z] ??= []);
+    const last = runs[runs.length - 1];
+    if (last && last[0] === t.row && last[2] === t.col - 1) last[2] = t.col;
+    else runs.push([t.row, t.col, t.col]);
   }
   await writeFile(join(OUT, 'manifest.json'), JSON.stringify(manifest));
   console.log(`Wrote ${join(OUT, 'manifest.json')}.`);
