@@ -1,4 +1,4 @@
-"""FastAPI app: time series, Moon state and site list (CONTRACTS.md sections 3-6).
+"""FastAPI app: time series, Moon state and site list (CONTRACTS.md sections 3-7).
 
 Run (from api/):  uv run uvicorn lunarnav_api.main:app --reload --port 8000
 """
@@ -161,7 +161,9 @@ def _check_steps(span: SpanIn) -> None:
 
 @app.get("/healthz")
 def healthz() -> dict:
-    return {"status": "ok", "lunarnav": version("lunarnav"), "kernels_loaded": spice._loaded}
+    with _spice_lock:
+        loaded = spice.is_loaded()
+    return {"status": "ok", "lunarnav": version("lunarnav"), "kernels_loaded": loaded}
 
 
 @app.post("/v1/series", response_model=SeriesOut)

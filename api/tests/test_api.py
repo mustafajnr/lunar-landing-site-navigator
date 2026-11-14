@@ -121,3 +121,24 @@ def test_cors_allows_vite_dev_server(client):
         assert r.headers["access-control-allow-origin"] == origin
     r = client.get("/healthz", headers={"Origin": "http://other.example"})
     assert "access-control-allow-origin" not in r.headers
+
+
+def test_healthz_and_series_after_kclear(client):
+    import spiceypy as sp
+
+    sp.kclear()
+    assert client.get("/healthz").json()["kernels_loaded"] is False
+    r = client.post("/v1/series", json={**APOLLO, "start_utc": "2026-11-14T00:00:00Z",
+                                        "stop_utc": "2026-11-14T06:00:00Z"})
+    assert r.status_code == 200, r.text  # the core loads the kernels again
+    assert client.get("/healthz").json()["kernels_loaded"] is True
+
+
+def test_series_accepts_offset_times(client):
+    base = {**APOLLO, "step_minutes": 60}
+    a = client.post("/v1/series", json={**base, "start_utc": "2026-11-14T00:00:00Z",
+                                        "stop_utc": "2026-11-14T06:00:00Z"}).json()
+    b = client.post("/v1/series", json={**base, "start_utc": "2026-11-14T02:00:00+02:00",
+                                        "stop_utc": "2026-11-13T22:00:00-08:00"}).json()
+    assert a["times_utc"] == b["times_utc"]
+    assert a["series"] == b["series"]
