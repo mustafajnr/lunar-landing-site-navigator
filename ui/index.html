@@ -119,10 +119,21 @@
       </section>
 
       <section>
-        <h2>Local sky</h2>
-        <canvas id="sky" width="300" height="150"></canvas>
-        <p class="small">Local sky, ±30 days: azimuth (0–360°, N E S W) vs elevation.
-          Yellow = Sun track, blue = Earth track, large dots = now.</p>
+        <h2 class="row">Local sky, ±30 days
+          <button id="skyHelpBtn" type="button" class="info" aria-expanded="false" aria-controls="skyHelp" title="How to read this plot">i</button></h2>
+        <div id="skyHelp" class="help" hidden>
+          <p>Each dot is the position of the Sun or Earth at one hour in the window, as seen
+            from the selected point. Left to right is the compass direction (azimuth), bottom to
+            top is the angle above the horizon (elevation). Dots above the dashed line are
+            visible. The large dots show the time on the clock.</p>
+        </div>
+        <canvas id="sky"></canvas>
+        <div class="legend small">
+          <span><span class="dot sun"></span>Sun track</span>
+          <span><span class="dot earth"></span>Earth track</span>
+          <span><span class="dot ring"></span>Now</span>
+          <span><span class="dash"></span>Horizon (flat, 0°)</span>
+        </div>
       </section>
 
       <section id="summary">

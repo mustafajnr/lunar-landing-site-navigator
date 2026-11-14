@@ -15,6 +15,7 @@ import {
 import { createGrid } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel } from './results';
+import { drawSkyPlot, type TrackPt } from './skyplot';
 
 // ---------- Scene layout ----------
 // Scene units: 1 = Moon radius. `inertial` group holds the J2000 frame. Its rotation puts
@@ -262,7 +263,6 @@ offsetInput.addEventListener('input', () => {
 });
 
 // ---------- Local sky plot (az vs el, ±30 days) ----------
-type TrackPt = [number, number];
 let sunTrack: TrackPt[] = [];
 let earthTrack: TrackPt[] = [];
 
@@ -290,55 +290,15 @@ function computeTracks() {
 }
 
 function drawSky(nowSun: TrackPt | null, nowEarth: TrackPt | null) {
-  const ctx = skyCanvas.getContext('2d');
-  if (!ctx) return;
-  const w = skyCanvas.width;
-  const h = skyCanvas.height;
-  // Elevation range: zoom in near the poles, where Sun and Earth stay low.
-  const all = [...sunTrack, ...earthTrack].map((p) => Math.abs(p[1]));
-  const maxAbs = Math.max(5, ...all);
-  const elRange = maxAbs <= 15 ? 15 : maxAbs <= 30 ? 30 : 90;
-  const x = (az: number) => (az / 360) * w;
-  const y = (el: number) => h / 2 - (el / elRange) * (h / 2);
-
-  ctx.fillStyle = '#05070a';
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = '#1a1208';
-  ctx.fillRect(0, h / 2, w, h / 2); // below horizon
-  ctx.strokeStyle = '#555';
-  ctx.beginPath();
-  ctx.moveTo(0, h / 2);
-  ctx.lineTo(w, h / 2);
-  ctx.stroke();
-  ctx.fillStyle = '#777';
-  ctx.font = '10px sans-serif';
-  ['N', 'E', 'S', 'W'].forEach((lbl, i) => ctx.fillText(lbl, x(i * 90) + 2, h - 3));
-  ctx.fillText(`+${elRange}°`, w - 26, 10);
-  ctx.fillText(`-${elRange}°`, w - 26, h - 3);
-  ctx.strokeStyle = '#222';
-  for (let az = 90; az < 360; az += 90) {
-    ctx.beginPath();
-    ctx.moveTo(x(az), 0);
-    ctx.lineTo(x(az), h);
-    ctx.stroke();
-  }
-  const dots = (pts: TrackPt[], color: string) => {
-    ctx.fillStyle = color;
-    for (const [az, el] of pts) ctx.fillRect(x(az) - 0.75, y(el) - 0.75, 1.5, 1.5);
-  };
-  dots(sunTrack, 'rgba(255,213,74,0.55)');
-  dots(earthTrack, 'rgba(74,163,255,0.7)');
-  const big = (p: TrackPt | null, color: string) => {
-    if (!p) return;
-    const [az, el] = p;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x(az), Math.max(3, Math.min(h - 3, y(el))), 4, 0, Math.PI * 2);
-    ctx.fill();
-  };
-  big(nowSun, '#ffd54a');
-  big(nowEarth, '#4aa3ff');
+  drawSkyPlot(skyCanvas, { sunTrack, earthTrack, sunNow: nowSun, earthNow: nowEarth, mask: null });
 }
+
+const skyHelpBtn = $<HTMLButtonElement>('skyHelpBtn');
+skyHelpBtn.addEventListener('click', () => {
+  const help = $('skyHelp');
+  help.hidden = !help.hidden;
+  skyHelpBtn.setAttribute('aria-expanded', String(!help.hidden));
+});
 
 // ---------- Picking ----------
 const raycaster = new THREE.Raycaster();
