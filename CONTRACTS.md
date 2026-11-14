@@ -17,7 +17,7 @@ Large data files go in `data/raw/` or `data/cache/`. Git ignores these folders.
 ## 2. Tech stack
 
 - **UI:** Vite + TypeScript + three.js. Node 18 is installed, so use Vite 5 or 6 (Vite 7 needs Node 20).
-- **Core and data:** Python 3.10 or later, with numpy, spiceypy and rasterio.
+- **Core, data and API:** Python 3.14 through `uv` (`~/.local/bin/uv`), with numpy, spiceypy and rasterio. Each folder is its own uv project.
 - **API:** FastAPI, deployed on Google Cloud Run (later).
 
 ## 3. Conventions
@@ -37,10 +37,13 @@ At the exact pole, "north" is not defined. Do not use a point at exactly ±90° 
 ## 4. Core algorithm
 
 ```
-evaluate(lat_deg, lon_deg, utc, observer_height_m, horizon_mask=None) -> Result
+evaluate(lat_deg, lon_deg, utc, observer_height_m, horizon_mask=None, *, surface_height_m=0.0) -> Result
 ```
 
-`horizon_mask = None` means a flat horizon of 0° in all directions.
+- `horizon_mask = None` means a flat horizon of 0° in all directions.
+- `surface_height_m` is the terrain height above the 1,737,400 m sphere. The terrain workstream supplies it.
+- A horizon mask is valid for one observer height only. If `horizon_mask.observer_height_m` is not equal to `observer_height_m`, `evaluate` must raise `ValueError`.
+- `evaluate` raises `ValueError` at exactly ±90° latitude.
 
 `Result` fields:
 
@@ -56,7 +59,11 @@ evaluate(lat_deg, lon_deg, utc, observer_height_m, horizon_mask=None) -> Result
 
 The application layer, not the core, repeats `evaluate` over a timespan and over the points inside a site radius.
 
-## 5. Horizon mask format
+## 5. API rule (draft)
+
+The API must return a full timespan in one call, not one instant per request. The UI sky plot needs about 720 instants for each view.
+
+## 6. Horizon mask format
 
 A JSON file for each (point, observer height) pair:
 
@@ -69,7 +76,7 @@ A JSON file for each (point, observer height) pair:
 }
 ```
 
-## 6. Site list format
+## 7. Site list format
 
 `data/sites.json` is a list of objects:
 
@@ -81,6 +88,7 @@ A JSON file for each (point, observer height) pair:
 
 `status` is one of `past`, `planned` or `candidate`.
 
-## 7. Change log
+## 8. Change log
 
 - 2026-11-14: First version.
+- 2026-11-14: Python 3.14 through uv. `surface_height_m` added to `evaluate`. Mask height check added. API timespan rule added.
