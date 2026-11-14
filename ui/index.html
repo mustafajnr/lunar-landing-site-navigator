@@ -8,7 +8,8 @@
   <body>
     <canvas id="globe"></canvas>
     <div id="apiMsg" role="alert" hidden></div>
-    <aside id="panel">
+
+    <aside id="panel" class="panel">
       <h1>Lunar Landing Site Navigator</h1>
 
       <section>
@@ -32,25 +33,19 @@
       </section>
 
       <section>
-        <h2>Moon geometry</h2>
-        <table class="mono">
-          <tr><td><span class="dot sun"></span>Sub-solar</td><td id="subSun"></td></tr>
-          <tr><td><span class="dot earth"></span>Sub-Earth</td><td id="subEarth"></td></tr>
-          <tr><td>Earth dist.</td><td id="earthDist"></td></tr>
-        </table>
-      </section>
-
-      <section>
-        <h2>Selected point <span class="approx">flat horizon</span></h2>
-        <p class="small">Click the globe to select a point.</p>
-        <table class="mono">
-          <tr><td><span class="dot sel"></span>Lat, lon</td><td id="selLatLon"></td></tr>
-          <tr><td>Sun az / el</td><td id="selSun"></td></tr>
-          <tr><td>Earth az / el</td><td id="selEarth"></td></tr>
-        </table>
-        <canvas id="sky" width="300" height="150"></canvas>
-        <p class="small">Local sky, ±30 days: azimuth (0–360°, N E S W) vs elevation.
-          Yellow = Sun track, blue = Earth track, large dots = now.</p>
+        <h2>Point</h2>
+        <label class="field">Site
+          <select id="siteSel"><option value="">Loading sites…</option></select>
+        </label>
+        <form id="pointForm" class="row" novalidate>
+          <label class="field">Lat (°)<input id="latIn" type="text" inputmode="decimal" size="9" /></label>
+          <label class="field">Lon (°)<input id="lonIn" type="text" inputmode="decimal" size="9" /></label>
+          <button type="submit">Go</button>
+        </form>
+        <p id="pointErr" class="error" role="alert" hidden></p>
+        <p class="small">Lat −90 to +90 (not exactly ±90). Lon −180 to +180, east is positive.
+          Or click the globe.</p>
+        <div id="siteInfo" class="small"></div>
       </section>
 
       <section>
@@ -60,6 +55,8 @@
           <button id="viewSouth" type="button">View south pole</button>
         </div>
         <label class="small"><input id="showGrid" type="checkbox" checked /> Show latitude/longitude grid</label><br />
+        <label class="small"><input id="showSites" type="checkbox" checked /> Show sites
+          (<span class="dot cand"></span>candidate <span class="dot past"></span>past)</label><br />
         <label class="small"><input id="follow" type="checkbox" /> Camera turns with the Moon</label><br />
         <label class="small" title="Celestial north is up, as an observer on Earth sees the Moon. Otherwise the Moon's north pole is up."
           ><input id="trueSky" type="checkbox" /> True sky orientation (view from Earth)</label>
@@ -67,10 +64,33 @@
           celestial north, as seen from Earth.</p>
       </section>
 
+      <section>
+        <h2>Moon geometry</h2>
+        <table class="mono">
+          <tr><td><span class="dot sun"></span>Sub-solar</td><td id="subSun"></td></tr>
+          <tr><td><span class="dot earth"></span>Sub-Earth</td><td id="subEarth"></td></tr>
+          <tr><td>Earth dist.</td><td id="earthDist"></td></tr>
+        </table>
+      </section>
+
       <p class="small note">
         Sun, Earth and Moon orientation come from the API (NASA SPICE kernels, DE440, MOON_ME frame).
         Earth size and distance are not to scale.
       </p>
+    </aside>
+
+    <aside id="results" class="panel">
+      <section>
+        <h2>Selected point <span class="tag">flat horizon</span></h2>
+        <table class="mono">
+          <tr><td><span class="dot sel"></span>Lat, lon</td><td id="selLatLon"></td></tr>
+          <tr><td>Sun az / el</td><td id="selSun"></td></tr>
+          <tr><td>Earth az / el</td><td id="selEarth"></td></tr>
+        </table>
+        <canvas id="sky" width="300" height="150"></canvas>
+        <p class="small">Local sky, ±30 days: azimuth (0–360°, N E S W) vs elevation.
+          Yellow = Sun track, blue = Earth track, large dots = now.</p>
+      </section>
     </aside>
     <script type="module" src="/src/main.ts"></script>
   </body>

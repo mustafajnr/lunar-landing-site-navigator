@@ -1,17 +1,19 @@
 import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { ApiError, API_URL } from './api';
+import { ApiError, API_URL, fetchSites, type Site } from './api';
 import {
   bodyVecOf,
   latLonOf,
   loadMoonStates,
   localSky,
+  type LatLon,
   type MoonState,
   type MoonStateBatch,
   type Vec3,
 } from './ephemeris';
 import { createGrid } from './grid';
+import { setupPointUi, STATUS_COLOR } from './point';
 
 // ---------- Scene layout ----------
 // Scene units: 1 = Moon radius. `inertial` group holds the J2000 frame. Its rotation puts
@@ -101,7 +103,20 @@ function marker(color: number, r = 0.022) {
 }
 const subSunMarker = marker(0xffd54a);
 const subEarthMarker = marker(0x4aa3ff);
-const selMarker = marker(0xff4a4a, 0.018);
+const selMarker = marker(0xff4a4a, 0.012);
+// Selected point: a red dot plus a ring that keeps a fixed size on screen.
+const selRing = new THREE.Mesh(
+  new THREE.RingGeometry(0.8, 1, 48),
+  new THREE.MeshBasicMaterial({ color: 0xff4a4a, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthTest: false }),
+);
+scene.add(selRing);
+
+// Site markers (from /v1/sites), coloured by status.
+const siteGroup = new THREE.Group();
+moonBody.add(siteGroup);
+const sitesChk = $<HTMLInputElement>('showSites');
+siteGroup.visible = sitesChk.checked;
+sitesChk.addEventListener('change', () => (siteGroup.visible = sitesChk.checked));
 
 // Lights.
 scene.add(new THREE.AmbientLight(0xffffff, 0.04));
@@ -138,7 +153,7 @@ const onSurface = (lat: number, lon: number, r = 1.004) => v3(bodyVecOf(lat, lon
 let baseMs = Math.round(Date.now() / 60000) * 60000;
 let offsetS = 0;
 let playing = false;
-let selected = { latDeg: -89.45, lonDeg: -137.31 }; // example point from CONTRACTS.md
+let selected: LatLon = { latDeg: -89.45, lonDeg: -137.31 }; // example point from CONTRACTS.md
 let state: MoonState | null = null;
 let batch: MoonStateBatch | null = null;
 let batchReq: AbortController | null = null;
@@ -325,9 +340,63 @@ canvas.addEventListener('pointerup', (e) => {
   const hit = raycaster.intersectObject(moonMesh, false)[0];
   if (!hit) return;
   const p = moonBody.worldToLocal(hit.point.clone());
-  selected = latLonOf([p.x, p.y, p.z]);
-  computeTracks();
+  const ll = latLonOf([p.x, p.y, p.z]);
+  ll.latDeg = Math.max(-89.999, Math.min(89.999, ll.latDeg)); // never exactly ±90
+  selectPoint(ll, null, false);
 });
+
+// ---------- Selected point: inputs, site picker, globe click ----------
+const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true));
+
+function selectPoint(ll: LatLon, site: Site | null, fly: boolean) {
+  selected = { latDeg: ll.latDeg, lonDeg: ll.lonDeg };
+  pointUi.show(selected, site);
+  computeTracks();
+  if (fly) flyTo(selected);
+}
+
+fetchSites()
+  .then((sites) => {
+    pointUi.setSites(sites);
+    for (const s of sites) {
+      const m = new THREE.Mesh(
+        new THREE.SphereGeometry(0.006, 10, 6),
+        new THREE.MeshBasicMaterial({ color: STATUS_COLOR[s.status] ?? 0xffffff }),
+      );
+      m.position.copy(onSurface(s.lat_deg, s.lon_deg, 1.002));
+      m.userData.site = s;
+      siteGroup.add(m);
+    }
+  })
+  .catch((e) => {
+    console.error(e);
+    pointUi.setSitesError('Site list not available (API)');
+  });
+
+// Camera flight to a point: the camera ends above the point, looking at the Moon centre.
+let flight: { from: THREE.Vector3; to: THREE.Vector3; fromD: number; toD: number; t0: number } | null = null;
+const FLIGHT_MS = 900;
+function flyTo(ll: LatLon) {
+  const fromD = camera.position.length();
+  flight = {
+    from: camera.position.clone().normalize(),
+    to: worldDir(bodyVecOf(ll.latDeg, ll.lonDeg), moonBody),
+    fromD,
+    toD: Math.min(fromD, 1.8),
+    t0: performance.now(),
+  };
+}
+function stepFlight(now: number) {
+  if (!flight) return;
+  const f = Math.min(1, (now - flight.t0) / FLIGHT_MS);
+  const e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2; // ease in-out
+  const q = new THREE.Quaternion().setFromUnitVectors(flight.from, flight.to);
+  const dir = flight.from.clone().applyQuaternion(new THREE.Quaternion().slerp(q, e));
+  camera.position.copy(dir.multiplyScalar(flight.fromD + (flight.toD - flight.fromD) * e));
+  controls.target.set(0, 0, 0);
+  if (f >= 1) flight = null;
+}
+controls.addEventListener('start', () => (flight = null)); // user drag stops the flight
 
 // ---------- Camera presets ----------
 function worldDir(v: Vec3, parent: THREE.Object3D) {
@@ -363,6 +432,14 @@ function update() {
   $('offsetLabel').textContent = `${offsetS < 0 ? '-' : '+'}${Math.abs(days)} d ${String(hours).padStart(2, '0')} h`;
   $('selLatLon').textContent = fmtLL(selected);
   selMarker.position.copy(onSurface(selected.latDeg, selected.lonDeg));
+  moonBody.updateMatrixWorld(true);
+  const selWorld = selMarker.getWorldPosition(new THREE.Vector3());
+  selRing.position.copy(selWorld);
+  selRing.lookAt(camera.position);
+  selRing.scale.setScalar(camera.position.distanceTo(selWorld) * 0.012);
+  // Markers keep about the same size on screen when the camera zooms in.
+  const k = Math.max(0.01, Math.min(1, (camera.position.length() - 1) / 3.5));
+  for (const m of [selMarker, subSunMarker, subEarthMarker, ...siteGroup.children]) m.scale.setScalar(k);
   if (!batch) {
     drawSky(null, null);
     return;
@@ -439,6 +516,7 @@ function frame(now: number) {
     }
     offsetInput.value = String(Math.round(offsetS / 60));
   }
+  stepFlight(now);
   update();
   controls.update();
   renderer.render(scene, camera);
@@ -449,5 +527,6 @@ function frame(now: number) {
 resize();
 dtInput.value = toInputValue(baseMs);
 requestBatch();
+pointUi.show(selected, null);
 viewEarth();
 requestAnimationFrame(frame);
