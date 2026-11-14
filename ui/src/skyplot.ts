@@ -41,6 +41,13 @@ const C = {
   earthNow: '#4aa3ff',
 };
 
+const FONT = '10px system-ui, sans-serif';
+/** Elevation tick steps (degrees) and the minimum distance between two labels (px). */
+const EL_STEPS = [0.1, 0.2, 0.25, 0.5, 1, 2, 5, 10, 15, 30, 45];
+const EL_LABEL_GAP = 18;
+/** Width of the column for the rotated "Elevation" title (centre at x = 10). */
+const TITLE_W = 16;
+
 const CARD: Record<number, string> = { 0: 'N', 90: 'E', 180: 'S', 270: 'W' };
 const mod360 = (a: number) => ((a % 360) + 360) % 360;
 
@@ -69,7 +76,6 @@ export function drawSkyPlot(canvas: HTMLCanvasElement, d: SkyPlotData) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   const m = { l: 38, r: 18, t: 8, b: 32 };
-  const w = cssW - m.l - m.r;
   const h = cssH - m.t - m.b;
 
   // Elevation range. Auto: zoom in near the poles, where the Sun and Earth stay low.
@@ -84,7 +90,19 @@ export function drawSkyPlot(canvas: HTMLCanvasElement, d: SkyPlotData) {
   } else {
     elRange = d.elZoom;
   }
-  const elStep = elRange <= 2 ? 0.5 : elRange <= 5 ? 1 : elRange <= 15 ? 5 : elRange <= 30 ? 10 : 30;
+  const pxEl = h / (2 * elRange); // px per degree of elevation
+  // Tick step from the pixel scale: labels are at least EL_LABEL_GAP px apart at all zooms.
+  const elStep = EL_STEPS.find((s) => s * pxEl >= EL_LABEL_GAP) ?? 90;
+  const elTicks: number[] = [];
+  for (let i = Math.ceil(-elRange / elStep - 1e-9); i * elStep <= elRange + 1e-9; i++) {
+    elTicks.push(Math.round(i * elStep * 100) / 100);
+  }
+  const elText = (v: number) => `${v > 0 ? '+' : ''}${v}°`;
+  // Left margin from the widest label, so the labels do not touch the axis title.
+  ctx.font = FONT;
+  const labelW = Math.max(...elTicks.map((v) => ctx.measureText(elText(v)).width));
+  m.l = Math.max(m.l, Math.ceil(TITLE_W + labelW + 6));
+  const w = cssW - m.l - m.r;
 
   // Azimuth window. Around a body: same degrees per pixel on both axes, so disks are round.
   const body = d.azMode === 'sun' ? d.sunNow : d.azMode === 'earth' ? d.earthNow : null;
@@ -95,7 +113,6 @@ export function drawSkyPlot(canvas: HTMLCanvasElement, d: SkyPlotData) {
     az0 = body[0] - azSpan / 2;
   }
   const pxAz = w / azSpan; // px per degree of azimuth
-  const pxEl = h / (2 * elRange); // px per degree of elevation
 
   const x = (az: number) => {
     let a = mod360(az - az0);
@@ -112,7 +129,7 @@ export function drawSkyPlot(canvas: HTMLCanvasElement, d: SkyPlotData) {
   ctx.fillRect(m.l, y(0), w, h / 2);
 
   // Grid and ticks.
-  ctx.font = '10px system-ui, sans-serif';
+  ctx.font = FONT;
   ctx.lineWidth = 1;
   ctx.strokeStyle = C.grid;
   ctx.fillStyle = C.text;
@@ -128,20 +145,20 @@ export function drawSkyPlot(canvas: HTMLCanvasElement, d: SkyPlotData) {
     const a = Math.round(mod360(az) * 10) / 10;
     const shown = azSpan >= 360 && az >= 360 ? 360 : a;
     const card = CARD[shown % 360];
-    ctx.fillText(card ? `${shown}° ${card}` : `${shown}°`, px, m.t + h + 3);
+    // 6 px below the plot: clear of the lowest elevation label (centred on the bottom edge).
+    ctx.fillText(card ? `${shown}° ${card}` : `${shown}°`, px, m.t + h + 6);
   }
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
-  for (let el = -elRange; el <= elRange + 1e-9; el += elStep) {
+  for (const el of elTicks) {
     const py = Math.round(y(el)) + 0.5;
-    if (Math.abs(el) > 1e-9) {
+    if (el !== 0) {
       ctx.beginPath();
       ctx.moveTo(m.l, py);
       ctx.lineTo(m.l + w, py);
       ctx.stroke();
     }
-    const v = Math.round(el * 10) / 10;
-    ctx.fillText(`${v > 0 ? '+' : ''}${v}°`, m.l - 4, py);
+    ctx.fillText(elText(el), m.l - 4, py);
   }
 
   // Axis titles.
