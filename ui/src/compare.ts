@@ -123,7 +123,7 @@ export function openCompare(searches: SavedSearch[]) {
   // ---------- Loading, one request at a time ----------
   const c = new AbortController();
   ctrl = c;
-  (async () => {
+  const loadAll = async () => {
     for (let i = 0; i < entries.length; i++) {
       const e = entries[i];
       const key = searchKey(e.s);
@@ -166,7 +166,7 @@ export function openCompare(searches: SavedSearch[]) {
     progress.classList.toggle('bad', bad > 0);
     renderTable();
     drawTimeline();
-  })();
+  };
 
   function setData(e: Entry, d: SeriesOut) {
     e.state = 'ok';
@@ -566,4 +566,5 @@ export function openCompare(searches: SavedSearch[]) {
 
   renderTable();
   drawTimeline();
+  void loadAll();
 }
