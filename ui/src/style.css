@@ -316,3 +316,71 @@ button.info {
 .skyzoom select {
   font-size: 11px;
 }
+
+/* Site map panel: bottom centre, between the side panels. It folds down to its header. */
+#mapPanel {
+  position: fixed;
+  left: 336px;
+  right: 396px;
+  bottom: 8px;
+  height: min(46vh, 460px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 18, 24, 0.95);
+  border: 1px solid #333;
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 5;
+  transition: transform 0.2s;
+}
+#mapPanel.folded {
+  /* Off screen, but the map keeps its size, so it still loads tiles in the background. */
+  transform: translateY(calc(100% - 30px));
+}
+#mapPanel header {
+  flex: 0 0 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+  border-bottom: 1px solid #333;
+}
+#mapPanel header .small {
+  flex: 1;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+#mapFold {
+  font-weight: 600;
+}
+#mapBody {
+  position: relative;
+  flex: 1;
+}
+#mapBody > .dm {
+  position: absolute;
+  inset: 0;
+}
+#mapStatus {
+  padding: 8px;
+}
+#mapPanel:fullscreen,
+#mapPanel.max {
+  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: auto;
+  border-radius: 0;
+  transform: none;
+  z-index: 20;
+}
+@media (max-width: 1100px) {
+  #mapPanel {
+    left: 8px;
+    right: 8px;
+    height: 40vh;
+  }
+}

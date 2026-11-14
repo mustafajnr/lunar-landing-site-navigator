@@ -15,6 +15,7 @@ import {
 import { createGrid } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel } from './results';
+import { setupMapPanel } from './mappanel';
 import { drawSkyPlot, type AzMode, type ElZoom, type TrackPt } from './skyplot';
 
 // ---------- Scene layout ----------
@@ -520,11 +521,19 @@ canvas.addEventListener('pointerup', (e) => {
 
 // ---------- Selected point: inputs, site picker, globe click ----------
 const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true));
+// Site-detail map panel. A click on the map selects the point; the globe follows.
+let layoutDirty = true;
+const mapPanel = setupMapPanel(
+  (ll) => selectPoint(ll, null, true, true),
+  () => (layoutDirty = true),
+);
 
-function selectPoint(ll: LatLon, site: Site | null, fly: boolean) {
+function selectPoint(ll: LatLon, site: Site | null, fly: boolean, fromMap = false) {
   selected = { latDeg: ll.latDeg, lonDeg: ll.lonDeg };
   pointUi.show(selected, site);
-  $('selName').textContent = pointName(selected, site);
+  const name = pointName(selected, site);
+  $('selName').textContent = name;
+  mapPanel.setPoint(selected, site, name || fmtLL(selected), !fromMap);
   requestSeries();
   computeTracks();
   if (fly) flyTo(selected);
@@ -596,12 +605,12 @@ function viewFrom(dir: THREE.Vector3, dist: number) {
   controls.update();
 }
 function viewEarth() {
-  viewFrom(state ? worldDir(state.earthDirInertial, inertial) : new THREE.Vector3(0, 0, 1), 4.5);
+  viewFrom(state ? worldDir(state.earthDirInertial, inertial) : new THREE.Vector3(0, 0, 1), Math.max(3, fitDist()));
 }
 $('viewEarth').addEventListener('click', viewEarth);
 // From below the south pole. The camera is 0.5° off the axis toward lon 0, so lon 0 is
 // at the top of the screen.
-$('viewSouth').addEventListener('click', () => viewFrom(worldDir(bodyVecOf(-89.5, 0), moonBody), 3.5));
+$('viewSouth').addEventListener('click', () => viewFrom(worldDir(bodyVecOf(-89.5, 0), moonBody), Math.max(2.5, fitDist() * 0.8)));
 trueSkyChk.addEventListener('change', () => {
   update();
   viewEarth();
@@ -680,17 +689,49 @@ function update() {
   $('selSun').textContent = fmtAzEl(sky.sunAzDeg, sky.sunElDeg);
   $('selEarth').textContent = fmtAzEl(sky.earthAzDeg, sky.earthElDeg);
   drawSky([sky.sunAzDeg, sky.sunElDeg], [sky.earthAzDeg, sky.earthElDeg]);
+  mapPanel.setSky({
+    sunAz: sky.sunAzDeg,
+    sunEl: sky.sunElDeg,
+    sunUp: api ? api.sunVisibleFraction > 0 : sky.sunElDeg > 0,
+    earthAz: sky.earthAzDeg,
+    earthEl: sky.earthElDeg,
+    earthUp: api ? api.earthVisible : sky.earthElDeg > 0,
+  });
   if (first) viewEarth();
 }
 
+// The globe centre is the centre of the free screen area: between the side panels and
+// above the map panel.
+function freeArea() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const l = $('panel').getBoundingClientRect();
+  const r = $('results').getBoundingClientRect();
+  const left = l.width && l.right < w / 2 ? l.right : 0;
+  const right = r.width && r.left > w / 2 ? r.left : w;
+  const bottom = h - mapPanel.coveredHeight();
+  return { cx: (left + right) / 2, cy: bottom / 2, w: right - left, h: bottom };
+}
 function resize() {
+  layoutDirty = false;
   const w = window.innerWidth;
   const h = window.innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
+  const f = freeArea();
+  camera.setViewOffset(w, h, w / 2 - f.cx, h / 2 - f.cy, w, h);
   camera.updateProjectionMatrix();
 }
-window.addEventListener('resize', resize);
+window.addEventListener('resize', () => (layoutDirty = true));
+/** Camera distance at which the Moon fills about 85 % of the free area. */
+function fitDist() {
+  const f = freeArea();
+  const frac = Math.max(0.2, Math.min(f.w / window.innerWidth, f.h / window.innerHeight));
+  const half = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * frac * 0.85);
+  // The view across the free area may be narrower than its height.
+  const halfW = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * (f.w / window.innerHeight) * 0.85);
+  return 1 / Math.sin(Math.min(half, halfW));
+}
 
 let last = performance.now();
 function frame(now: number) {
@@ -711,6 +752,7 @@ function frame(now: number) {
     }
     offsetInput.value = String(Math.round(offsetS / 60));
   }
+  if (layoutDirty) resize();
   stepFlight(now);
   update();
   controls.update();
@@ -722,9 +764,7 @@ function frame(now: number) {
 resize();
 dtInput.value = toInputValue(baseMs);
 requestBatch();
-pointUi.show(selected, null);
-$('selName').textContent = pointName(selected, null);
-requestSeries();
+selectPoint(selected, null, false);
 viewEarth();
 requestAnimationFrame(frame);
 
