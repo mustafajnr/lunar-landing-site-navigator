@@ -1,8 +1,10 @@
 // Site results panel: /v1/series for the selected point over the time window.
 // Shows live Sun/Earth values, the time to the next sunset/Earthset, the summary and
-// the event list. Flat horizon for now (no mask).
+// the event list. The API uses the terrain horizon where it has terrain data
+// (`terrain: "auto"`), else a flat horizon. Older APIs send no `horizon` block: then the
+// horizon is flat, as before.
 
-import { ApiError, fetchSeries, type SeriesEvent, type SeriesOut } from './api';
+import { ApiError, fetchSeries, type HorizonMask, type SeriesEvent, type SeriesOut } from './api';
 import type { LatLon } from './ephemeris';
 
 export const SERIES_STEP_MIN = 60;
@@ -15,6 +17,51 @@ export interface SkyNow {
   earthEl: number;
   earthMargin: number;
   earthVisible: boolean;
+}
+
+/** The horizon in use for the loaded series. */
+export interface HorizonInfo {
+  kind: 'terrain' | 'flat' | 'provided' | 'unknown';
+  label: string;
+  /** Terrain outline for the sky plot, or null for a flat horizon. */
+  mask: { elevationDeg: number[]; azStepDeg: number } | null;
+}
+
+const FLAT: HorizonInfo = { kind: 'flat', label: 'Flat horizon (0°)', mask: null };
+
+function horizonOf(d: SeriesOut, sent: HorizonMask | null): HorizonInfo {
+  const h = d.horizon;
+  if (!h) {
+    // Older API: no horizon block. It used the mask we sent, or a flat horizon.
+    if (sent) return { kind: 'provided', label: 'Provided', mask: { elevationDeg: sent.elevation_deg, azStepDeg: sent.az_step_deg } };
+    return FLAT;
+  }
+  const mask =
+    h.elevation_deg && h.elevation_deg.length && h.az_step_deg
+      ? { elevationDeg: h.elevation_deg, azStepDeg: h.az_step_deg }
+      : null;
+  if (h.source === 'terrain') {
+    const mpp = h.dem_source?.match(/(\d+)\s*MPP/i)?.[1];
+    return { kind: 'terrain', label: mpp ? `Terrain (LOLA ${mpp} m)` : 'Terrain (LOLA)', mask };
+  }
+  if (h.source === 'provided') return { kind: 'provided', label: 'Provided', mask };
+  return { kind: 'flat', label: 'Flat horizon (no terrain data here)', mask: null };
+}
+
+// Development only: open the page with ?mockmask to send the two committed terrain masks
+// (data/masks) as the `mask` field, for an API that has no terrain yet.
+const MOCK_MASKS: (() => Promise<HorizonMask[]>) | null =
+  import.meta.env.DEV && new URLSearchParams(location.search).has('mockmask')
+    ? async () => {
+        const mods = import.meta.glob('../../data/masks/*.json', { import: 'default' });
+        return Promise.all(Object.values(mods).map((f) => f() as Promise<HorizonMask>));
+      }
+    : null;
+
+async function mockMaskFor(lat: number, lon: number, h: number): Promise<HorizonMask | null> {
+  if (!MOCK_MASKS) return null;
+  const all = await MOCK_MASKS();
+  return all.find((m) => Math.abs(m.lat_deg - lat) < 1e-3 && Math.abs(m.lon_deg - lon) < 1e-3 && m.observer_height_m === h) ?? null;
 }
 
 export interface SeriesRequestKey {
@@ -60,6 +107,8 @@ const EVENT_LABEL: Record<string, string> = {
 
 export class ResultsPanel {
   data: SeriesOut | null = null;
+  horizon: HorizonInfo | null = null;
+  private nextAfter: Partial<Record<SeriesEvent['type'], number | null>> | null = null;
   private times: number[] = [];
   private events: { type: SeriesEvent['type']; ms: number; row?: HTMLTableRowElement }[] = [];
   private key: SeriesRequestKey | null = null;
@@ -81,6 +130,12 @@ export class ResultsPanel {
       hIn.classList.remove('bad');
       for (const b of document.querySelectorAll<HTMLButtonElement>('[data-height]')) {
         b.classList.toggle('active', Number(b.dataset.height) === v);
+      }
+      if (this.key) {
+        // A mask is valid for one observer height only: drop the old one now.
+        this.horizon = null;
+        this.renderHorizon();
+        this.onData();
       }
       this.schedule(250);
     };
@@ -120,6 +175,8 @@ export class ResultsPanel {
     if (pointChanged) {
       // Old values belong to another point: clear them now.
       this.data = null;
+      this.horizon = null;
+      this.nextAfter = null;
       this.times = [];
       this.events = [];
       this.render();
@@ -140,21 +197,38 @@ export class ResultsPanel {
     const ctrl = new AbortController();
     this.ctrl = ctrl;
     this.setStatus('Loading…', false);
-    fetchSeries(
-      {
-        latDeg: k.point.latDeg,
-        lonDeg: k.point.lonDeg,
-        observerHeightM: this.heightM,
-        startMs: k.startMs,
-        stopMs: k.stopMs,
-        stepMinutes: SERIES_STEP_MIN,
-        mask: null, // flat horizon for now
-      },
-      ctrl.signal,
-    )
+    const heightM = this.heightM;
+    let sent: HorizonMask | null = null;
+    mockMaskFor(k.point.latDeg, k.point.lonDeg, heightM)
+      .then((mock) => {
+        sent = mock;
+        return fetchSeries(
+          {
+            latDeg: k.point.latDeg,
+            lonDeg: k.point.lonDeg,
+            observerHeightM: heightM,
+            startMs: k.startMs,
+            stopMs: k.stopMs,
+            stepMinutes: SERIES_STEP_MIN,
+            mask: mock,
+            terrain: 'auto',
+          },
+          ctrl.signal,
+        );
+      })
       .then((d) => {
         if (ctrl.signal.aborted) return;
         this.data = d;
+        this.horizon = horizonOf(d, sent);
+        const ne = d.next_events;
+        this.nextAfter = ne
+          ? {
+              sunrise: ne.sunrise ? Date.parse(ne.sunrise) : null,
+              sunset: ne.sunset ? Date.parse(ne.sunset) : null,
+              earthrise: ne.earthrise ? Date.parse(ne.earthrise) : null,
+              earthset: ne.earthset ? Date.parse(ne.earthset) : null,
+            }
+          : null;
         this.times = d.times_utc.map((t) => Date.parse(t));
         this.events = d.events.map((e) => ({ type: e.type, ms: Date.parse(e.utc) }));
         this.setStatus('', false);
@@ -203,8 +277,18 @@ export class ResultsPanel {
     };
   }
 
+  private renderHorizon() {
+    const h = this.horizon;
+    const tag = $('horizonTag');
+    const text = h ? h.label : this.key ? 'Horizon: loading…' : '–';
+    if (tag.textContent !== text) tag.textContent = text;
+    tag.className = `tag ${h ? h.kind : ''}`;
+    $('legendTerrain').hidden = !h?.mask;
+  }
+
   /** Static parts: summary and event list. */
   private render() {
+    this.renderHorizon();
     const d = this.data;
     const sum = $('summary');
     const list = $<HTMLTableSectionElement>('eventRows');
@@ -279,6 +363,16 @@ export class ResultsPanel {
       stateEl.className = `state ${up ? 'up' : 'down'}`;
       if (!next) {
         const what = up ? (body === 'sun' ? 'sunset' : 'Earthset') : body === 'sun' ? 'sunrise' : 'Earthrise';
+        // Use the API's first event after the window, if it sent one.
+        const type = (up ? (body === 'sun' ? 'sunset' : 'earthset') : body === 'sun' ? 'sunrise' : 'earthrise') as SeriesEvent['type'];
+        const after = this.nextAfter?.[type];
+        if (after != null && after > nowMs) {
+          return [`${EVENT_LABEL[type]} in ${fmtDuration(after - nowMs)}`, `at ${fmtUtc(after)} UTC (after the loaded window)`];
+        }
+        if (this.nextAfter && after === null) {
+          const end = stop + 400 * 86400000;
+          return [`No ${what} for more than ${fmtDuration(end - nowMs)}`, `None before ${fmtUtc(end)} UTC (API search: 400 days after the window).`];
+        }
         return [
           `No ${what} for more than ${fmtDuration(stop - nowMs)}`,
           `None before the end of the loaded window (${fmtUtc(stop)} UTC).`,

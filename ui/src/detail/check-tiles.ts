@@ -6,7 +6,7 @@ import { LONLAT, SPS } from './moonproj';
 import { EQ_GLOBAL, EQ_LOCAL, SP_LAYERS, makeLayer, nominalMpp, type TrekLayer } from './layers';
 
 const sites: [string, number, number][] = [
-  ['Shackleton rim', -89.45, -137.31],
+  ['Shackleton–de Gerlache ridge', -89.45, -137.31],
   ['Apollo 11', 0.67416, 23.47314],
   ['Malapert Massif (Artemis III)', -85.9861, -0.255],
 ];

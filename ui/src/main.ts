@@ -15,7 +15,8 @@ import {
 import { createGrid } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel } from './results';
-import { drawSkyPlot, type TrackPt } from './skyplot';
+import { setupMapPanel } from './mappanel';
+import { drawSkyPlot, type AzMode, type ElZoom, type TrackPt } from './skyplot';
 
 // ---------- Scene layout ----------
 // Scene units: 1 = Moon radius. `inertial` group holds the J2000 frame. Its rotation puts
@@ -24,6 +25,9 @@ import { drawSkyPlot, type TrackPt } from './skyplot';
 // Moon ME frame: body +x = lon 0, body +y = lon 90 E, body +z = north pole.
 const EARTH_DIST = 8; // scaled, not true (true ~221 Moon radii)
 const EARTH_RADIUS = 0.35; // scaled, not true (true ~3.67 Moon radii)
+// "True scale Earth": Earth at its true distance and size, in Moon radii.
+const MOON_R_KM = 1737.4;
+const EARTH_TRUE_RADIUS = 6371 / MOON_R_KM;
 const SUN_DIST = 14;
 const DAY_S = 86400;
 const WINDOW_S = 30 * DAY_S;
@@ -36,7 +40,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
-const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 200);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 200); // far plane grows for true scale Earth
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.minDistance = 1.03;
@@ -303,7 +307,10 @@ sunMarker.visible = earthMesh.visible = sunLine.visible = earthLine.visible = fa
 let baseMs = Math.round(Date.now() / 60000) * 60000;
 let offsetS = 0;
 let playing = false;
-let selected: LatLon = { latDeg: -89.45, lonDeg: -137.31 }; // example point from CONTRACTS.md
+// Default point (CONTRACTS.md example): on the ridge between Shackleton and de Gerlache,
+// about 20 km from the Shackleton centre.
+const DEFAULT_POINT = { latDeg: -89.45, lonDeg: -137.31, name: 'Shackleton–de Gerlache ridge' };
+let selected: LatLon = { latDeg: DEFAULT_POINT.latDeg, lonDeg: DEFAULT_POINT.lonDeg };
 let state: MoonState | null = null;
 let batch: MoonStateBatch | null = null;
 let batchReq: AbortController | null = null;
@@ -438,9 +445,51 @@ function computeTracks() {
   }
 }
 
+// Sun angular radius: 695,700 km at 1 AU (varies by about ±1.7 % over the year).
+const SUN_RADIUS_DEG = 0.2666;
+const EARTH_RADIUS_KM = 6371;
+let elZoom: ElZoom = 'auto';
+let azMode: AzMode = 'full';
+
 function drawSky(nowSun: TrackPt | null, nowEarth: TrackPt | null) {
-  drawSkyPlot(skyCanvas, { sunTrack, earthTrack, sunNow: nowSun, earthNow: nowEarth, mask: null });
+  const earthKm = state?.earthDistanceKm ?? 384400;
+  drawSkyPlot(skyCanvas, {
+    sunTrack,
+    earthTrack,
+    sunNow: nowSun,
+    earthNow: nowEarth,
+    sunRadiusDeg: SUN_RADIUS_DEG,
+    earthRadiusDeg: THREE.MathUtils.radToDeg(Math.asin(EARTH_RADIUS_KM / earthKm)),
+    mask: results.horizon?.mask ?? null,
+    elZoom,
+    azMode,
+  });
 }
+
+const EL_STEPS = [1, 2, 5, 10, 15, 30, 90];
+function setElZoom(z: ElZoom) {
+  elZoom = z;
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-el]')) {
+    b.classList.toggle('active', b.dataset.el === String(z));
+  }
+}
+for (const b of document.querySelectorAll<HTMLButtonElement>('[data-el]')) {
+  b.addEventListener('click', () => setElZoom(b.dataset.el === 'auto' ? 'auto' : Number(b.dataset.el)));
+}
+skyCanvas.addEventListener(
+  'wheel',
+  (e) => {
+    e.preventDefault();
+    const cur = elZoom === 'auto' ? 15 : elZoom;
+    let i = EL_STEPS.findIndex((v) => v >= cur);
+    if (i < 0) i = EL_STEPS.length - 1;
+    i = Math.max(0, Math.min(EL_STEPS.length - 1, i + (e.deltaY > 0 ? 1 : -1)));
+    setElZoom(EL_STEPS[i]);
+  },
+  { passive: false },
+);
+const skyAz = $<HTMLSelectElement>('skyAz');
+skyAz.addEventListener('change', () => (azMode = skyAz.value as AzMode));
 
 const skyHelpBtn = $<HTMLButtonElement>('skyHelpBtn');
 skyHelpBtn.addEventListener('click', () => {
@@ -475,14 +524,28 @@ canvas.addEventListener('pointerup', (e) => {
 
 // ---------- Selected point: inputs, site picker, globe click ----------
 const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true));
+// Site-detail map panel. A click on the map selects the point; the globe follows.
+let layoutDirty = true;
+const mapPanel = setupMapPanel(
+  (ll) => selectPoint(ll, null, true, true),
+  () => (layoutDirty = true),
+);
 
-function selectPoint(ll: LatLon, site: Site | null, fly: boolean) {
+function selectPoint(ll: LatLon, site: Site | null, fly: boolean, fromMap = false) {
   selected = { latDeg: ll.latDeg, lonDeg: ll.lonDeg };
   pointUi.show(selected, site);
-  $('selName').textContent = site ? site.name : '';
+  const name = pointName(selected, site);
+  $('selName').textContent = name;
+  mapPanel.setPoint(selected, site, name || fmtLL(selected), !fromMap);
   requestSeries();
   computeTracks();
   if (fly) flyTo(selected);
+}
+
+function pointName(ll: LatLon, site: Site | null) {
+  if (site) return site.name;
+  if (Math.abs(ll.latDeg - DEFAULT_POINT.latDeg) < 1e-6 && Math.abs(ll.lonDeg - DEFAULT_POINT.lonDeg) < 1e-6) return DEFAULT_POINT.name;
+  return '';
 }
 
 let sitesLoaded = false;
@@ -545,12 +608,49 @@ function viewFrom(dir: THREE.Vector3, dist: number) {
   controls.update();
 }
 function viewEarth() {
-  viewFrom(state ? worldDir(state.earthDirInertial, inertial) : new THREE.Vector3(0, 0, 1), 4.5);
+  viewFrom(state ? worldDir(state.earthDirInertial, inertial) : new THREE.Vector3(0, 0, 1), Math.max(3, fitDist()));
 }
 $('viewEarth').addEventListener('click', viewEarth);
 // From below the south pole. The camera is 0.5° off the axis toward lon 0, so lon 0 is
 // at the top of the screen.
-$('viewSouth').addEventListener('click', () => viewFrom(worldDir(bodyVecOf(-89.5, 0), moonBody), 3.5));
+$('viewSouth').addEventListener('click', () => viewFrom(worldDir(bodyVecOf(-89.5, 0), moonBody), Math.max(2.5, fitDist() * 0.8)));
+// True scale Earth. The Sun stays at its reduced distance and size.
+let trueEarth = false;
+const trueEarthChk = $<HTMLInputElement>('trueEarth');
+function setTrueEarth(on: boolean) {
+  trueEarth = on;
+  trueEarthChk.checked = on;
+  camera.far = on ? 2000 : 200;
+  camera.updateProjectionMatrix();
+  controls.maxDistance = on ? 900 : 60;
+  if (!on && camera.position.distanceTo(controls.target) > 60) viewEarth();
+  $('scaleNote').textContent = on
+    ? 'Earth: true distance and size. Not to scale: the Sun distance and size are reduced (true distance about 86,000 Moon radii).'
+    : 'Not to scale: Earth and Sun distances and sizes are reduced.';
+}
+trueEarthChk.addEventListener('change', () => setTrueEarth(trueEarthChk.checked));
+// Camera preset: Earth and the Moon side by side at true scale. The camera looks at the
+// middle of the Earth-Moon line from the side.
+$('viewTrueScale').addEventListener('click', () => {
+  setTrueEarth(true);
+  if (!state) return;
+  flight = null;
+  const eDir = worldDir(state.earthDirInertial, inertial);
+  const mid = eDir.clone().multiplyScalar(state.earthDistanceKm / MOON_R_KM / 2);
+  // Side direction: perpendicular to the Earth line, toward the Sun side if possible.
+  const side = worldDir(state.sunDirInertial, inertial).projectOnPlane(eDir);
+  if (side.lengthSq() < 1e-6) side.set(0, 1, 0).projectOnPlane(eDir);
+  side.normalize();
+  const half = mid.length() * 1.25;
+  // Fit the Earth-Moon line in the free screen width (between the panels).
+  const f = freeArea();
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const dist = half / (t * Math.min(f.w / window.innerHeight, f.h / window.innerHeight * 2) * 0.9);
+  controls.target.copy(mid);
+  camera.position.copy(mid).addScaledVector(side, dist);
+  controls.update();
+});
+
 trueSkyChk.addEventListener('change', () => {
   update();
   viewEarth();
@@ -610,9 +710,12 @@ function update() {
   sunLight.position.copy(sunDir).multiplyScalar(20);
   sunMarker.position.copy(sunDir).multiplyScalar(SUN_DIST);
   setLineEnd(sunLine, sunMarker.position);
-  earthMesh.position.copy(earthDir).multiplyScalar(EARTH_DIST);
+  const eDist = trueEarth ? state.earthDistanceKm / MOON_R_KM : EARTH_DIST;
+  const eRad = trueEarth ? EARTH_TRUE_RADIUS : EARTH_RADIUS;
+  earthMesh.position.copy(earthDir).multiplyScalar(eDist);
+  earthMesh.scale.setScalar(eRad / EARTH_RADIUS);
   earthMesh.rotation.set(0, 0, gmstRad(nowMs));
-  setLineEnd(earthLine, earthDir.clone().multiplyScalar(EARTH_DIST - EARTH_RADIUS));
+  setLineEnd(earthLine, earthDir.clone().multiplyScalar(eDist - eRad));
 
   subSunMarker.position.copy(onSurface(state.subSolar.latDeg, state.subSolar.lonDeg));
   subEarthMarker.position.copy(onSurface(state.subEarth.latDeg, state.subEarth.lonDeg));
@@ -629,17 +732,49 @@ function update() {
   $('selSun').textContent = fmtAzEl(sky.sunAzDeg, sky.sunElDeg);
   $('selEarth').textContent = fmtAzEl(sky.earthAzDeg, sky.earthElDeg);
   drawSky([sky.sunAzDeg, sky.sunElDeg], [sky.earthAzDeg, sky.earthElDeg]);
+  mapPanel.setSky({
+    sunAz: sky.sunAzDeg,
+    sunEl: sky.sunElDeg,
+    sunUp: api ? api.sunVisibleFraction > 0 : sky.sunElDeg > 0,
+    earthAz: sky.earthAzDeg,
+    earthEl: sky.earthElDeg,
+    earthUp: api ? api.earthVisible : sky.earthElDeg > 0,
+  });
   if (first) viewEarth();
 }
 
+// The globe centre is the centre of the free screen area: between the side panels and
+// above the map panel.
+function freeArea() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const l = $('panel').getBoundingClientRect();
+  const r = $('results').getBoundingClientRect();
+  const left = l.width && l.right < w / 2 ? l.right : 0;
+  const right = r.width && r.left > w / 2 ? r.left : w;
+  const bottom = h - mapPanel.coveredHeight();
+  return { cx: (left + right) / 2, cy: bottom / 2, w: right - left, h: bottom };
+}
 function resize() {
+  layoutDirty = false;
   const w = window.innerWidth;
   const h = window.innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
+  const f = freeArea();
+  camera.setViewOffset(w, h, w / 2 - f.cx, h / 2 - f.cy, w, h);
   camera.updateProjectionMatrix();
 }
-window.addEventListener('resize', resize);
+window.addEventListener('resize', () => (layoutDirty = true));
+/** Camera distance at which the Moon fills about 85 % of the free area. */
+function fitDist() {
+  const f = freeArea();
+  const frac = Math.max(0.2, Math.min(f.w / window.innerWidth, f.h / window.innerHeight));
+  const half = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * frac * 0.85);
+  // The view across the free area may be narrower than its height.
+  const halfW = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * (f.w / window.innerHeight) * 0.85);
+  return 1 / Math.sin(Math.min(half, halfW));
+}
 
 let last = performance.now();
 function frame(now: number) {
@@ -660,6 +795,7 @@ function frame(now: number) {
     }
     offsetInput.value = String(Math.round(offsetS / 60));
   }
+  if (layoutDirty) resize();
   stepFlight(now);
   update();
   controls.update();
@@ -671,8 +807,7 @@ function frame(now: number) {
 resize();
 dtInput.value = toInputValue(baseMs);
 requestBatch();
-pointUi.show(selected, null);
-requestSeries();
+selectPoint(selected, null, false);
 viewEarth();
 requestAnimationFrame(frame);
 

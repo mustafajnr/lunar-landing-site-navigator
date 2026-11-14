@@ -8,6 +8,7 @@
   <body>
     <canvas id="globe"></canvas>
     <div id="apiMsg" role="alert" hidden></div>
+    <div id="scaleNote" class="small">Not to scale: Earth and Sun distances and sizes are reduced.</div>
 
     <aside id="panel" class="panel">
       <h1>Lunar Landing Site Navigator</h1>
@@ -43,7 +44,7 @@
           <button type="submit">Go</button>
         </form>
         <p id="pointErr" class="error" role="alert" hidden></p>
-        <p class="small">Lat −90 to +90 (not exactly ±90). Lon −180 to +180, east is positive.
+        <p class="small">Lat −90 to +90 (not exactly ±90). Lon −180 to +180 (or 0 to 360), east is positive.
           Or click the globe.</p>
         <div id="siteInfo" class="small"></div>
       </section>
@@ -53,6 +54,10 @@
         <div class="row">
           <button id="viewEarth" type="button">View from Earth</button>
           <button id="viewSouth" type="button">View south pole</button>
+        </div>
+        <div class="row">
+          <label class="small"><input id="trueEarth" type="checkbox" /> True scale Earth</label>
+          <button id="viewTrueScale" type="button" title="Turns on true scale Earth and shows Earth and the Moon together">Earth and Moon, true scale</button>
         </div>
         <label class="small"><input id="showGrid" type="checkbox" checked /> Show latitude/longitude grid</label><br />
         <label class="small"><input id="showSites" type="checkbox" checked /> Show sites
@@ -75,13 +80,13 @@
 
       <p class="small note">
         Sun, Earth and Moon orientation come from the API (NASA SPICE kernels, DE440, MOON_ME frame).
-        Earth size and distance are not to scale.
+        The globe view is not to scale (see the note at the top).
       </p>
     </aside>
 
     <aside id="results" class="panel">
       <section class="first">
-        <h2>Selected point <span class="tag">flat horizon</span></h2>
+        <h2>Selected point <span id="horizonTag" class="tag">–</span></h2>
         <div class="row mono"><span><span class="dot sel"></span><span id="selLatLon"></span></span><span id="selName" class="small"></span></div>
         <div class="cd">
           <span id="cdSunState" class="state"></span>
@@ -126,13 +131,27 @@
             from the selected point. Left to right is the compass direction (azimuth), bottom to
             top is the angle above the horizon (elevation). Dots above the dashed line are
             visible. The large dots show the time on the clock.</p>
+          <p>When you zoom in, the Sun and Earth show as disks of their true size (Sun about
+            0.53°, Earth about 1.9°). The terrain hides the part of a disk below the horizon
+            outline. "Around the Sun" and "Around Earth" use the same scale on both axes.</p>
         </div>
-        <canvas id="sky"></canvas>
+        <canvas id="sky" title="Mouse wheel: zoom the elevation axis"></canvas>
+        <div class="row small skyzoom">
+          <span title="Elevation axis">El.
+            <button type="button" data-el="auto" class="active">Auto</button><button type="button" data-el="2">±2°</button><button
+              type="button" data-el="5">±5°</button><button type="button" data-el="15">±15°</button><button type="button" data-el="90">±90°</button></span>
+          <select id="skyAz" title="Azimuth axis">
+            <option value="full">Az 0–360°</option>
+            <option value="sun">Around the Sun</option>
+            <option value="earth">Around Earth</option>
+          </select>
+        </div>
         <div class="legend small">
           <span><span class="dot sun"></span>Sun track</span>
           <span><span class="dot earth"></span>Earth track</span>
           <span><span class="dot ring"></span>Now</span>
-          <span><span class="dash"></span>Horizon (flat, 0°)</span>
+          <span><span class="dash"></span>Flat horizon, 0°</span>
+          <span id="legendTerrain" hidden><span class="terr"></span>Terrain horizon</span>
         </div>
       </section>
 
@@ -160,6 +179,14 @@
         </div>
       </section>
     </aside>
+    <section id="mapPanel" aria-label="Site map">
+      <header>
+        <button id="mapFold" type="button" aria-expanded="true" aria-controls="mapBody">▾ Site map</button>
+        <span id="mapTitle" class="small"></span>
+        <button id="mapFull" type="button">Full screen</button>
+      </header>
+      <div id="mapBody"><p id="mapStatus" class="small">Select a point to show the map.</p></div>
+    </section>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

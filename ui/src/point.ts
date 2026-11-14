@@ -1,6 +1,6 @@
 // Selected point: latitude/longitude input with validation, and the site picker.
 // CONTRACTS.md: planetocentric lat/lon in degrees, MOON_ME frame. Longitude east-positive,
-// -180..+180. Latitude must not be exactly ±90 (north is not defined at the pole).
+// -180..+180. Input may also use 0..360; it is converted. Latitude must not be exactly ±90 (north is not defined at the pole).
 
 import type { LatLon } from './ephemeris';
 import type { Site } from './api';
@@ -26,10 +26,11 @@ export function validateLatLon(latText: string, lonText: string): Validation {
   if (lonText.trim() === '' || !Number.isFinite(lon)) {
     return { ok: false, field: 'lon', error: 'Longitude: enter a number in degrees, for example -137.31.' };
   }
-  if (lon < -180 || lon > 180) {
-    return { ok: false, field: 'lon', error: 'Longitude must be between -180° and +180° (east is positive).' };
+  if (lon < -180 || lon > 360) {
+    return { ok: false, field: 'lon', error: 'Longitude must be between -180° and +360° (east is positive).' };
   }
-  return { ok: true, ll: { latDeg: lat, lonDeg: lon } };
+  // 0 to 360 convention: (180, 360] becomes -180 to +180.
+  return { ok: true, ll: { latDeg: lat, lonDeg: lon > 180 ? lon - 360 : lon } };
 }
 
 const STATUS_ORDER: Site['status'][] = ['candidate', 'planned', 'past'];
