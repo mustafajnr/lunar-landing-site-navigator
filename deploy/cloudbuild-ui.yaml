@@ -1,0 +1,9 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--build-arg', 'VITE_API_URL=${_API_URL}', '-t', '${_IMAGE}', '.']
+images: ['${_IMAGE}']
+substitutions:
+  _IMAGE: europe-west1-docker.pkg.dev/lunar-site-select/lunarsite/ui:latest
+  _API_URL: https://lunarsite-api-763981639147.europe-west1.run.app
+options:
+  machineType: E2_HIGHCPU_8
