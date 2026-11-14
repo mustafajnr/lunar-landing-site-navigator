@@ -132,6 +132,5 @@ TODO(developer): check that this list is complete. The guide asks for all code, 
 - TODO(developer): team name.
 - TODO(developer): team member name(s) as they appear on the certificate.
 - TODO(developer): country and Local Event. A team of one is eligible for global judging only in a Local Event, not in the Universal Event.
-- TODO(developer): licence for the original code. Use an OSI licence. Apache 2.0 is the default under the Space Apps Terms.
 - TODO(developer): optional FortiGuard Web Filter Classification request for https://lunarsite.select (recommended for a new website, not required).
 - TODO(developer): images for the project page (JPG or PNG, up to 10 MB). The files in `screenshots/` are suitable.

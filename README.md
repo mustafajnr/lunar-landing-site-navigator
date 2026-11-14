@@ -247,4 +247,6 @@ The developer built this project with Claude Code (Anthropic). Several Claude Co
 
 ## License
 
-TODO(developer): select an OSI open-source licence and add a `LICENSE` file. The Space Apps Terms say that NASA distributes original content under Apache 2.0 if the team gives no licence.
+The original code and documentation use the [Apache License 2.0](LICENSE).
+
+Third-party data keeps its own terms. This includes the NAIF SPICE kernels, the LOLA DEMs, the NASA Moon Trek tiles and the Earth and Sun textures. See [Data sources and credits](#data-sources-and-credits).
