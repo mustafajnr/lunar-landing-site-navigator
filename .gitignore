@@ -24,3 +24,6 @@ data/cache/
 
 # Claude Code agent worktrees
 .claude/
+
+# Site-map tile cache (downloaded Trek tiles, see deploy/README.md)
+ui/.tile-cache/

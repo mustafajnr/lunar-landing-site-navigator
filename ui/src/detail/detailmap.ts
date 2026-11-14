@@ -26,10 +26,11 @@ import { defaults as defaultInteractions } from 'ol/interaction/defaults.js';
 import { transform, getPointResolution } from 'ol/proj.js';
 import type { Coordinate } from 'ol/coordinate.js';
 import { LONLAT, SPS, R, siteStereo } from './moonproj';
-import { EQ_GLOBAL, EQ_LOCAL, SP_LAYERS, makeLayer, nominalMpp, type TrekLayer } from './layers';
+import { makeLayer, nominalMpp, tileCacheOn, type TrekLayer } from './layers';
+import { POLAR_LAT, DEFAULT_START_MPP, RADIUS_VIEW_FACTOR, bestImageAt, hasDataAt, stackFor } from './stack';
 
-/** South of this latitude the view uses the native Trek south polar stereographic tiles. */
-export const POLAR_LAT = -75;
+export { POLAR_LAT, bestImageAt };
+export { loadTileCache } from './layers';
 const D2R = Math.PI / 180;
 
 export interface MapPoint {
@@ -52,17 +53,9 @@ export interface MapSky {
 export interface DetailMapOptions {
   /** Called when the user clicks the map. */
   onPick?: (ll: { latDeg: number; lonDeg: number }) => void;
-  /** Start view resolution in m/px if the point has no radius. Default 30. */
+  /** Start view resolution in m/px if the point has no radius. Default DEFAULT_START_MPP. */
   resolution?: number;
 }
-
-const WAC = EQ_GLOBAL[0];
-// WAC in polar views: EQ tiles near the pole are very narrow in longitude, so a fine zoom
-// level needs hundreds of reprojected tiles. Zoom 5 (333 m/px along latitude, about 23 m/px
-// along longitude at 86° S) is enough for the area outside the NAC mosaic.
-const WAC_POLAR: TrekLayer = { ...WAC, maxZ: 5, title: `${WAC.title} (zoom 5 in polar view)` };
-const KAGUYA = EQ_GLOBAL[1];
-const NAC_SP = SP_LAYERS.find((l) => l.id === 'LRO_NAC_AvgMosaic_SPole855_1mp')!;
 
 /** Point at angular distance `dist` (rad) along `bearing` (deg clockwise from north). */
 function destination(lat: number, lon: number, bearingDeg: number, dist: number): Coordinate {
@@ -75,40 +68,6 @@ function destination(lat: number, lon: number, bearingDeg: number, dist: number)
 }
 
 const normLon = (lon: number) => ((((lon + 180) % 360) + 360) % 360) - 180;
-
-/** True if the layer has data at a lunar lon/lat. */
-function hasDataAt(l: TrekLayer, lon: number, lat: number): boolean {
-  if (l.proj === 'EQ') {
-    const [x0, y0, x1, y1] = l.bbox;
-    return lon >= x0 && lon <= x1 && lat >= y0 && lat <= y1;
-  }
-  const [x, y] = transform([lon, lat], LONLAT, SPS);
-  if (l.rhoMax !== undefined) return Math.hypot(x, y) <= l.rhoMax;
-  const [x0, y0, x1, y1] = l.bbox;
-  return x >= x0 && x <= x1 && y >= y0 && y <= y1;
-}
-
-/** The finest image layer with data at a point, and its m/px. */
-export function bestImageAt(lat: number, lon: number): { layer: TrekLayer; mpp: number } {
-  const all = [...EQ_GLOBAL, ...EQ_LOCAL, ...SP_LAYERS].filter((l) => l.kind === 'image' && hasDataAt(l, lon, lat));
-  // Kaguya is poor near the poles; do not call it the best there.
-  const usable = all.filter((l) => l !== KAGUYA || Math.abs(lat) < 60);
-  let best = usable[0] ?? WAC;
-  for (const l of usable) if (nominalMpp(l) < nominalMpp(best)) best = l;
-  return { layer: best, mpp: nominalMpp(best) };
-}
-
-/** Layer stack (bottom to top) for a point. */
-function stackFor(lat: number, lon: number): TrekLayer[] {
-  const polar = lat <= POLAR_LAT;
-  const base = polar ? WAC_POLAR : Math.abs(lat) >= 60 ? WAC : KAGUYA;
-  const local = EQ_LOCAL.filter((l) => hasDataAt(l, lon, lat));
-  if (!polar) return [base, ...local];
-  const sp = SP_LAYERS.filter((l) => l.role === 'overlay' || hasDataAt(l, lon, lat));
-  // NAC mosaic below the overlays, so a hillshade shows on top when the user turns it on.
-  sp.sort((a, b) => (a === NAC_SP ? -1 : b === NAC_SP ? 1 : 0));
-  return [base, ...sp, ...local];
-}
 
 const fmtCoord = (v: number, pos: string, neg: string) => `${Math.abs(v).toFixed(4)}° ${v >= 0 ? pos : neg}`;
 const fmtLL = (lon: number, lat: number) => `${fmtCoord(lat, 'N', 'S')}, ${fmtCoord(lon, 'E', 'W')}`;
@@ -181,7 +140,9 @@ export class DetailMap {
         new ScaleLine({ units: 'metric', bar: true, steps: 4, text: false, minWidth: 100 }),
       ],
       interactions: defaultInteractions({ altShiftDragRotate: false, pinchRotate: false }),
-      maxTilesLoading: 12,
+      // Trek serves HTTP/1.1 (6 tiles at a time per host). The tile cache bucket serves
+      // HTTP/2, so more tiles can load at the same time.
+      maxTilesLoading: tileCacheOn() ? 32 : 12,
     });
     this.map.on('singleclick', (e) => {
       const [lon, lat] = transform(e.coordinate, this.map.getView().getProjection(), LONLAT);
@@ -213,8 +174,8 @@ export class DetailMap {
       !polar && hasView && Math.hypot(lat - this.projCentre[0], (lon - this.projCentre[1]) * Math.cos(lat * D2R)) > 5;
     const size = this.map.getSize();
     const minPx = size ? Math.max(100, Math.min(size[0], size[1])) : 400;
-    let res = hasView ? view0.getResolution()! : this.opts.resolution ?? 30;
-    if (recenter && p.radiusM) res = (p.radiusM * 2.6) / minPx;
+    let res = hasView ? view0.getResolution()! : this.opts.resolution ?? DEFAULT_START_MPP;
+    if (recenter && p.radiusM) res = (p.radiusM * RADIUS_VIEW_FACTOR) / minPx;
     if (!hasView || polar !== this.polar || (recenter && far)) {
       this.polar = polar;
       this.projCentre = [lat, lon];

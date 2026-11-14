@@ -94,7 +94,9 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
     if (loading) return;
     status.textContent = 'Loading map…';
     loading = import('./detail/detailmap')
-      .then(({ DetailMap }) => {
+      // The tile cache manifest first (waits at most 2.5 s), so the first tiles use the cache.
+      .then(async ({ DetailMap, loadTileCache }) => {
+        await loadTileCache();
         status.hidden = true;
         dm = new DetailMap(body, { onPick });
         if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__detailMap = dm;
