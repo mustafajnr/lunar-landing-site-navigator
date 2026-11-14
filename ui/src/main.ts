@@ -11,6 +11,7 @@ import {
   type MoonStateBatch,
   type Vec3,
 } from './ephemeris';
+import { createGrid } from './grid';
 
 // ---------- Scene layout ----------
 // Scene units: 1 = Moon radius. `inertial` group holds the J2000 frame. Its rotation puts
@@ -34,7 +35,7 @@ scene.background = new THREE.Color(0x000000);
 const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 200);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.minDistance = 1.2;
+controls.minDistance = 1.03;
 controls.maxDistance = 60;
 
 const inertial = new THREE.Group();
@@ -68,6 +69,13 @@ new THREE.TextureLoader().load(
     moonMat.color.set(0x999999);
   },
 );
+
+// Latitude/longitude grid.
+const grid = createGrid();
+moonBody.add(grid);
+const gridChk = $<HTMLInputElement>('showGrid');
+grid.visible = gridChk.checked;
+gridChk.addEventListener('change', () => (grid.visible = gridChk.checked));
 
 // Spin axis (north = white end).
 function line(points: THREE.Vector3[], color: number, parent: THREE.Object3D, dashed = false) {
