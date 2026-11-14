@@ -2,7 +2,7 @@
 // Open: /detail.html?lat=-89.45&lon=-137.31
 // Optional: name=<text>, radius=<m> (draws the site circle and fits the view to it).
 import './detail.css';
-import { DetailMap } from './detailmap';
+import { DetailMap, loadTileCache } from './detailmap';
 
 const q = new URLSearchParams(location.search);
 const lat = Number(q.get('lat') ?? -89.45);
@@ -16,11 +16,14 @@ const showSite = (la: number, lo: number, n: string) => {
   $('site').textContent = `${n ? n + ': ' : ''}${fmt(la, 'N', 'S')}, ${fmt(lo, 'E', 'W')}`;
 };
 
-const dm = new DetailMap($('map'), { onPick: (ll) => showSite(ll.latDeg, ll.lonDeg, '') });
-dm.setPoint({ latDeg: lat, lonDeg: lon, name, radiusM });
 showSite(lat, lon, name);
-// For tests: tile counts.
-(window as unknown as Record<string, unknown>).__detailMap = dm;
+// The tile cache manifest first (waits at most 2.5 s), so the first tiles use the cache.
+void loadTileCache().then(() => {
+  const dm = new DetailMap($('map'), { onPick: (ll) => showSite(ll.latDeg, ll.lonDeg, '') });
+  dm.setPoint({ latDeg: lat, lonDeg: lon, name, radiusM });
+  // For tests: tile counts.
+  (window as unknown as Record<string, unknown>).__detailMap = dm;
+});
 
 // Preset sites for quick testing.
 const presets: [string, number, number][] = [

@@ -30,6 +30,70 @@ export type TrekLayer = {
 };
 
 const TREK = 'https://trek.nasa.gov/tiles/Moon';
+
+// ---------- Tile cache ----------
+// A public Cloud Storage bucket holds copies of the Trek tiles around the curated sites
+// (scripts/seed_tiles.ts). It serves HTTP/2 and is much faster than Trek. The bucket keeps
+// the Trek path: {base}/{EQ|SP}/{LAYER}/1.0.0/default/default028mm/{z}/{row}/{col}.{ext}.
+// {base}/manifest.json gives, for each layer and zoom, the tile ranges in the bucket and the
+// tiles that Trek does not have. Tiles outside the ranges come from Trek.
+// VITE_TILE_CACHE_URL empty: no cache, all tiles come from Trek.
+
+/** One tile range: [minCol, maxCol, minRow, maxRow], inclusive. */
+type TileRange = [number, number, number, number];
+export interface TileManifest {
+  version: 1;
+  /** "{EQ|SP}/{LAYER}" -> zoom -> ranges in the bucket. */
+  layers: Record<string, Record<string, TileRange[]>>;
+  /** "{EQ|SP}/{LAYER}" -> zoom -> [col, row] of tiles that Trek does not have (HTTP 404). */
+  missing?: Record<string, Record<string, [number, number][]>>;
+}
+
+const CACHE_BASE = ((import.meta.env?.VITE_TILE_CACHE_URL as string | undefined) ?? '').replace(/\/+$/, '');
+let manifest: TileManifest | null = null;
+let missingSets: Record<string, Record<string, Set<number>>> = {};
+let manifestReq: Promise<void> | null = null;
+
+/** True if a tile cache URL is set. */
+export function tileCacheOn(): boolean {
+  return CACHE_BASE !== '';
+}
+
+/** Use a manifest (exported for tests; the UI calls loadTileCache). */
+export function setTileManifest(m: TileManifest | null) {
+  manifest = m;
+  missingSets = {};
+  for (const [key, zs] of Object.entries(m?.missing ?? {})) {
+    missingSets[key] = {};
+    for (const [z, list] of Object.entries(zs)) missingSets[key][z] = new Set(list.map(([c, r]) => r * 2 ** 21 + c));
+  }
+}
+
+/** Load the tile cache manifest. Resolves after at most `timeoutMs`; if the manifest is not
+ *  there by then, tiles come from Trek until it arrives. Never rejects. */
+export function loadTileCache(timeoutMs = 2500): Promise<void> {
+  if (!tileCacheOn()) return Promise.resolve();
+  manifestReq ??= fetch(`${CACHE_BASE}/manifest.json`)
+    .then((r) => {
+      if (!r.ok) throw new Error(`tile cache manifest: HTTP ${r.status}`);
+      return r.json() as Promise<TileManifest>;
+    })
+    .then((m) => setTileManifest(m))
+    .catch((e) => console.warn('Tile cache not used:', e));
+  return Promise.race([manifestReq, new Promise<void>((ok) => setTimeout(ok, timeoutMs))]);
+}
+
+/** Where a tile comes from: 'cache', 'none' (Trek does not have it) or 'trek'. */
+export function tileSource(key: string, z: number, col: number, row: number): 'cache' | 'none' | 'trek' {
+  const ranges = manifest?.layers[key]?.[z];
+  if (!ranges) return 'trek';
+  for (const [c0, c1, r0, r1] of ranges) {
+    if (col >= c0 && col <= c1 && row >= r0 && row <= r1) {
+      return missingSets[key]?.[z]?.has(row * 2 ** 21 + col) ? 'none' : 'cache';
+    }
+  }
+  return 'trek';
+}
 const EQ_RES0 = 180 / 256; // deg/px at level 0 (2 x 1 tiles of 256 px)
 const SP_RES0 = 30578404.017857101 * 0.00028; // = 8561.953125 m/px at level 0
 const SP_HALF = 1095930;
@@ -82,7 +146,13 @@ export function makeLayer(l: TrekLayer): TileLayer<XYZ> {
     projection: isEq ? LONLAT : SPS,
     tileGrid,
     // Trek REST pattern: {TileMatrix}/{TileRow}/{TileCol}; OL y counts from the top.
-    url: `${TREK}/${l.proj}/${l.id}/1.0.0/default/default028mm/{z}/{y}/{x}.${l.ext}`,
+    tileUrlFunction: ([z, x, y]) => {
+      const path = `${l.proj}/${l.id}/1.0.0/default/default028mm/${z}/${y}/${x}.${l.ext}`;
+      const from = tileSource(`${l.proj}/${l.id}`, z, x, y);
+      // undefined = empty tile, no request.
+      if (from === 'none') return undefined;
+      return from === 'cache' ? `${CACHE_BASE}/${path}` : `${TREK}/${path}`;
+    },
     crossOrigin: 'anonymous',
     attributions: 'Imagery: NASA Moon Trek (NASA/GSFC/ASU LROC, LOLA; JAXA SELENE)',
     wrapX: false,
