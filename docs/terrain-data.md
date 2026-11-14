@@ -95,3 +95,32 @@ of the fine DEM (≤ 25 km) or the coarse DEM. The observer is at `R + h_site + 
 the site radius. Elevation is the angle of the 3D vector from observer to terrain point
 above the plane perpendicular to the site radius. The mask is the maximum along each ray.
 Curvature is included because all points are true 3D positions.
+
+## Usage
+
+```
+bash data/download_dem.sh                     # once, ~3.5 GB into data/raw/
+cd data
+uv run python horizon.py -89.45 -137.31 --height 2 -o masks/out.json
+```
+
+```python
+from horizon import Terrain
+with Terrain() as t:
+    h = t.surface_height(-89.45, -137.31)           # m above 1737.4 km sphere (scalar or arrays)
+    elev_deg, h_site = t.horizon_mask(-89.45, -137.31, observer_height_m=2.0)
+```
+
+## Test masks (observer height 2 m, about 0.6 s each)
+
+| File | Point | Site height | Horizon min / mean / max |
+|---|---|---|---|
+| `masks/shackleton_rim_-89.45_-137.31_h2.json` | Connecting ridge by the Shackleton rim (−89.45, −137.31) | 1955 m | −2.85° / −0.62° / +0.90° (max at az 134°, towards Malapert) |
+| `masks/shackleton_floor_-89.67_129.78_h2.json` | Shackleton crater centre, floor (−89.67, 129.78) | −2789 m | +19.8° / +21.3° / +23.6° |
+
+The Sun never rises more than about 1.6° above the horizontal plane near the pole, so
+the floor is in permanent shadow, as expected. The ridge point has a horizon below the
+Sun's path in most directions, which agrees with the high average illumination (roughly 80–90 %)
+published for this area (Mazarico et al. 2011). This was checked from memory of the paper, not re-read.
+
+The Shackleton centre is from the IAU Gazetteer (feature 5450): 89.67° S, 129.78° E.

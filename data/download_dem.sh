@@ -28,7 +28,14 @@ for entry in "${FILES[@]}"; do
     continue
   fi
   echo "get  $name ($size bytes, have $have)"
-  curl -fL --retry 5 --retry-delay 5 -C - -o "$out" "$BASE/$name"
+  # The server sometimes drops the connection mid-file; resume until complete.
+  for attempt in $(seq 1 20); do
+    if curl -fL --retry 5 --retry-delay 5 -C - -o "$out" "$BASE/$name"; then
+      break
+    fi
+    echo "retry $attempt for $name (have $(stat -c %s "$out" 2>/dev/null || echo 0) bytes)" >&2
+    sleep 5
+  done
   have=$(stat -c %s "$out")
   if [[ "$have" != "$size" ]]; then
     echo "size mismatch for $name: $have != $size" >&2
