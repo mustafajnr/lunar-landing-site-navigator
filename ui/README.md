@@ -45,6 +45,19 @@ Set `VITE_API_URL` to use another API address (default `http://127.0.0.1:8000`),
 
 ## Credits
 
-Moon colour map: NASA's Scientific Visualization Studio, "CGI Moon Kit"
-(https://svs.gsfc.nasa.gov/4720), LRO LROC WAC colour mosaic, public domain.
-File: `public/textures/lroc_color_2k.jpg` (2048 × 1024, equirectangular, centred on 0° longitude).
+Moon textures: NASA's Scientific Visualization Studio, "CGI Moon Kit"
+(https://svs.gsfc.nasa.gov/4720), public domain. Colour: LRO LROC WAC colour mosaic with
+polar fill (`lroc_color_poles_8k.tif`). Relief: LRO LOLA elevation map (`ldem_16.tif`).
+
+| File | Size | Made from |
+|---|---|---|
+| `public/textures/lroc_color_2k.jpg` | 2048 × 1024 | kit JPEG, unchanged. Loads first; fallback. |
+| `public/textures/moon_color_8k.jpg` | 8192 × 4096 | `lroc_color_poles_8k.tif`. Used if the GPU allows 8192 px textures. |
+| `public/textures/moon_normal_4k.jpg` | 4096 × 2048 | normal map from `ldem_16.tif`, relief × 1.5 |
+| `public/textures/moon_south_color.jpg` | 2048 × 2048 | south polar cap (pole to 75° S), azimuthal equidistant, from the 8k colour map |
+| `public/textures/moon_south_normal.jpg` | 2048 × 2048 | south polar cap normal map from `ldem_16.tif`, relief × 1.5 |
+
+`scripts/make_moon_textures.py` makes all files except the 2k map (see the run line at the top
+of the script). The south polar cap is a separate mesh. An equirectangular map smears near the
+pole; the cap does not. The normal maps give crater relief near the terminator. They do not
+cast shadows, so do not use the globe shading to judge if a point is lit. Use the results panel.

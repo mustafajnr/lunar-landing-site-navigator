@@ -54,24 +54,112 @@ inertial.add(moonBody);
 // Moon mesh. SphereGeometry puts texture u=0.5 at +X and north at +Y; rotateX(+90deg)
 // moves north to +Z and lon 90 E (u=0.75, geometry -Z) to +Y. With the LROC map
 // (equirectangular, centred on lon 0, left edge = 180 W) this matches the body frame.
-const moonGeo = new THREE.SphereGeometry(1, 192, 96);
+// The sphere stops at the south cap edge (CAP_LAT). The cap is a separate mesh with a
+// polar (azimuthal equidistant) texture, so the south pole region is not smeared.
+const CAP_LAT = -75;
+const capRad = THREE.MathUtils.degToRad(90 + CAP_LAT);
+const moonGeo = new THREE.SphereGeometry(1, 192, 88, 0, Math.PI * 2, 0, Math.PI - capRad);
 moonGeo.rotateX(Math.PI / 2);
+// Vertex tangents for the normal maps. Without them three.js builds the tangent frame from
+// screen-space derivatives per triangle, which shows rings on this mesh at high latitudes.
+// tangent(lat, lon) = direction of +u on the surface; w = +1 (bitangent = normal x tangent).
+function setTangents(geo: THREE.BufferGeometry, tangentOf: (lat: number, lon: number) => THREE.Vector3) {
+  const pos = geo.getAttribute('position');
+  const t = new Float32Array(pos.count * 4);
+  for (let i = 0; i < pos.count; i++) {
+    const z = Math.max(-1, Math.min(1, pos.getZ(i)));
+    const v = tangentOf(Math.asin(z), Math.atan2(pos.getY(i), pos.getX(i)));
+    t.set([v.x, v.y, v.z, 1], i * 4);
+  }
+  geo.setAttribute('tangent', new THREE.BufferAttribute(t, 4));
+}
+const eastOf = (_lat: number, lon: number) => new THREE.Vector3(-Math.sin(lon), Math.cos(lon), 0);
+const northOf = (lat: number, lon: number) =>
+  new THREE.Vector3(-Math.sin(lat) * Math.cos(lon), -Math.sin(lat) * Math.sin(lon), Math.cos(lat));
+setTangents(moonGeo, eastOf);
 const moonMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
 const moonMesh = new THREE.Mesh(moonGeo, moonMat);
 moonBody.add(moonMesh);
-new THREE.TextureLoader().load(
-  `${import.meta.env.BASE_URL}textures/lroc_color_2k.jpg`,
+
+const capGeo = new THREE.SphereGeometry(1, 192, 32, 0, Math.PI * 2, Math.PI - capRad, capRad);
+capGeo.rotateX(Math.PI / 2);
+{
+  // UV: pole at (0.5, 0.5), lon 0 toward +v, lon 90 E toward +u (seen from outside).
+  const pos = capGeo.getAttribute('position');
+  const uv = capGeo.getAttribute('uv') as THREE.BufferAttribute;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const rho = (Math.PI / 2 + Math.asin(Math.max(-1, Math.min(1, z)))) / capRad; // 0 at pole, 1 at edge
+    const lon = Math.atan2(y, x);
+    uv.setXY(i, 0.5 + 0.5 * rho * Math.sin(lon), 0.5 + 0.5 * rho * Math.cos(lon));
+  }
+  uv.needsUpdate = true;
+}
+// Cap: +u is image right = sin(lon) * north + cos(lon) * east.
+setTangents(capGeo, (lat, lon) =>
+  northOf(lat, lon).multiplyScalar(Math.sin(lon)).add(eastOf(lat, lon).multiplyScalar(Math.cos(lon))),
+);
+const capMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
+const capMesh = new THREE.Mesh(capGeo, capMat);
+moonBody.add(capMesh);
+// Moon textures (NASA SVS CGI Moon Kit). The 2k colour map loads first and stays as the
+// fallback. The 8k map replaces it if the GPU supports 8192 px textures. The normal map
+// (from the LOLA elevation map, relief x3) shows crater relief near the terminator.
+const texLoader = new THREE.TextureLoader();
+const TEX = `${import.meta.env.BASE_URL}textures/`;
+function loadMoonColor(file: string, onFail: () => void) {
+  texLoader.load(
+    TEX + file,
+    (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      moonMat.map?.dispose();
+      moonMat.map = tex;
+      moonMat.color.set(0xffffff);
+      moonMat.needsUpdate = true;
+    },
+    undefined,
+    onFail,
+  );
+}
+loadMoonColor('lroc_color_2k.jpg', () => {
+  console.warn('Moon texture failed to load; using plain grey.');
+  if (!moonMat.map) moonMat.color.set(0x999999);
+});
+if (renderer.capabilities.maxTextureSize >= 8192) {
+  loadMoonColor('moon_color_8k.jpg', () => console.warn('8k Moon map failed to load; keeping the 2k map.'));
+}
+function loadInto(file: string, mat: THREE.MeshStandardMaterial, slot: 'map' | 'normalMap') {
+  texLoader.load(
+    TEX + file,
+    (tex) => {
+      tex.colorSpace = slot === 'map' ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      mat[slot] = tex;
+      mat.needsUpdate = true;
+    },
+    undefined,
+    () => {
+      console.warn(`${file} failed to load.`);
+      if (slot === 'map' && !mat.map) mat.color.set(0x999999);
+    },
+  );
+}
+loadInto('moon_south_color.jpg', capMat, 'map');
+loadInto('moon_south_normal.jpg', capMat, 'normalMap');
+texLoader.load(
+  TEX + 'moon_normal_4k.jpg',
   (tex) => {
-    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.colorSpace = THREE.NoColorSpace;
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    moonMat.map = tex;
+    moonMat.normalMap = tex;
+    moonMat.normalScale.set(1, 1);
     moonMat.needsUpdate = true;
   },
   undefined,
-  () => {
-    console.warn('Moon texture failed to load; using plain grey.');
-    moonMat.color.set(0x999999);
-  },
+  () => console.warn('Moon normal map failed to load; no relief shading.'),
 );
 
 // Latitude/longitude grid.
@@ -316,7 +404,7 @@ canvas.addEventListener('pointerup', (e) => {
     -((e.clientY - rect.top) / rect.height) * 2 + 1,
   );
   raycaster.setFromCamera(ndc, camera);
-  const hit = raycaster.intersectObject(moonMesh, false)[0];
+  const hit = raycaster.intersectObjects([moonMesh, capMesh], false)[0];
   if (!hit) return;
   const p = moonBody.worldToLocal(hit.point.clone());
   const ll = latLonOf([p.x, p.y, p.z]);
