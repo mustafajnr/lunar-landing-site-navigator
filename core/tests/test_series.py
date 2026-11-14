@@ -142,3 +142,16 @@ def test_high_horizon_removes_sunlight_at_south_pole():
 def test_series_checks_mask_height():
     with pytest.raises(ValueError):
         evaluate_series(*SHACK, START, "2026-11-15T00:00:00Z", 60, 0.0, flat_mask(0.0, 2.0))
+
+
+@needs_kernels
+def test_moon_state_basic():
+    from lunarnav.core import utc_to_et
+    from lunarnav.moon import moon_state_et
+
+    s = moon_state_et(utc_to_et(START))
+    m = np.array(s["me_to_j2000"]).reshape(3, 3)
+    assert np.allclose(m @ m.T, np.eye(3))
+    assert abs(s["sub_earth_lat_deg"]) < 8 and abs(s["sub_earth_lon_deg"]) < 9  # libration
+    assert abs(s["sub_solar_lat_deg"]) < 1.6
+    assert np.allclose(m @ np.array(s["sun_dir_me"]), s["sun_dir_j2000"])

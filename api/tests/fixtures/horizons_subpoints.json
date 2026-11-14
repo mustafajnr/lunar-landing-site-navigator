@@ -1,0 +1,71 @@
+{
+  "source": "https://ssd.jpl.nasa.gov/api/horizons.api",
+  "query": {
+    "format": "json",
+    "COMMAND": "'301'",
+    "CENTER": "'500@399'",
+    "OBJ_DATA": "'NO'",
+    "MAKE_EPHEM": "'YES'",
+    "EPHEM_TYPE": "'OBSERVER'",
+    "TIME_TYPE": "'UT'",
+    "QUANTITIES": "'14,15'",
+    "ANG_FORMAT": "'DEG'",
+    "EXTRA_PREC": "'YES'",
+    "CSV_FORMAT": "'YES'"
+  },
+  "header_lines": [
+    "Target body name: Moon (301)                      {source: DE441}",
+    "Target pole/equ : MOON_ME                         {East-longitude positive}",
+    "Center pole/equ : ITRF93                          {East-longitude positive}"
+  ],
+  "cases": [
+    {
+      "utc": "2026-11-14T00:00:00Z",
+      "horizons_row": "2026-Nov-14 00:00:00.000, , , 358.776460,   4.403300,  126.617658,  -1.557279,",
+      "sub_earth_lat_deg": 4.4033,
+      "sub_earth_lon_deg": -1.2235399999999572,
+      "sub_solar_lat_deg": -1.557279,
+      "sub_solar_lon_deg": 126.617658
+    },
+    {
+      "utc": "2026-11-15T23:59:00Z",
+      "horizons_row": "2026-Nov-15 23:59:00.000, , , 356.024407,   2.064985,  102.259697,  -1.555855,",
+      "sub_earth_lat_deg": 2.064985,
+      "sub_earth_lon_deg": -3.9755930000000035,
+      "sub_solar_lat_deg": -1.555855,
+      "sub_solar_lon_deg": 102.25969700000002
+    },
+    {
+      "utc": "2027-02-20T06:00:00Z",
+      "horizons_row": "2027-Feb-20 06:00:00.000, , ,   1.864582,   0.121520,   11.829661,   0.308515,",
+      "sub_earth_lat_deg": 0.12152,
+      "sub_earth_lon_deg": 1.8645820000000128,
+      "sub_solar_lat_deg": 0.308515,
+      "sub_solar_lon_deg": 11.829660999999987
+    },
+    {
+      "utc": "2027-06-01T12:00:00Z",
+      "horizons_row": "2027-Jun-01 12:00:00.000, , , 353.208607,  -6.317494,  217.289080,   1.383234,",
+      "sub_earth_lat_deg": -6.317494,
+      "sub_earth_lon_deg": -6.791392999999971,
+      "sub_solar_lat_deg": 1.383234,
+      "sub_solar_lon_deg": -142.71092
+    },
+    {
+      "utc": "2027-10-10T18:00:00Z",
+      "horizons_row": "2027-Oct-10 18:00:00.000, , , 359.543730,  -1.566156,   54.109061,  -1.463169,",
+      "sub_earth_lat_deg": -1.566156,
+      "sub_earth_lon_deg": -0.4562700000000177,
+      "sub_solar_lat_deg": -1.463169,
+      "sub_solar_lon_deg": 54.109061
+    },
+    {
+      "utc": "2028-03-03T03:03:00Z",
+      "horizons_row": "2028-Mar-03 03:03:00.000, , , 352.654972,  -6.011675,   97.522359,   1.013323,",
+      "sub_earth_lat_deg": -6.011675,
+      "sub_earth_lon_deg": -7.345027999999957,
+      "sub_solar_lat_deg": 1.013323,
+      "sub_solar_lon_deg": 97.522359
+    }
+  ]
+}
