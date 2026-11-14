@@ -49,6 +49,22 @@
         <div id="siteInfo" class="small"></div>
       </section>
 
+      <section id="savedSec">
+        <h2>Saved searches</h2>
+        <div id="savedList"></div>
+        <p id="savedStoreNote" class="small" hidden>This browser does not keep data. The list is kept for this page only. Use Export to keep it.</p>
+        <div class="row">
+          <button id="compareBtn" type="button" disabled title="Select 2 to 4 saved searches.">Compare</button>
+          <span class="row">
+            <button id="exportBtn" type="button" title="Download the list as a JSON file">Export</button>
+            <button id="importBtn" type="button" title="Add searches from a JSON file">Import</button>
+          </span>
+          <input id="importFile" type="file" accept="application/json,.json" hidden />
+        </div>
+        <p class="small">Select 2 to 4 saved searches. Then click Compare.</p>
+        <p id="savedStatus" class="small" role="status" hidden></p>
+      </section>
+
       <section>
         <h2>View</h2>
         <div class="row">
@@ -99,6 +115,15 @@
           <div id="cdEarthSub" class="small"></div>
         </div>
         <p id="resStatus" class="small" hidden></p>
+        <div id="saveBox">
+          <button id="saveOpen" type="button" title="Save the point, observer height and time window of this search">Save search</button>
+          <form id="saveForm" class="row" hidden>
+            <label class="field">Name<input id="saveName" type="text" maxlength="160" /></label>
+            <button type="submit">Save</button>
+            <button id="saveCancel" type="button">Cancel</button>
+          </form>
+          <p id="saveMsg" class="small" role="status" hidden></p>
+        </div>
       </section>
 
       <section>
