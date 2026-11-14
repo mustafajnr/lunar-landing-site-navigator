@@ -1,0 +1,343 @@
+import './style.css';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { bodyVecOf, latLonOf, localSky, moonState, type MoonState, type Vec3 } from './ephemeris';
+
+// ---------- Scene layout ----------
+// Scene units: 1 = Moon radius. `inertial` group holds the J2000 equatorial frame (EQJ),
+// rotated so EQJ +z (celestial north) is three.js +Y. `moonBody` holds the Moon body frame:
+// body +x = lon 0, body +y = lon 90 E, body +z = north pole.
+const EARTH_DIST = 8; // scaled, not true (true ~221 Moon radii)
+const EARTH_RADIUS = 0.35; // scaled, not true (true ~3.67 Moon radii)
+const SUN_DIST = 14;
+const DAY_S = 86400;
+const WINDOW_S = 30 * DAY_S;
+
+const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+
+const canvas = $<HTMLCanvasElement>('globe');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 200);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.minDistance = 1.2;
+controls.maxDistance = 60;
+
+const inertial = new THREE.Group();
+inertial.rotation.x = -Math.PI / 2;
+scene.add(inertial);
+
+const moonBody = new THREE.Group();
+inertial.add(moonBody);
+
+// Moon mesh. SphereGeometry puts texture u=0.5 at +X and north at +Y; rotateX(+90deg)
+// moves north to +Z and lon 90 E (u=0.75, geometry -Z) to +Y. With the LROC map
+// (equirectangular, centred on lon 0, left edge = 180 W) this matches the body frame.
+const moonGeo = new THREE.SphereGeometry(1, 192, 96);
+moonGeo.rotateX(Math.PI / 2);
+const moonMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
+const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+moonBody.add(moonMesh);
+new THREE.TextureLoader().load(
+  `${import.meta.env.BASE_URL}textures/lroc_color_2k.jpg`,
+  (tex) => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    moonMat.map = tex;
+    moonMat.needsUpdate = true;
+  },
+  undefined,
+  () => {
+    console.warn('Moon texture failed to load; using plain grey.');
+    moonMat.color.set(0x999999);
+  },
+);
+
+// Spin axis (north = white end).
+function line(points: THREE.Vector3[], color: number, parent: THREE.Object3D, dashed = false) {
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const mat = dashed
+    ? new THREE.LineDashedMaterial({ color, dashSize: 0.2, gapSize: 0.15 })
+    : new THREE.LineBasicMaterial({ color });
+  const l = new THREE.Line(geo, mat);
+  if (dashed) l.computeLineDistances();
+  parent.add(l);
+  return l;
+}
+line([new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 1.4)], 0xffffff, moonBody);
+line([new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, -1.4)], 0xff6060, moonBody);
+
+function marker(color: number, r = 0.022) {
+  const m = new THREE.Mesh(
+    new THREE.SphereGeometry(r, 16, 8),
+    new THREE.MeshBasicMaterial({ color }),
+  );
+  moonBody.add(m);
+  return m;
+}
+const subSunMarker = marker(0xffd54a);
+const subEarthMarker = marker(0x4aa3ff);
+const selMarker = marker(0xff4a4a, 0.018);
+
+// Lights.
+scene.add(new THREE.AmbientLight(0xffffff, 0.04));
+const sunLight = new THREE.DirectionalLight(0xffffff, 3);
+inertial.add(sunLight); // target defaults to origin = Moon centre
+
+// Sun and Earth markers in the inertial frame.
+const sunMarker = new THREE.Mesh(
+  new THREE.SphereGeometry(0.4, 24, 12),
+  new THREE.MeshBasicMaterial({ color: 0xffe27a }),
+);
+inertial.add(sunMarker);
+const sunLine = line([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)], 0xffd54a, inertial, true);
+
+const earthMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(EARTH_RADIUS, 32, 16),
+  new THREE.MeshStandardMaterial({ color: 0x3d7fd9, roughness: 0.8 }),
+);
+inertial.add(earthMesh);
+const earthLine = line([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)], 0x4aa3ff, inertial);
+
+function setLineEnd(l: THREE.Line, end: THREE.Vector3) {
+  const pos = l.geometry.getAttribute('position') as THREE.BufferAttribute;
+  pos.setXYZ(1, end.x, end.y, end.z);
+  pos.needsUpdate = true;
+  l.geometry.computeBoundingSphere();
+  if (l.material instanceof THREE.LineDashedMaterial) l.computeLineDistances();
+}
+
+const v3 = (v: Vec3) => new THREE.Vector3(v[0], v[1], v[2]);
+const onSurface = (lat: number, lon: number, r = 1.004) => v3(bodyVecOf(lat, lon)).multiplyScalar(r);
+
+// ---------- State ----------
+let baseMs = Math.round(Date.now() / 60000) * 60000;
+let offsetS = 0;
+let playing = false;
+let selected = { latDeg: -89.45, lonDeg: -137.31 }; // example point from CONTRACTS.md
+let state: MoonState = moonState(new Date(baseMs));
+const prevMoonQuat = new THREE.Quaternion();
+let havePrevQuat = false;
+
+// ---------- UI elements ----------
+const dtInput = $<HTMLInputElement>('dt');
+const playBtn = $<HTMLButtonElement>('play');
+const speedSel = $<HTMLSelectElement>('speed');
+const offsetInput = $<HTMLInputElement>('offset');
+const followChk = $<HTMLInputElement>('follow');
+const skyCanvas = $<HTMLCanvasElement>('sky');
+
+const fmtLat = (d: number) => `${Math.abs(d).toFixed(2)}° ${d >= 0 ? 'N' : 'S'}`;
+const fmtLon = (d: number) => `${Math.abs(d).toFixed(2)}° ${d >= 0 ? 'E' : 'W'}`;
+const fmtLL = (ll: { latDeg: number; lonDeg: number }) => `${fmtLat(ll.latDeg)}, ${fmtLon(ll.lonDeg)}`;
+const fmtAzEl = (az: number, el: number) => `${az.toFixed(1)}° / ${el >= 0 ? '+' : ''}${el.toFixed(2)}°`;
+
+function toInputValue(ms: number) {
+  return new Date(ms).toISOString().slice(0, 16);
+}
+
+function setBase(ms: number) {
+  baseMs = ms;
+  offsetS = 0;
+  offsetInput.value = '0';
+  dtInput.value = toInputValue(baseMs);
+  computeTracks();
+}
+
+dtInput.addEventListener('change', () => {
+  const ms = Date.parse(`${dtInput.value}:00Z`);
+  if (Number.isFinite(ms)) setBase(ms);
+});
+$('now').addEventListener('click', () => setBase(Math.round(Date.now() / 60000) * 60000));
+playBtn.addEventListener('click', () => {
+  playing = !playing;
+  playBtn.textContent = playing ? 'Pause' : 'Play';
+});
+offsetInput.addEventListener('input', () => {
+  offsetS = Number(offsetInput.value) * 60;
+});
+
+// ---------- Local sky plot (az vs el, ±30 days) ----------
+type TrackPt = [number, number];
+let sunTrack: TrackPt[] = [];
+let earthTrack: TrackPt[] = [];
+
+function computeTracks() {
+  sunTrack = [];
+  earthTrack = [];
+  const step = 2 * 3600;
+  for (let t = -WINDOW_S; t <= WINDOW_S; t += step) {
+    const s = moonState(new Date(baseMs + t * 1000));
+    const sky = localSky(selected.latDeg, selected.lonDeg, s);
+    sunTrack.push([sky.sunAzDeg, sky.sunElDeg]);
+    earthTrack.push([sky.earthAzDeg, sky.earthElDeg]);
+  }
+}
+
+function drawSky(nowSun: TrackPt, nowEarth: TrackPt) {
+  const ctx = skyCanvas.getContext('2d');
+  if (!ctx) return;
+  const w = skyCanvas.width;
+  const h = skyCanvas.height;
+  // Elevation range: zoom in near the poles, where Sun and Earth stay low.
+  const all = [...sunTrack, ...earthTrack].map((p) => Math.abs(p[1]));
+  const maxAbs = Math.max(5, ...all);
+  const elRange = maxAbs <= 15 ? 15 : maxAbs <= 30 ? 30 : 90;
+  const x = (az: number) => (az / 360) * w;
+  const y = (el: number) => h / 2 - (el / elRange) * (h / 2);
+
+  ctx.fillStyle = '#05070a';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#1a1208';
+  ctx.fillRect(0, h / 2, w, h / 2); // below horizon
+  ctx.strokeStyle = '#555';
+  ctx.beginPath();
+  ctx.moveTo(0, h / 2);
+  ctx.lineTo(w, h / 2);
+  ctx.stroke();
+  ctx.fillStyle = '#777';
+  ctx.font = '10px sans-serif';
+  ['N', 'E', 'S', 'W'].forEach((lbl, i) => ctx.fillText(lbl, x(i * 90) + 2, h - 3));
+  ctx.fillText(`+${elRange}°`, w - 26, 10);
+  ctx.fillText(`-${elRange}°`, w - 26, h - 3);
+  ctx.strokeStyle = '#222';
+  for (let az = 90; az < 360; az += 90) {
+    ctx.beginPath();
+    ctx.moveTo(x(az), 0);
+    ctx.lineTo(x(az), h);
+    ctx.stroke();
+  }
+  const dots = (pts: TrackPt[], color: string) => {
+    ctx.fillStyle = color;
+    for (const [az, el] of pts) ctx.fillRect(x(az) - 0.75, y(el) - 0.75, 1.5, 1.5);
+  };
+  dots(sunTrack, 'rgba(255,213,74,0.55)');
+  dots(earthTrack, 'rgba(74,163,255,0.7)');
+  const big = ([az, el]: TrackPt, color: string) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x(az), Math.max(3, Math.min(h - 3, y(el))), 4, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  big(nowSun, '#ffd54a');
+  big(nowEarth, '#4aa3ff');
+}
+
+// ---------- Picking ----------
+const raycaster = new THREE.Raycaster();
+let downX = 0;
+let downY = 0;
+canvas.addEventListener('pointerdown', (e) => {
+  downX = e.clientX;
+  downY = e.clientY;
+});
+canvas.addEventListener('pointerup', (e) => {
+  if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return; // a drag, not a click
+  const rect = canvas.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+    ((e.clientX - rect.left) / rect.width) * 2 - 1,
+    -((e.clientY - rect.top) / rect.height) * 2 + 1,
+  );
+  raycaster.setFromCamera(ndc, camera);
+  const hit = raycaster.intersectObject(moonMesh, false)[0];
+  if (!hit) return;
+  const p = moonBody.worldToLocal(hit.point.clone());
+  selected = latLonOf([p.x, p.y, p.z]);
+  computeTracks();
+});
+
+// ---------- Camera presets ----------
+function worldDir(v: Vec3, parent: THREE.Object3D) {
+  return v3(v).applyQuaternion(parent.getWorldQuaternion(new THREE.Quaternion())).normalize();
+}
+function viewFrom(dir: THREE.Vector3, dist: number) {
+  camera.position.copy(dir).multiplyScalar(dist);
+  controls.target.set(0, 0, 0);
+  controls.update();
+}
+$('viewEarth').addEventListener('click', () => viewFrom(worldDir(state.earthDirInertial, inertial), 4.5));
+$('viewSouth').addEventListener('click', () => viewFrom(worldDir([0, 0, -1], moonBody), 3.5));
+
+// ---------- Update loop ----------
+const m4 = new THREE.Matrix4();
+const tmpQ = new THREE.Quaternion();
+
+function update() {
+  const utc = new Date(baseMs + offsetS * 1000);
+  state = moonState(utc);
+  const m = state.bodyToInertial;
+  m4.set(m[0], m[1], m[2], 0, m[3], m[4], m[5], 0, m[6], m[7], m[8], 0, 0, 0, 0, 1);
+  moonBody.quaternion.setFromRotationMatrix(m4);
+  moonBody.updateMatrixWorld(true);
+
+  // Keep the camera fixed relative to the Moon surface, if asked.
+  const q = moonBody.getWorldQuaternion(tmpQ);
+  if (followChk.checked && havePrevQuat) {
+    const delta = q.clone().multiply(prevMoonQuat.clone().invert());
+    camera.position.applyQuaternion(delta);
+  }
+  prevMoonQuat.copy(q);
+  havePrevQuat = true;
+
+  const sunDir = v3(state.sunDirInertial);
+  const earthDir = v3(state.earthDirInertial);
+  sunLight.position.copy(sunDir).multiplyScalar(20);
+  sunMarker.position.copy(sunDir).multiplyScalar(SUN_DIST);
+  setLineEnd(sunLine, sunMarker.position);
+  earthMesh.position.copy(earthDir).multiplyScalar(EARTH_DIST);
+  setLineEnd(earthLine, earthDir.clone().multiplyScalar(EARTH_DIST - EARTH_RADIUS));
+
+  subSunMarker.position.copy(onSurface(state.subSolar.latDeg, state.subSolar.lonDeg));
+  subEarthMarker.position.copy(onSurface(state.subEarth.latDeg, state.subEarth.lonDeg));
+  selMarker.position.copy(onSurface(selected.latDeg, selected.lonDeg));
+
+  // Text readouts.
+  $('utc').textContent = utc.toISOString().replace('.000', '');
+  const days = Math.trunc(offsetS / DAY_S);
+  const hours = Math.trunc(Math.abs(offsetS % DAY_S) / 3600);
+  $('offsetLabel').textContent = `${offsetS < 0 ? '-' : '+'}${Math.abs(days)} d ${String(hours).padStart(2, '0')} h`;
+  $('subSun').textContent = fmtLL(state.subSolar);
+  $('subEarth').textContent = fmtLL(state.subEarth);
+  $('earthDist').textContent = `${Math.round(state.earthDistanceKm).toLocaleString('en-US')} km`;
+  const sky = localSky(selected.latDeg, selected.lonDeg, state);
+  $('selLatLon').textContent = fmtLL(selected);
+  $('selSun').textContent = fmtAzEl(sky.sunAzDeg, sky.sunElDeg);
+  $('selEarth').textContent = fmtAzEl(sky.earthAzDeg, sky.earthElDeg);
+  drawSky([sky.sunAzDeg, sky.sunElDeg], [sky.earthAzDeg, sky.earthElDeg]);
+}
+
+function resize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+let last = performance.now();
+function frame(now: number) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (playing) {
+    offsetS += dt * Number(speedSel.value);
+    if (offsetS > WINDOW_S) offsetS = -WINDOW_S; // loop over the ±30 day window
+    offsetInput.value = String(Math.round(offsetS / 60));
+  }
+  update();
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+// ---------- Start ----------
+resize();
+dtInput.value = toInputValue(baseMs);
+computeTracks();
+update();
+viewFrom(worldDir(state.earthDirInertial, inertial), 4.5);
+requestAnimationFrame(frame);

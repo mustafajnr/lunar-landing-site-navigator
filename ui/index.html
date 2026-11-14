@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lunar Landing Site Navigator</title>
+  </head>
+  <body>
+    <canvas id="globe"></canvas>
+    <aside id="panel">
+      <h1>Lunar Landing Site Navigator <small>spike</small></h1>
+
+      <section>
+        <h2>Time (UTC)</h2>
+        <div class="row">
+          <input id="dt" type="datetime-local" step="60" />
+          <button id="now" type="button">Now</button>
+        </div>
+        <div class="row">
+          <button id="play" type="button">Play</button>
+          <select id="speed">
+            <option value="60">1 min / s</option>
+            <option value="3600" selected>1 hour / s</option>
+            <option value="21600">6 hours / s</option>
+            <option value="86400">1 day / s</option>
+          </select>
+        </div>
+        <input id="offset" type="range" min="-43200" max="43200" step="10" value="0" />
+        <div class="row small"><span>-30 d</span><span id="offsetLabel">+0 d 00 h</span><span>+30 d</span></div>
+        <div id="utc" class="mono"></div>
+      </section>
+
+      <section>
+        <h2>Moon geometry <span class="approx">approx.</span></h2>
+        <table class="mono">
+          <tr><td><span class="dot sun"></span>Sub-solar</td><td id="subSun"></td></tr>
+          <tr><td><span class="dot earth"></span>Sub-Earth</td><td id="subEarth"></td></tr>
+          <tr><td>Earth dist.</td><td id="earthDist"></td></tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>Selected point <span class="approx">flat horizon</span></h2>
+        <p class="small">Click the globe to select a point.</p>
+        <table class="mono">
+          <tr><td><span class="dot sel"></span>Lat, lon</td><td id="selLatLon"></td></tr>
+          <tr><td>Sun az / el</td><td id="selSun"></td></tr>
+          <tr><td>Earth az / el</td><td id="selEarth"></td></tr>
+        </table>
+        <canvas id="sky" width="300" height="150"></canvas>
+        <p class="small">Local sky, ±30 days: azimuth (0–360°, N E S W) vs elevation.
+          Yellow = Sun track, blue = Earth track, large dots = now.</p>
+      </section>
+
+      <section>
+        <h2>Camera</h2>
+        <div class="row">
+          <button id="viewEarth" type="button">View from Earth</button>
+          <button id="viewSouth" type="button">View south pole</button>
+        </div>
+        <label class="small"><input id="follow" type="checkbox" /> Camera turns with the Moon</label>
+      </section>
+
+      <p class="small note">
+        Approximate: Moon orientation from the IAU rotation model (astronomy-engine), not the
+        DE/LE-based Moon ME frame. Sub-points agree with JPL Horizons to about 0.01°.
+        Earth size and distance are not to scale.
+      </p>
+    </aside>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

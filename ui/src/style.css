@@ -1,0 +1,115 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: #ddd;
+  overflow: hidden;
+}
+#globe {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#panel {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  width: 320px;
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+  background: rgba(15, 18, 24, 0.88);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+}
+h1 {
+  font-size: 15px;
+  margin: 4px 0 8px;
+}
+h1 small {
+  color: #888;
+  font-weight: normal;
+}
+h2 {
+  font-size: 13px;
+  margin: 10px 0 4px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+section {
+  border-top: 1px solid #333;
+  padding-top: 2px;
+}
+.row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+.small {
+  font-size: 12px;
+  color: #999;
+  margin: 4px 0;
+}
+.mono {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+input[type='range'] {
+  width: 100%;
+}
+input,
+select,
+button {
+  font: inherit;
+  font-size: 13px;
+}
+button {
+  cursor: pointer;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+td:last-child {
+  text-align: right;
+}
+.approx {
+  font-size: 10px;
+  color: #c90;
+  text-transform: none;
+  border: 1px solid #c90;
+  border-radius: 3px;
+  padding: 0 3px;
+}
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.dot.sun { background: #ffd54a; }
+.dot.earth { background: #4aa3ff; }
+.dot.sel { background: #ff4a4a; }
+#sky {
+  width: 100%;
+  background: #05070a;
+  border: 1px solid #333;
+  margin-top: 6px;
+}
+.note {
+  border-top: 1px solid #333;
+  padding-top: 6px;
+}
