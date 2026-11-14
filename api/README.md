@@ -11,6 +11,7 @@ uv run uvicorn lunarnav_api.main:app --reload --port 8000
 ```
 
 Open http://127.0.0.1:8000/docs for the interactive schema.
+CONTRACTS.md section 5 gives the request and response fields.
 
 Tests: `uv run pytest`
 
@@ -18,7 +19,7 @@ Tests: `uv run pytest`
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/healthz` | Liveness. Kernels are loaded at startup. |
+| GET | `/healthz` | Liveness. Kernels are loaded at startup. `kernels_loaded` is the real SPICE state. |
 | POST | `/v1/series` | Sun/Earth az/el and visibility at one point over a span, with rise/set events and a summary |
 | POST | `/v1/moon-state` | Sub-solar and sub-Earth points, Sun/Earth vectors (MOON_ME and J2000), MOON_ME->J2000 rotation, per time step |
 | GET | `/v1/sites` | `data/sites.json`, or `[]` if the file does not exist |
@@ -59,7 +60,8 @@ If `docker build` says buildx is missing, use the legacy builder:
 `DOCKER_BUILDKIT=0 docker build -f api/Dockerfile -t lunarnav-api .`
 The legacy builder ignores `api/Dockerfile.dockerignore`, so the context is
 larger, but the image is the same (the Dockerfile copies named paths only).
-The image does not contain `data/sites.json` yet, so `/v1/sites` returns `[]`.
+The image contains `data/sites.json` at `/app/data/sites.json`. `LUNARNAV_SITES`
+points to it, so `/v1/sites` returns the site list.
 
 ## Notes
 

@@ -30,11 +30,15 @@ RUN uv run --frozen --no-dev --no-sync --with certifi \
         python /app/core/scripts/get_kernels.py \
     && rm -f /app/kernels/*.part
 
-# 3. API package.
+# 3. API package. uv builds lunarnav here, and its pyproject.toml names README.md.
+COPY core/README.md /app/core/README.md
 COPY api/src /app/api/src
 RUN uv sync --frozen --no-dev
 
-RUN useradd --system --no-create-home app && mkdir -p /app/data
+# 4. Site list (CONTRACTS.md section 7), read through LUNARNAV_SITES.
+COPY data/sites.json /app/data/sites.json
+
+RUN useradd --system --no-create-home app
 USER app
 
 EXPOSE 8080
