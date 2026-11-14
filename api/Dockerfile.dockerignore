@@ -1,0 +1,12 @@
+# Used by BuildKit for `docker build -f api/Dockerfile .` (context = repository root).
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/node_modules
+core/kernels
+data/raw
+data/cache
+ui
+docs
+.git
+.claude

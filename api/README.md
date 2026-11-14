@@ -55,6 +55,12 @@ docker run --rm -p 8080:8080 lunarnav-api
 curl localhost:8080/healthz
 ```
 
+If `docker build` says buildx is missing, use the legacy builder:
+`DOCKER_BUILDKIT=0 docker build -f api/Dockerfile -t lunarnav-api .`
+The legacy builder ignores `api/Dockerfile.dockerignore`, so the context is
+larger, but the image is the same (the Dockerfile copies named paths only).
+The image does not contain `data/sites.json` yet, so `/v1/sites` returns `[]`.
+
 ## Notes
 
 - CSPICE is not thread-safe. All SPICE work runs under one lock, so one
