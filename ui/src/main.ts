@@ -12,7 +12,7 @@ import {
   type MoonStateBatch,
   type Vec3,
 } from './ephemeris';
-import { createGrid } from './grid';
+import { createGrid, updateGridLabels } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel, SERIES_STEP_MIN } from './results';
 import { setupSaved } from './saved';
@@ -66,6 +66,19 @@ const CAP_LAT = -75;
 const capRad = THREE.MathUtils.degToRad(90 + CAP_LAT);
 const moonGeo = new THREE.SphereGeometry(1, 192, 88, 0, Math.PI * 2, 0, Math.PI - capRad);
 moonGeo.rotateX(Math.PI / 2);
+// SphereGeometry sets v from 1 to 0 over thetaLength, not over 180°. Here thetaLength
+// stops at the cap edge, so the 180° map was squeezed onto 165° of sphere: the image was
+// about 8° south of its true place at the equator, and near the cap edge the sphere showed
+// the smeared rows of the map close to the pole (rings around the cap). Set v from the
+// latitude, so the equirectangular map is in its true place: v = 0.5 + lat / 180°.
+{
+  const pos = moonGeo.getAttribute('position');
+  const uv = moonGeo.getAttribute('uv') as THREE.BufferAttribute;
+  for (let i = 0; i < pos.count; i++) {
+    uv.setY(i, 0.5 + Math.asin(Math.max(-1, Math.min(1, pos.getZ(i)))) / Math.PI);
+  }
+  uv.needsUpdate = true;
+}
 // Vertex tangents for the normal maps. Without them three.js builds the tangent frame from
 // screen-space derivatives per triangle, which shows rings on this mesh at high latitudes.
 // tangent(lat, lon) = direction of +u on the surface; w = +1 (bitangent = normal x tangent).
@@ -833,6 +846,7 @@ function frame(now: number) {
   stepFlight(now);
   update();
   controls.update();
+  updateGridLabels(grid, camera, window.innerHeight);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }

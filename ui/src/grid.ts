@@ -1,6 +1,7 @@
 // Latitude/longitude grid on the Moon, in the Moon body frame (MOON_ME).
 // Lines every 10°. Extra latitude rings at 85° and 88° S and N (80° is on the 10° grid,
-// but drawn in the polar colour too). Text labels are sprites.
+// but drawn in the polar colour too). Text labels are sprites. updateGridLabels() limits
+// their size on the screen when the camera is near the surface.
 
 import * as THREE from 'three';
 import { bodyVecOf } from './ephemeris';
@@ -30,7 +31,7 @@ function meridian(lon: number, latMax: number, mat: THREE.LineBasicMaterial) {
   return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
 }
 
-function label(text: string, color: string, height: number) {
+function label(text: string, color: string, height: number, minPx = 0) {
   const c = document.createElement('canvas');
   const ctx = c.getContext('2d')!;
   const font = 'bold 40px system-ui, sans-serif';
@@ -50,10 +51,44 @@ function label(text: string, color: string, height: number) {
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
   const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: true }),
+    // No depth test: a label can be larger than the gap to the curved surface, and the
+    // sphere then hides part of it. updateGridLabels() hides labels on the far side.
+    new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }),
   );
+  sprite.renderOrder = 1;
   sprite.scale.set((height * w) / 56, height, 1);
+  sprite.userData.gridLabel = { height, aspect: w / 56, minPx };
   return sprite;
+}
+
+/**
+ * Label height limits on the screen, in CSS px (the text is about 60 % of the height).
+ * Between the limits a label keeps its size on the globe. Near the surface the labels
+ * stop growing at LABEL_MAX_PX, so they keep about the same size on the screen. The
+ * main labels (10° grid) do not become smaller than LABEL_MIN_PX, so they stay readable
+ * when the globe is small. The polar ring labels have no minimum: they are close together.
+ */
+const LABEL_MAX_PX = 24;
+const LABEL_MIN_PX = 15;
+const tmpPos = new THREE.Vector3();
+
+/** Call once per frame, before the render. viewHeightPx is the canvas height in CSS px. */
+export function updateGridLabels(grid: THREE.Group, camera: THREE.PerspectiveCamera, viewHeightPx: number) {
+  if (!grid.visible) return;
+  // Pixels per world unit at distance 1 from the camera.
+  const pxPerUnit = viewHeightPx / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.zoom);
+  for (const obj of grid.children) {
+    const info = obj.userData.gridLabel as { height: number; aspect: number; minPx: number } | undefined;
+    if (!info) continue;
+    // The Moon centre is at the world origin. A label is visible if it is on the near side
+    // of the horizon seen from the camera: p . (camera - p) > 0.
+    obj.getWorldPosition(tmpPos);
+    obj.visible = tmpPos.dot(camera.position) > tmpPos.lengthSq();
+    if (!obj.visible) continue;
+    const unitsPerPx = camera.position.distanceTo(tmpPos) / pxPerUnit;
+    const hgt = Math.min(Math.max(info.height, info.minPx * unitsPerPx), LABEL_MAX_PX * unitsPerPx);
+    obj.scale.set(hgt * info.aspect, hgt, 1);
+  }
 }
 
 const latText = (lat: number) => (lat === 0 ? '0°' : `${Math.abs(lat)}°${lat > 0 ? 'N' : 'S'}`);
@@ -81,7 +116,7 @@ export function createGrid(): THREE.Group {
   // Latitude labels along the 0° meridian (and 180° for the polar rings, which are small).
   for (let lat = -70; lat <= 70; lat += 10) {
     if (lat === 0) continue; // the 0° longitude label marks the equator crossing
-    const s = label(latText(lat), '#ffffff', 0.035);
+    const s = label(latText(lat), '#ffffff', 0.035, LABEL_MIN_PX);
     s.position.copy(pt(lat + 1.2, 2.5, R_LABEL));
     g.add(s);
   }
@@ -97,7 +132,7 @@ export function createGrid(): THREE.Group {
   }
   // Longitude labels every 30°: near the equator and near both poles (between 80° and 85°).
   for (let lon = -150; lon <= 180; lon += 30) {
-    const eq = label(lonText(lon), '#ffffff', 0.035);
+    const eq = label(lonText(lon), '#ffffff', 0.035, LABEL_MIN_PX);
     eq.position.copy(pt(-2, lon + 2.5, R_LABEL));
     g.add(eq);
     for (const sign of [-1, 1]) {

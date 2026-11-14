@@ -26,7 +26,7 @@ def terrain():
 
 
 @needs_dems
-@pytest.mark.parametrize("name", ["shackleton_rim_-89.45_-137.31_h2.json",
+@pytest.mark.parametrize("name", ["connecting_ridge_-89.45_-137.31_h2.json",
                                   "shackleton_floor_-89.67_129.78_h2.json"])
 def test_committed_masks_match(terrain, name):
     ref = json.loads((MASKS / name).read_text())
