@@ -300,3 +300,19 @@ button.info {
   color: #8cc4ff;
   border-color: #8cc4ff;
 }
+
+.skyzoom {
+  flex-wrap: wrap;
+}
+.skyzoom button {
+  font-size: 11px;
+  padding: 1px 4px;
+  margin-left: 2px;
+}
+.skyzoom button.active {
+  background: #2f5f9e;
+  color: #fff;
+}
+.skyzoom select {
+  font-size: 11px;
+}

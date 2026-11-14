@@ -126,8 +126,21 @@
             from the selected point. Left to right is the compass direction (azimuth), bottom to
             top is the angle above the horizon (elevation). Dots above the dashed line are
             visible. The large dots show the time on the clock.</p>
+          <p>When you zoom in, the Sun and Earth show as disks of their true size (Sun about
+            0.53°, Earth about 1.9°). The terrain hides the part of a disk below the horizon
+            outline. "Around the Sun" and "Around Earth" use the same scale on both axes.</p>
         </div>
-        <canvas id="sky"></canvas>
+        <canvas id="sky" title="Mouse wheel: zoom the elevation axis"></canvas>
+        <div class="row small skyzoom">
+          <span title="Elevation axis">El.
+            <button type="button" data-el="auto" class="active">Auto</button><button type="button" data-el="2">±2°</button><button
+              type="button" data-el="5">±5°</button><button type="button" data-el="15">±15°</button><button type="button" data-el="90">±90°</button></span>
+          <select id="skyAz" title="Azimuth axis">
+            <option value="full">Az 0–360°</option>
+            <option value="sun">Around the Sun</option>
+            <option value="earth">Around Earth</option>
+          </select>
+        </div>
         <div class="legend small">
           <span><span class="dot sun"></span>Sun track</span>
           <span><span class="dot earth"></span>Earth track</span>

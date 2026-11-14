@@ -15,7 +15,7 @@ import {
 import { createGrid } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel } from './results';
-import { drawSkyPlot, type TrackPt } from './skyplot';
+import { drawSkyPlot, type AzMode, type ElZoom, type TrackPt } from './skyplot';
 
 // ---------- Scene layout ----------
 // Scene units: 1 = Moon radius. `inertial` group holds the J2000 frame. Its rotation puts
@@ -441,9 +441,51 @@ function computeTracks() {
   }
 }
 
+// Sun angular radius: 695,700 km at 1 AU (varies by about ±1.7 % over the year).
+const SUN_RADIUS_DEG = 0.2666;
+const EARTH_RADIUS_KM = 6371;
+let elZoom: ElZoom = 'auto';
+let azMode: AzMode = 'full';
+
 function drawSky(nowSun: TrackPt | null, nowEarth: TrackPt | null) {
-  drawSkyPlot(skyCanvas, { sunTrack, earthTrack, sunNow: nowSun, earthNow: nowEarth, mask: results.horizon?.mask ?? null });
+  const earthKm = state?.earthDistanceKm ?? 384400;
+  drawSkyPlot(skyCanvas, {
+    sunTrack,
+    earthTrack,
+    sunNow: nowSun,
+    earthNow: nowEarth,
+    sunRadiusDeg: SUN_RADIUS_DEG,
+    earthRadiusDeg: THREE.MathUtils.radToDeg(Math.asin(EARTH_RADIUS_KM / earthKm)),
+    mask: results.horizon?.mask ?? null,
+    elZoom,
+    azMode,
+  });
 }
+
+const EL_STEPS = [1, 2, 5, 10, 15, 30, 90];
+function setElZoom(z: ElZoom) {
+  elZoom = z;
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-el]')) {
+    b.classList.toggle('active', b.dataset.el === String(z));
+  }
+}
+for (const b of document.querySelectorAll<HTMLButtonElement>('[data-el]')) {
+  b.addEventListener('click', () => setElZoom(b.dataset.el === 'auto' ? 'auto' : Number(b.dataset.el)));
+}
+skyCanvas.addEventListener(
+  'wheel',
+  (e) => {
+    e.preventDefault();
+    const cur = elZoom === 'auto' ? 15 : elZoom;
+    let i = EL_STEPS.findIndex((v) => v >= cur);
+    if (i < 0) i = EL_STEPS.length - 1;
+    i = Math.max(0, Math.min(EL_STEPS.length - 1, i + (e.deltaY > 0 ? 1 : -1)));
+    setElZoom(EL_STEPS[i]);
+  },
+  { passive: false },
+);
+const skyAz = $<HTMLSelectElement>('skyAz');
+skyAz.addEventListener('change', () => (azMode = skyAz.value as AzMode));
 
 const skyHelpBtn = $<HTMLButtonElement>('skyHelpBtn');
 skyHelpBtn.addEventListener('click', () => {
