@@ -128,7 +128,7 @@ The API returns a full timespan in one call, not one instant per request. The so
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/healthz` | Status |
+| GET | `/healthz`, `/v1/health` | Status. Cloud Run blocks paths that end in "z", so deployed clients must use `/v1/health`. |
 | POST | `/v1/series` | `evaluate_series` at one point, with the terrain horizon and the next events |
 | POST | `/v1/moon-state` | Moon state at each step |
 | GET | `/v1/mask` | Terrain horizon mask at one point (section 6) |
@@ -189,6 +189,7 @@ Fields of `horizon`:
 | `az_step_deg` | number or null | Mask azimuth step. Null for `"flat"`. |
 | `elevation_deg` | list or null | Mask elevations (section 6). Null for `"flat"`. |
 | `dem_source` | text or null | DEM products of the mask. Null for `"flat"`. |
+| `terrain_status` | text | `ok`: terrain is in use. `no_coverage`: the DEMs do not cover the point. `unavailable`: the DEMs cover the point, but this server has no DEM files and no cached mask, so the flat horizon can be wrong. `not_requested`: a mask was provided, or `terrain` is `"none"`. |
 
 Fields of `next_events`: `sunrise`, `sunset`, `earthrise` and `earthset`. Each value is UTC text with whole seconds, or null. The API uses `next_events` (section 4) with the same horizon and surface height as the series. It searches for 400 days after `stop_utc` with a 2 h step. Null means no event of that type in 400 days.
 
@@ -285,3 +286,4 @@ The terrain tool is the package `lunarterrain` in `data/` (`data/src/lunarterrai
 - 2026-11-14: Python 3.14 through uv. `surface_height_m` added to `evaluate`. Mask height check added. API timespan rule added.
 - 2026-11-14: `evaluate_series` added to section 4. Time offset, latitude and longitude input rules added. A mask with no `observer_height_m` is accepted. Section 5 now gives the real API endpoints.
 - 2026-11-14: `surface_height_m` added to the mask format. `GET /v1/mask` added. `/v1/series` has `terrain`, `horizon` and `next_events`. The API accepts `lon_deg` up to 360. `stop_utc` can be equal to `start_utc`. `next_events` added to section 4.
+- 2026-11-14: `horizon.terrain_status` added. `/v1/health` added for Cloud Run.

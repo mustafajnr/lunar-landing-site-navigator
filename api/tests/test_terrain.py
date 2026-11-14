@@ -100,7 +100,8 @@ def test_series_auto_shackleton_floor(client):
 def test_series_terrain_none_and_provided_mask(client):
     flat = client.post("/v1/series", json={**FLOOR, **SPAN30, "terrain": "none"}).json()
     assert flat["horizon"] == {"source": "flat", "surface_height_m": None,
-                               "az_step_deg": None, "elevation_deg": None, "dem_source": None}
+                               "az_step_deg": None, "elevation_deg": None, "dem_source": None,
+                               "terrain_status": "not_requested"}
     assert flat["summary"]["sun_fraction_of_time"] > 0.0
     mask = {"observer_height_m": 2.0, "az_step_deg": 0.5, "elevation_deg": [1.0] * 720,
             "surface_height_m": 100.0}
@@ -155,3 +156,19 @@ def test_single_instant(client):
     assert d["next_events"]["sunset"] is not None
     m = client.post("/v1/moon-state", json={"start_utc": t, "stop_utc": t})
     assert m.status_code == 200 and len(m.json()["states"]) == 1
+
+
+def test_terrain_status_no_coverage(client):
+    r = client.post("/v1/series", json={"lat_deg": 0.674, "lon_deg": 23.473, **SPAN30}).json()
+    assert r["horizon"]["source"] == "flat"
+    assert r["horizon"]["terrain_status"] == "no_coverage"
+
+
+@needs_dems
+def test_terrain_status_ok(client):
+    r = client.post("/v1/series", json={**FLOOR, **SPAN30}).json()
+    assert r["horizon"]["terrain_status"] == "ok"
+
+
+def test_health_alias(client):
+    assert client.get("/v1/health").json()["status"] == "ok"

@@ -132,6 +132,10 @@ class HorizonOut(BaseModel):
     az_step_deg: float | None
     elevation_deg: list[float] | None
     dem_source: str | None
+    terrain_status: Literal["ok", "no_coverage", "unavailable", "not_requested"] = Field(
+        description="ok: terrain used. no_coverage: the DEMs do not cover the point. "
+                    "unavailable: the DEMs cover the point, but this server has no DEM "
+                    "files and no cached mask. not_requested: mask provided or terrain none.")
 
 
 class NextEvents(BaseModel):
@@ -215,27 +219,33 @@ def _horizon(req: SeriesIn) -> tuple[dict | None, float, dict]:
             h = m["surface_height_m"]
         return m, h, {"source": "provided", "surface_height_m": h,
                       "az_step_deg": m["az_step_deg"], "elevation_deg": m["elevation_deg"],
-                      "dem_source": m.get("dem_source")}
+                      "dem_source": m.get("dem_source"), "terrain_status": "not_requested"}
+    status = "not_requested"
     if req.terrain == "auto":
         try:
             m = masks.get(req.lat_deg, req.lon_deg, req.observer_height_m)
-        except (NoTerrain, TerrainUnavailable):
-            m = None
+        except NoTerrain:
+            m, status = None, "no_coverage"
+        except TerrainUnavailable:
+            m, status = None, "unavailable"
         if m is not None:
             # The mask is for the rounded height. The core checks the height with
             # a 1e-6 m tolerance, so give it the mask height.
             h = m["surface_height_m"]
             return m, h, {"source": "terrain", "surface_height_m": h,
                           "az_step_deg": m["az_step_deg"],
-                          "elevation_deg": m["elevation_deg"], "dem_source": m["dem_source"]}
+                          "elevation_deg": m["elevation_deg"], "dem_source": m["dem_source"],
+                          "terrain_status": "ok"}
     h = req.surface_height_m
     return None, h, {"source": "flat", "surface_height_m": h if explicit_h else None,
-                     "az_step_deg": None, "elevation_deg": None, "dem_source": None}
+                     "az_step_deg": None, "elevation_deg": None, "dem_source": None,
+                     "terrain_status": status}
 
 
 # --- endpoints --------------------------------------------------------------------
 
 @app.get("/healthz")
+@app.get("/v1/health")
 def healthz() -> dict:
     with _spice_lock:
         loaded = spice.is_loaded()
