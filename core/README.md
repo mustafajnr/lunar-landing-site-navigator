@@ -243,7 +243,7 @@ evaluate(lat_deg, lon_deg, utc, observer_height_m, horizon_mask=None, *, surface
 
 ### Horizon mask
 
-A horizon mask gives the elevation of the terrain horizon in each direction around one point. It is valid for one observer height only. `lunarnav` does not calculate masks. A terrain tool must supply them (see [Limitations](#limitations)).
+A horizon mask gives the elevation of the terrain horizon in each direction around one point. It is valid for one observer height only. `lunarnav` does not calculate masks. The package `lunarterrain` (in `../data`) calculates them from the LOLA DEMs. The API endpoint `GET /v1/mask` gives them (see `api/README.md`).
 
 The mask format is:
 
@@ -253,6 +253,7 @@ The mask format is:
 | `elevation_deg` | list of numbers | Horizon elevation, degrees, at azimuth 0, 1 × step, 2 × step, and so on. The length must be 360 / `az_step_deg`. |
 | `lat_deg`, `lon_deg` | number | Point of the mask (for information only) |
 | `observer_height_m` | number | Observer height of the mask, metres. Optional. |
+| `surface_height_m` | number | Terrain height at the point above the 1,737,400 m sphere, metres. Optional. `evaluate` does not read it. Give it as the `surface_height_m` argument. |
 | `dem_source` | text | Name of the terrain data product (for information only) |
 
 Between two samples, `lunarnav` uses linear interpolation. The interpolation goes across 360° to 0°.
@@ -400,7 +401,7 @@ evaluate_series(lat_deg, lon_deg, start_utc, stop_utc, step_minutes, observer_he
 | Argument | Meaning |
 |---|---|
 | `lat_deg`, `lon_deg`, `observer_height_m`, `horizon_mask`, `surface_height_m` | The same as for `evaluate` |
-| `start_utc`, `stop_utc` | First and last instant. ISO 8601 text or `datetime`, with the same rules as `evaluate`. `stop_utc` must be after `start_utc`. |
+| `start_utc`, `stop_utc` | First and last instant. ISO 8601 text or `datetime`, with the same rules as `evaluate`. `stop_utc` must not be before `start_utc`. If they are equal, the result has one step (CONTRACTS.md section 4 gives the summary values). |
 | `step_minutes` | Time step, minutes. It must be a positive number. |
 | `event_tol_s` | Accuracy of the event times, seconds |
 
@@ -515,6 +516,29 @@ both_fraction_of_time      0.099
 time_to_next_sunset_h      59.101
 longest_both_period_h      71.523
 ```
+
+### Next events with `next_events`
+
+`next_events` finds the first sunrise, sunset, earthrise and earthset after one instant. The signature is:
+
+```python
+next_events(lat_deg, lon_deg, after_utc, observer_height_m, horizon_mask=None, *,
+            surface_height_m=0.0, max_days=400, step_hours=2, event_tol_s=1.0) -> dict
+```
+
+The search goes forward for `max_days`, with steps of `step_hours`. Then bisection finds each time. The value is `None` if there is no event of that type in `max_days`. Two changes in one step are not found. The search takes about 0.15 s for 400 days.
+
+```python
+from lunarnav import next_events
+
+print(next_events(0.674, 23.473, "2026-12-14T00:00:00Z", 2.0))
+```
+
+```text
+{'sunrise': '2026-12-14T15:41:31Z', 'sunset': '2026-12-29T12:34:10Z', 'earthrise': None, 'earthset': None}
+```
+
+Apollo 11 is on the near side, so Earth does not rise or set.
 
 With a 1.5° horizon, the Sun and Earth are both visible for 9.9% of the span. The longest such period is 71.5 hours, from sunrise on 25 November to earthset on 28 November.
 
@@ -721,7 +745,7 @@ The package loads the kernels one time in each process, at the first call. One c
 
 ## Limitations
 
-- **No terrain is built in.** `lunarnav` does not read terrain data and does not calculate horizon masks. Without a mask, the horizon is flat at 0°. Another tool must supply the mask and `surface_height_m`. A higher observer does not lower the flat horizon. Only a mask includes this effect.
+- **No terrain is built in.** `lunarnav` does not read terrain data and does not calculate horizon masks. Without a mask, the horizon is flat at 0°. `lunarterrain` (in `../data`) or the API must supply the mask and `surface_height_m`. A higher observer does not lower the flat horizon. Only a mask includes this effect.
 - **The mask position is not checked.** `evaluate` does not compare the mask's `lat_deg` and `lon_deg` with the point. Make sure that they are the same. A mask with no `observer_height_m` has no height check (read [Mask height check](#mask-height-check)).
 - **Earth visibility uses Earth's centre only.** `earth_visible` does not include Earth's disk (radius approximately 0.95°). It does not include antenna beam width or link budget.
 - **Time range.** `de440s.bsp` covers 1849-12-26 to 2150-01-22 (UTC, approximately). The lunar orientation kernel covers a longer range (1549 to 2650). Outside the `de440s.bsp` range, `evaluate` raises a SPICE error (`SpiceSPKINSUFFDATA`). For example, 2151-01-01 gives this error.

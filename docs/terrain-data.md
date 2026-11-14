@@ -101,6 +101,7 @@ Curvature is included because all points are true 3D positions.
 ```
 bash data/download_dem.sh                     # once, ~3.5 GB into data/raw/
 cd data
+export LUNARNAV_DEM_DIR=$PWD/raw          # optional. This is the default.
 uv run python horizon.py -89.45 -137.31 --height 2 -o masks/out.json
 ```
 

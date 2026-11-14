@@ -8,7 +8,7 @@ This file gives the shared rules for all workstreams. It is short on purpose. Ch
 |---|---|---|
 | `ui/` | UI | Vite + TypeScript + three.js web app |
 | `core/` | Core algorithm | Python package `lunarnav` (Sun/Earth geometry, visibility) |
-| `data/` | Terrain data | Scripts that get and process LOLA terrain data and the site list |
+| `data/` | Terrain data | Package `lunarterrain` (horizon masks from LOLA DEMs), scripts and the site list |
 | `api/` | API | FastAPI app that calls `core/` |
 | `docs/` | All | Notes, findings, decisions |
 
@@ -75,7 +75,8 @@ evaluate_series(lat_deg, lon_deg, start_utc, stop_utc, step_minutes, observer_he
 ```
 
 - The steps are `start_utc`, `start_utc` + `step_minutes`, and so on, to `stop_utc`. If `stop_utc` is not on a step, it is the last step.
-- `stop_utc` must be after `start_utc`. `step_minutes` must be more than 0. If not, the result is `ValueError`.
+- `stop_utc` must not be before `start_utc`. `step_minutes` must be more than 0. If not, the result is `ValueError`.
+- If `stop_utc` is equal to `start_utc`, the result has one step. Then `span_h` is 0, there are no events, each `*_fraction_of_time` is 1 or 0 (the state at that instant), `mean_sun_visible_fraction` is the value at that instant, and the periods are 0.
 - The other arguments are the same as for `evaluate`.
 - `event_tol_s` is the accuracy of the event times, in seconds.
 
@@ -108,6 +109,17 @@ An event is a change between two adjacent steps. Bisection finds its time. Two c
 
 The fractions and periods use the event times. A period that touches `start_utc` or `stop_utc` stops at that edge.
 
+### Next events
+
+```
+next_events(lat_deg, lon_deg, after_utc, observer_height_m, horizon_mask=None, *,
+            surface_height_m=0.0, max_days=400, step_hours=2, event_tol_s=1.0) -> dict
+```
+
+- The result is `{"sunrise": utc | None, "sunset": ..., "earthrise": ..., "earthset": ...}`. Each value is the first event of that type after `after_utc`.
+- `None` means no event of that type in `max_days`.
+- The search uses steps of `step_hours`. Then bisection finds the time. Two changes in one step are not found. The state at `after_utc` is not an event.
+
 The core repeats `evaluate` over a timespan at one point (`evaluate_series`). The application layer repeats it over the points inside a site radius.
 
 ## 5. API
@@ -117,11 +129,16 @@ The API returns a full timespan in one call, not one instant per request. The so
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/healthz` | Status |
-| POST | `/v1/series` | `evaluate_series` at one point |
+| POST | `/v1/series` | `evaluate_series` at one point, with the terrain horizon and the next events |
 | POST | `/v1/moon-state` | Moon state at each step |
+| GET | `/v1/mask` | Terrain horizon mask at one point (section 6) |
 | GET | `/v1/sites` | Site list (section 7) |
 
 Errors: an incorrect request gives HTTP 422. A request with more than 20,000 steps gives HTTP 422. A `ValueError` from the core, for example a mask height mismatch, gives HTTP 422.
+
+Longitude: all endpoints accept `lon_deg` from −180 to +360. The API changes a value in (180, 360] to the range −180 to +180. Outputs always use −180 to +180.
+
+Single instant: in `/v1/series` and `/v1/moon-state`, `stop_utc` can be equal to `start_utc`. The result has one step.
 
 ### `GET /healthz`
 
@@ -138,12 +155,19 @@ Request:
 | Field | Type | Default | Rule |
 |---|---|---|---|
 | `lat_deg` | number | required | More than −90 and less than +90 |
-| `lon_deg` | number | required | −180 to +180. The API does not accept the 0 to 360 convention. |
-| `start_utc`, `stop_utc` | ISO 8601 text | required | An offset is converted to UTC. No offset is UTC. |
+| `lon_deg` | number | required | −180 to +360 |
+| `start_utc`, `stop_utc` | ISO 8601 text | required | An offset is converted to UTC. No offset is UTC. `stop_utc` must not be before `start_utc`. |
 | `step_minutes` | number | 60 | More than 0 |
 | `observer_height_m` | number | 2.0 | 0 or more. Above the terrain. |
-| `surface_height_m` | number | 0.0 | Terrain height above the 1,737,400 m sphere |
+| `surface_height_m` | number | 0.0 | Terrain height above the 1,737,400 m sphere. The API does not use it when `horizon.source` is `"terrain"`. |
 | `mask` | object or null | null | Horizon mask (section 6). `az_step_deg` and `elevation_deg` are required. |
+| `terrain` | `"auto"` or `"none"` | `"auto"` | `"auto"`: if there is no `mask` and the DEMs cover the point, use the terrain mask. `"none"`: no terrain mask. |
+
+The horizon rules, in order:
+
+1. If the request has a `mask`, the API uses it (`source` is `"provided"`). The surface height is the request `surface_height_m` if the request gives it. If not, it is the mask `surface_height_m` if the mask has it. If not, it is 0.
+2. If `terrain` is `"auto"` and the DEMs cover the point, the API uses the terrain mask for the observer height (`source` is `"terrain"`). The surface height is the mask `surface_height_m`. The API rounds the observer height to 0.01 m (the mask cache key).
+3. If not, the horizon is flat at 0° (`source` is `"flat"`). The surface height is the request `surface_height_m`.
 
 Response:
 
@@ -153,6 +177,41 @@ Response:
 | `series` | object | One list for each `Result` field (section 4), with one value for each step |
 | `events` | list of `{type, utc}` | Events (section 4) |
 | `summary` | object | Summary fields (section 4) |
+| `horizon` | object | The horizon that the API used (see below) |
+| `next_events` | object | First event of each type after `stop_utc` (see below) |
+
+Fields of `horizon`:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `source` | text | `"terrain"`, `"flat"` or `"provided"` |
+| `surface_height_m` | number or null | The surface height that the API used. Null for `"flat"` if the request does not give `surface_height_m`. |
+| `az_step_deg` | number or null | Mask azimuth step. Null for `"flat"`. |
+| `elevation_deg` | list or null | Mask elevations (section 6). Null for `"flat"`. |
+| `dem_source` | text or null | DEM products of the mask. Null for `"flat"`. |
+
+Fields of `next_events`: `sunrise`, `sunset`, `earthrise` and `earthset`. Each value is UTC text with whole seconds, or null. The API uses `next_events` (section 4) with the same horizon and surface height as the series. It searches for 400 days after `stop_utc` with a 2 h step. Null means no event of that type in 400 days.
+
+### `GET /v1/mask`
+
+Query parameters:
+
+| Parameter | Type | Default | Rule |
+|---|---|---|---|
+| `lat_deg` | number | required | More than −90 and less than +90 |
+| `lon_deg` | number | required | −180 to +360 |
+| `observer_height_m` | number | 2.0 | 0 or more |
+
+Response: the mask JSON (section 6), with `surface_height_m`. The API rounds `lat_deg` and `lon_deg` to 10⁻⁵° and `observer_height_m` to 0.01 m. It calculates the mask at the rounded values. The response gives the rounded values.
+
+| Status | `detail.code` | Cause |
+|---|---|---|
+| 404 | `no_terrain` | The DEMs do not cover the point (north of 60° S), or a horizon ray leaves the DEMs |
+| 503 | `terrain_unavailable` | The DEM files are not present, and the cache does not have the mask |
+
+The error body is `{"detail": {"code": "...", "message": "..."}}`.
+
+Cache: the API keeps masks in memory (LRU, 512 masks) and on disk (`LUNARNAV_MASK_CACHE`, default `data/cache/masks/`). A point with no terrain is also cached. A cold mask takes about 0.6 s. A cached mask takes about 3 ms.
 
 ### `POST /v1/moon-state`
 
@@ -225,3 +284,4 @@ The terrain tool is the package `lunarterrain` in `data/` (`data/src/lunarterrai
 - 2026-11-14: First version.
 - 2026-11-14: Python 3.14 through uv. `surface_height_m` added to `evaluate`. Mask height check added. API timespan rule added.
 - 2026-11-14: `evaluate_series` added to section 4. Time offset, latitude and longitude input rules added. A mask with no `observer_height_m` is accepted. Section 5 now gives the real API endpoints.
+- 2026-11-14: `surface_height_m` added to the mask format. `GET /v1/mask` added. `/v1/series` has `terrain`, `horizon` and `next_events`. The API accepts `lon_deg` up to 360. `stop_utc` can be equal to `start_utc`. `next_events` added to section 4.
