@@ -43,7 +43,7 @@ curl -s localhost:8000/v1/series -H 'content-type: application/json' -d '{
 - `mask`: a horizon mask (CONTRACTS.md section 6). It has priority over `terrain`. The mask `observer_height_m` must equal the request `observer_height_m`.
 - `surface_height_m`: terrain height above the 1,737,400 m sphere. The API does not use it with a terrain mask. It uses the mask value.
 
-The response has two more blocks. This example is the Shackleton rim point (−89.45, −137.31), 2026-11-14 to 2026-12-14:
+The response has two more blocks. This example is the connecting ridge point (−89.45, −137.31, on the Shackleton–de Gerlache ridge), 2026-11-14 to 2026-12-14:
 
 ```json
 "horizon": {"source": "terrain", "surface_height_m": 1955.01, "az_step_deg": 0.5,

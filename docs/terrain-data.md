@@ -116,7 +116,7 @@ with Terrain() as t:
 
 | File | Point | Site height | Horizon min / mean / max |
 |---|---|---|---|
-| `masks/shackleton_rim_-89.45_-137.31_h2.json` | Connecting ridge by the Shackleton rim (−89.45, −137.31) | 1955 m | −2.85° / −0.62° / +0.90° (max at az 134°, towards Malapert) |
+| `masks/connecting_ridge_-89.45_-137.31_h2.json` | Shackleton–de Gerlache connecting ridge, about 9–10 km from the Shackleton rim (−89.45, −137.31) | 1955 m | −2.85° / −0.62° / +0.90° (max at az 134°, towards Malapert) |
 | `masks/shackleton_floor_-89.67_129.78_h2.json` | Shackleton crater centre, floor (−89.67, 129.78) | −2789 m | +19.8° / +21.3° / +23.6° |
 
 The Sun never rises more than about 1.6° above the horizontal plane near the pole, so

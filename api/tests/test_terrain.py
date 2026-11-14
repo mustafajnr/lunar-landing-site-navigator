@@ -47,7 +47,7 @@ def test_mask_bad_lon_is_422(client):
 
 @needs_dems
 def test_mask_ridge_matches_committed_file(client, fresh_cache):
-    ref = json.loads((MASKS / "shackleton_rim_-89.45_-137.31_h2.json").read_text())
+    ref = json.loads((MASKS / "connecting_ridge_-89.45_-137.31_h2.json").read_text())
     r = client.get("/v1/mask", params={**RIDGE, "observer_height_m": 2.0})
     assert r.status_code == 200, r.text
     assert r.json() == ref
@@ -72,7 +72,7 @@ def test_mask_without_dems_uses_disk_cache(client, fresh_cache, monkeypatch):
     r = client.get("/v1/mask", params={"lat_deg": -85.0, "lon_deg": 10.0})
     assert r.status_code == 503
     assert r.json()["detail"]["code"] == "terrain_unavailable"
-    ref = json.loads((MASKS / "shackleton_rim_-89.45_-137.31_h2.json").read_text())
+    ref = json.loads((MASKS / "connecting_ridge_-89.45_-137.31_h2.json").read_text())
     fresh_cache.cache_dir.mkdir(parents=True, exist_ok=True)
     (fresh_cache.cache_dir / "-89.45000_-137.31000_h2.00.json").write_text(json.dumps(ref))
     r = client.get("/v1/mask", params={**RIDGE})

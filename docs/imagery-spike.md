@@ -162,7 +162,7 @@ Checks done:
 - `npm run build` passes. **Vite does not put `detail.html` in the production
   build** without a `vite.config` (`build.rollupOptions.input`). Only `index.html` is built.
 
-Note: the "Shackleton rim" test point (-89.45, -137.31 = 222.69 E) is on the
+Note: the connecting ridge test point (-89.45, -137.31 = 222.69 E) is on the
 Shackleton - de Gerlache connecting ridge, about 9-10 km from Shackleton's rim.
 
 ## 5. Integration plan
