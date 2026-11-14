@@ -37,6 +37,60 @@ body {
   right: 8px;
   width: 380px;
 }
+#results section.first {
+  border-top: none;
+}
+.cd {
+  margin: 6px 0;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+.cd .big {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.state {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.state.up {
+  color: #7ee08f;
+}
+.state.down {
+  color: #ff8a7a;
+}
+.presets button.active {
+  background: #2f5f9e;
+  color: #fff;
+}
+.events {
+  max-height: 170px;
+  overflow-y: auto;
+}
+tr.ev td {
+  padding: 1px 2px;
+}
+tr.ev-sunrise td:first-child,
+tr.ev-sunset td:first-child {
+  color: #ffd54a;
+}
+tr.ev-earthrise td:first-child,
+tr.ev-earthset td:first-child {
+  color: #6fb6ff;
+}
+tr.ev.past {
+  opacity: 0.45;
+}
+tr.ev.next {
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+}
 h1 {
   font-size: 15px;
   margin: 4px 0 8px;
@@ -177,4 +231,8 @@ input.bad {
   font-size: 12px;
   background: #000;
   padding: 1px 4px;
+}
+#results td:first-child {
+  white-space: nowrap;
+  padding-right: 8px;
 }

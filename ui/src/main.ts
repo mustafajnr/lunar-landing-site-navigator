@@ -14,6 +14,7 @@ import {
 } from './ephemeris';
 import { createGrid } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
+import { ResultsPanel } from './results';
 
 // ---------- Scene layout ----------
 // Scene units: 1 = Moon radius. `inertial` group holds the J2000 frame. Its rotation puts
@@ -185,6 +186,13 @@ function setBase(ms: number) {
   offsetInput.value = '0';
   dtInput.value = toInputValue(baseMs);
   requestBatch();
+  requestSeries();
+}
+
+// ---------- API: series for the selected point (results panel) ----------
+const results = new ResultsPanel(() => computeTracks());
+function requestSeries() {
+  results.setRequest({ point: selected, startMs: baseMs - WINDOW_S * 1000, stopMs: baseMs + WINDOW_S * 1000 });
 }
 
 // ---------- API: Moon-state batch for the time window ----------
@@ -230,6 +238,7 @@ function requestBatch() {
       batch = b;
       apiMsg.hidden = true;
       computeTracks();
+      requestSeries(); // retry after an API outage
     })
     .catch((e) => {
       if ((e as Error).name === 'AbortError') return;
@@ -260,6 +269,16 @@ let earthTrack: TrackPt[] = [];
 function computeTracks() {
   sunTrack = [];
   earthTrack = [];
+  const d = results.data;
+  if (d) {
+    // API values (observer height included).
+    for (let i = 0; i < d.times_utc.length; i++) {
+      sunTrack.push([d.series.sun_az[i], d.series.sun_el[i]]);
+      earthTrack.push([d.series.earth_az[i], d.series.earth_el[i]]);
+    }
+    return;
+  }
+  // Preview from the Moon-state batch until /v1/series arrives.
   if (!batch) return;
   const step = 2 * 3600;
   for (let t = -WINDOW_S; t <= WINDOW_S; t += step) {
@@ -351,6 +370,8 @@ const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true));
 function selectPoint(ll: LatLon, site: Site | null, fly: boolean) {
   selected = { latDeg: ll.latDeg, lonDeg: ll.lonDeg };
   pointUi.show(selected, site);
+  $('selName').textContent = site ? site.name : '';
+  requestSeries();
   computeTracks();
   if (fly) flyTo(selected);
 }
@@ -482,7 +503,11 @@ function update() {
   $('subSun').textContent = fmtLL(state.subSolar);
   $('subEarth').textContent = fmtLL(state.subEarth);
   $('earthDist').textContent = `${Math.round(state.earthDistanceKm).toLocaleString('en-US')} km`;
-  const sky = localSky(selected.latDeg, selected.lonDeg, state);
+  results.tick(nowMs);
+  const api = results.at(nowMs);
+  const sky = api
+    ? { sunAzDeg: api.sunAz, sunElDeg: api.sunEl, earthAzDeg: api.earthAz, earthElDeg: api.earthEl }
+    : localSky(selected.latDeg, selected.lonDeg, state);
   $('selSun').textContent = fmtAzEl(sky.sunAzDeg, sky.sunElDeg);
   $('selEarth').textContent = fmtAzEl(sky.earthAzDeg, sky.earthElDeg);
   drawSky([sky.sunAzDeg, sky.sunElDeg], [sky.earthAzDeg, sky.earthElDeg]);
@@ -513,6 +538,7 @@ function frame(now: number) {
       offsetS = (nowMs - baseMs) / 1000;
       dtInput.value = toInputValue(baseMs);
       requestBatch();
+      requestSeries();
     }
     offsetInput.value = String(Math.round(offsetS / 60));
   }
@@ -528,5 +554,6 @@ resize();
 dtInput.value = toInputValue(baseMs);
 requestBatch();
 pointUi.show(selected, null);
+requestSeries();
 viewEarth();
 requestAnimationFrame(frame);

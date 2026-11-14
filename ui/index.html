@@ -80,16 +80,73 @@
     </aside>
 
     <aside id="results" class="panel">
-      <section>
+      <section class="first">
         <h2>Selected point <span class="tag">flat horizon</span></h2>
+        <div class="row mono"><span><span class="dot sel"></span><span id="selLatLon"></span></span><span id="selName" class="small"></span></div>
+        <div class="cd">
+          <span id="cdSunState" class="state"></span>
+          <div id="cdSun" class="big"></div>
+          <div id="cdSunSub" class="small"></div>
+        </div>
+        <div class="cd">
+          <span id="cdEarthState" class="state"></span>
+          <div id="cdEarth" class="big"></div>
+          <div id="cdEarthSub" class="small"></div>
+        </div>
+        <p id="resStatus" class="small" hidden></p>
+      </section>
+
+      <section>
+        <h2>Now</h2>
         <table class="mono">
-          <tr><td><span class="dot sel"></span>Lat, lon</td><td id="selLatLon"></td></tr>
-          <tr><td>Sun az / el</td><td id="selSun"></td></tr>
-          <tr><td>Earth az / el</td><td id="selEarth"></td></tr>
+          <tr><td><span class="dot sun"></span>Sun elevation</td><td id="curSunEl">–</td></tr>
+          <tr><td>Sun disk visible</td><td id="curSunFrac">–</td></tr>
+          <tr><td><span class="dot earth"></span>Earth elevation</td><td id="curEarthEl">–</td></tr>
+          <tr><td title="Earth elevation minus horizon elevation in the Earth direction">Earth margin above horizon</td><td id="curEarthMargin">–</td></tr>
+          <tr><td>Sun az / el</td><td id="selSun">–</td></tr>
+          <tr><td>Earth az / el</td><td id="selEarth">–</td></tr>
         </table>
+        <div class="row">
+          <label class="small" for="heightIn">Observer height (m)</label>
+          <input id="heightIn" type="text" inputmode="decimal" size="5" />
+        </div>
+        <div class="row presets">
+          <button type="button" data-height="0">Ground 0 m</button>
+          <button type="button" data-height="2">Lander 2 m</button>
+          <button type="button" data-height="10">Mast 10 m</button>
+        </div>
+        <p id="heightErr" class="error" role="alert" hidden></p>
+      </section>
+
+      <section>
+        <h2>Local sky</h2>
         <canvas id="sky" width="300" height="150"></canvas>
         <p class="small">Local sky, ±30 days: azimuth (0–360°, N E S W) vs elevation.
           Yellow = Sun track, blue = Earth track, large dots = now.</p>
+      </section>
+
+      <section id="summary">
+        <h2>Summary for the window</h2>
+        <table class="mono">
+          <tr><td>Window</td><td id="sumSpan">–</td></tr>
+          <tr><td colspan="2" id="sumDates" class="small">–</td></tr>
+          <tr><td><span class="dot sun"></span>Time with Sun</td><td id="sumSun">–</td></tr>
+          <tr><td>Mean Sun disk visible</td><td id="sumSunFrac">–</td></tr>
+          <tr><td><span class="dot earth"></span>Time with Earth</td><td id="sumEarth">–</td></tr>
+          <tr><td>Time with both</td><td id="sumBoth">–</td></tr>
+          <tr><td>Longest Sun period</td><td id="sumLongSun">–</td></tr>
+          <tr><td>Longest Earth period</td><td id="sumLongEarth">–</td></tr>
+          <tr><td>Longest period with both</td><td id="sumLongBoth">–</td></tr>
+        </table>
+        <p class="small">"Sun" means some part of the Sun's disk is above the horizon.
+          "Earth" means Earth's centre is above the horizon.</p>
+      </section>
+
+      <section>
+        <h2>Events (UTC)</h2>
+        <div class="events">
+          <table class="mono"><tbody id="eventRows"></tbody></table>
+        </div>
       </section>
     </aside>
     <script type="module" src="/src/main.ts"></script>
