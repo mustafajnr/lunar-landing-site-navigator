@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, fields
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import numpy as np
 import spiceypy as sp
@@ -23,6 +23,7 @@ from .core import (
     check_mask_height,
     evaluate_at,
     site_and_frame,
+    to_utc_datetime,
     utc_to_et,
 )
 from .horizon import as_mask
@@ -54,17 +55,8 @@ class SeriesResult:
 
 
 def parse_utc(utc) -> datetime:
-    """ISO 8601 text or datetime -> naive UTC datetime."""
-    if isinstance(utc, datetime):
-        d = utc
-    else:
-        s = str(utc).strip()
-        if s.endswith(("Z", "z")):
-            s = s[:-1] + "+00:00"
-        d = datetime.fromisoformat(s)
-    if d.tzinfo is not None:
-        d = d.astimezone(timezone.utc).replace(tzinfo=None)
-    return d
+    """ISO 8601 text or datetime -> naive UTC datetime (rules of core.to_utc_datetime)."""
+    return to_utc_datetime(utc)
 
 
 def format_utc(d: datetime) -> str:

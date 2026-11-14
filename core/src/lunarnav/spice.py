@@ -49,11 +49,24 @@ def write_meta_kernel() -> Path:
     return META_KERNEL
 
 
+def is_loaded() -> bool:
+    """True if lunarnav loaded its kernels and SPICE still has them.
+
+    spiceypy.kclear() (or another unload) outside lunarnav makes this False.
+    """
+    return _loaded and sp.ktotal("ALL") >= len(KERNELS)
+
+
 def ensure_loaded() -> None:
-    """Load the kernels once per process."""
+    """Load the kernels if they are not loaded.
+
+    This is cheap after the first call. If SPICE lost the kernels, for example after
+    spiceypy.kclear(), this function loads them again.
+    """
     global _loaded
-    if _loaded:
+    if is_loaded():
         return
+    _loaded = False
     missing = [k for k in KERNELS if not (KERNEL_DIR / Path(k).name).exists()]
     if missing:
         raise FileNotFoundError(
@@ -63,3 +76,12 @@ def ensure_loaded() -> None:
     for k in KERNELS:
         sp.furnsh(str(KERNEL_DIR / Path(k).name))
     _loaded = True
+
+
+def reload() -> None:
+    """Unload the lunarnav kernels and load them again. Other kernels stay loaded."""
+    global _loaded
+    for k in KERNELS:
+        sp.unload(str(KERNEL_DIR / Path(k).name))  # no effect if the file is not loaded
+    _loaded = False
+    ensure_loaded()

@@ -1,4 +1,4 @@
-"""Horizon mask (CONTRACTS.md section 5)."""
+"""Horizon mask (CONTRACTS.md section 6)."""
 
 from __future__ import annotations
 
@@ -12,7 +12,11 @@ import numpy as np
 
 @dataclass(frozen=True)
 class HorizonMask:
-    """Terrain horizon elevation (deg) sampled at regular azimuth steps from 0 deg."""
+    """Terrain horizon elevation (deg) sampled at regular azimuth steps from 0 deg.
+
+    observer_height_m can be None. This is for synthetic masks, for example a
+    constant 5 deg wall. evaluate() checks the height only if the mask has one.
+    """
 
     az_step_deg: float
     elevation_deg: np.ndarray

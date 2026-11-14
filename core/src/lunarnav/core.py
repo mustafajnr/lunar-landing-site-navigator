@@ -36,19 +36,68 @@ class Result:
         return asdict(self)
 
 
-def utc_to_et(utc) -> float:
-    """ISO 8601 UTC text (with or without a trailing Z) or a datetime -> TDB seconds past J2000."""
-    ensure_loaded()
+TIME_HINT = "use ISO 8601 text, for example 2026-11-14T12:00:00Z or 2026-11-14T14:00:00+02:00"
+
+
+def to_utc_datetime(utc) -> datetime:
+    """ISO 8601 text or a datetime -> naive UTC datetime.
+
+    Text with an offset (Z, +02:00, -05:30, ...) is converted to UTC.
+    Text without an offset is UTC. A naive datetime is UTC.
+    Text that cannot be parsed raises ValueError.
+    """
     if isinstance(utc, datetime):
-        if utc.tzinfo is not None:
-            utc = utc.astimezone(timezone.utc).replace(tzinfo=None)
-        utc = utc.isoformat()
-    s = str(utc).strip()
-    if s.endswith(("Z", "z")):
-        s = s[:-1]
-    elif s.endswith("+00:00"):
-        s = s[:-6]
-    return sp.str2et(s)  # SPICE default time system is UTC
+        d = utc
+    elif isinstance(utc, str):
+        s = utc.strip()
+        if s.endswith("z"):
+            s = s[:-1] + "Z"
+        try:
+            d = datetime.fromisoformat(s)
+        except ValueError:
+            raise ValueError(f"cannot parse time {utc!r}: {TIME_HINT}") from None
+    else:
+        raise TypeError(f"time must be ISO 8601 text or a datetime, not {type(utc).__name__}")
+    if d.tzinfo is not None:
+        d = d.astimezone(timezone.utc).replace(tzinfo=None)
+    return d
+
+
+def utc_to_et(utc) -> float:
+    """ISO 8601 text or a datetime -> TDB seconds past J2000.
+
+    The rules are those of to_utc_datetime(). If Python cannot parse the text, SPICE
+    str2et tries it as UTC (for example the leap second 2016-12-31T23:59:60Z).
+    If SPICE cannot parse it either, the result is ValueError.
+    """
+    ensure_loaded()
+    try:
+        d = to_utc_datetime(utc)
+    except ValueError as e:
+        s = utc.strip()
+        if s.endswith(("Z", "z")):
+            s = s[:-1]
+        try:
+            return sp.str2et(s)  # SPICE default time system is UTC
+        except sp.utils.exceptions.SpiceyError:
+            raise e from None
+    return sp.str2et(d.isoformat())
+
+
+def check_lat_lon(lat_deg, lon_deg) -> tuple[float, float]:
+    """Validate latitude and longitude. Return (lat_deg, lon_deg) with lon in -180..+180.
+
+    Latitude must be in [-90, 90]. Longitude must be in [-180, 360]. A longitude in
+    (180, 360] is converted to the -180..+180 range, so both conventions work.
+    """
+    lat, lon = float(lat_deg), float(lon_deg)
+    if not (math.isfinite(lat) and -90.0 <= lat <= 90.0):
+        raise ValueError(f"lat_deg must be in the range -90 to 90, got {lat_deg}")
+    if not (math.isfinite(lon) and -180.0 <= lon <= 360.0):
+        raise ValueError(f"lon_deg must be in the range -180 to 360, got {lon_deg}")
+    if lon > 180.0:
+        lon -= 360.0
+    return lat, lon
 
 
 def site_position_km(lat_deg, lon_deg, height_m) -> np.ndarray:
@@ -105,7 +154,8 @@ def apparent_vector_km(target: str, et: float, site_km) -> np.ndarray:
 def check_mask_height(mask: HorizonMask | None, observer_height_m: float) -> None:
     """A mask is valid for one observer height only (CONTRACTS.md section 4).
 
-    A mask without observer_height_m is accepted (synthetic or legacy masks).
+    A mask without observer_height_m is accepted on purpose. This is for synthetic
+    masks, for example a constant 5 deg wall. There is no height check for such a mask.
     """
     if mask is None or mask.observer_height_m is None:
         return
@@ -138,7 +188,12 @@ def evaluate(
 
 
 def site_and_frame(lat_deg, lon_deg, observer_height_m, surface_height_m=0.0):
-    """Observer position (MOON_ME, km) and its east/north/up frame."""
+    """Observer position (MOON_ME, km) and its east/north/up frame.
+
+    Raises ValueError if latitude or longitude is out of range (check_lat_lon),
+    and at exactly +-90 deg latitude (local_frame).
+    """
+    lat_deg, lon_deg = check_lat_lon(lat_deg, lon_deg)
     site = site_position_km(lat_deg, lon_deg, surface_height_m + observer_height_m)
     return site, local_frame(site)
 
