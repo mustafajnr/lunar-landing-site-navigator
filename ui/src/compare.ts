@@ -267,13 +267,13 @@ export function openCompare(searches: SavedSearch[]) {
       if (r.title) th.title = r.title;
       tr.append(th);
       const cells = entries.map((e) => (ri < INPUT_ROWS || e.state === 'ok' ? r.cell(e) : null));
-      // Best value: the highest. Mark it only if the values are not all the same.
-      let best = NaN;
+      // Best value: the highest. Compare the shown text, so equal shown values get the
+      // same mark. Mark nothing if all shown values are the same.
+      let bestText: string | null = null;
       if (r.numeric) {
-        const vals = cells.map((c) => c?.value).filter((v): v is number => v !== undefined && !Number.isNaN(v));
-        const max = Math.max(...vals);
-        const min = Math.min(...vals);
-        if (vals.length >= 2 && max - min > 1e-9 && max > -Infinity) best = max;
+        const vals = cells.filter((c): c is Cell => !!c && c.value !== undefined && !Number.isNaN(c.value));
+        const top = vals.reduce<Cell | null>((a, c) => (!a || c.value! > a.value! ? c : a), null);
+        if (vals.length >= 2 && top && top.value! > -Infinity && vals.some((c) => c.text !== top.text)) bestText = top.text;
       }
       entries.forEach((e, i) => {
         const c = cells[i];
@@ -293,7 +293,7 @@ export function openCompare(searches: SavedSearch[]) {
             if (c.tag.title) tg.title = c.tag.title;
             td.append(tg);
           }
-          if (c.value !== undefined && c.value === best) {
+          if (bestText !== null && c.value !== undefined && c.text === bestText) {
             td.classList.add('best');
             td.title = 'Best value in this row';
           }
