@@ -4,8 +4,10 @@ Vite + TypeScript + three.js. It shows the Moon orientation, Sun lighting (termi
 Earth direction, the sub-solar and sub-Earth points, a latitude/longitude grid and the
 curated sites. For a selected point (site picker, typed lat/lon or a click on the globe) it
 shows Sun and Earth visibility from `/v1/series`: the time to the next sunset and Earthset,
-current values, a summary, the event list and a local sky plot. The horizon is flat (0°) for
-now.
+current values, a summary, the event list and a local sky plot. The API uses the LOLA terrain
+horizon where it has terrain data (`terrain: "auto"`), else a flat 0° horizon. The panel says
+which one is in use. A site-detail map (NASA Moon Trek tiles, OpenLayers) at the bottom follows
+the selected point.
 
 The UI needs the API (`api/`). Start both:
 
@@ -36,7 +38,15 @@ Set `VITE_API_URL` to use another API address (default `http://127.0.0.1:8000`),
 - `src/grid.ts`: latitude/longitude grid (10°, plus rings at 80°, 85°, 88° S and N).
 - `src/point.ts`: lat/lon input validation and the site picker.
 - `src/results.ts`: results panel (`/v1/series`), countdowns, summary, events, observer height.
-- `src/skyplot.ts`: local sky plot. `drawHorizonMask()` is ready for a terrain mask.
+- `src/skyplot.ts`: local sky plot: terrain outline, true Sun and Earth disk sizes, zoom.
+- `src/mappanel.ts`: map panel (fold, full screen). Loads `src/detail/detailmap.ts` with
+  `import()`, so OpenLayers is not in the main chunk.
+- `src/detail/detailmap.ts`: the map (layers, coverage rules, progress bar, arrows). Also used by
+  the standalone page `detail.html` (`/detail.html?lat=-89.45&lon=-137.31&radius=500`).
+- `src/detail/layers.ts`, `src/detail/moonproj.ts`: Moon Trek layers and lunar projections
+  (see `docs/imagery-spike.md`).
+- Dev only: `/?mockmask` sends the two committed masks in `data/masks/` as the `mask` field,
+  for an API without terrain.
 - `scripts/validate.ts`: Horizons comparison. `scripts/sectigo-root-r46.pem` is the public
   root CA for `ssd.jpl.nasa.gov`. The local CA store lacks it, so curl gets it with `--cacert`.
   Set `HORIZONS_NO_CA=1` to use the system store only.
@@ -49,7 +59,8 @@ Set `VITE_API_URL` to use another API address (default `http://127.0.0.1:8000`),
   JPL Horizons (MOON_ME) to about 0.005°.
 - Azimuth and elevation follow `CONTRACTS.md`. They are topocentric: the observer is on the
   1737.4 km sphere, so Earth parallax (up to about 0.26°) is included.
-- Earth size and distance in the scene are not to scale.
+- Earth and Sun size and distance in the scene are not to scale. "True scale Earth" puts Earth
+  at its true distance and size; the Sun stays reduced.
 
 ## Credits
 
