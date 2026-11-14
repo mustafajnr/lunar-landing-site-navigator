@@ -101,10 +101,24 @@ def test_mask_applies_to_sun_and_earth():
 
 
 @needs_kernels
+def test_mask_height_must_match_observer_height():
+    m = make_mask([0.0] * 720, 0.5)  # observer_height_m = 2.0
+    evaluate(*SHACK, T, 2.0, m)
+    evaluate(*SHACK, T, 2.0 + 1e-7, m)  # inside tolerance
+    with pytest.raises(ValueError, match="observer_height_m"):
+        evaluate(*SHACK, T, 0.0, m)
+    with pytest.raises(ValueError):
+        evaluate(*SHACK, T, 2.001, HorizonMask.from_dict(m))
+    # A mask without a height is accepted.
+    m.pop("observer_height_m")
+    evaluate(*SHACK, T, 0.0, m)
+
+
+@needs_kernels
 def test_sun_partial_near_horizon():
-    flat = evaluate(*SHACK, T, 0.0)
+    flat = evaluate(*SHACK, T, 2.0)
     m = make_mask([flat.sun_el + 0.1] * 720, 0.5)  # 0.1 deg above centre, radius ~0.27
-    f = evaluate(*SHACK, T, 0.0, m).sun_visible_fraction
+    f = evaluate(*SHACK, T, 2.0, m).sun_visible_fraction
     assert 0.0 < f < 0.5
 
 

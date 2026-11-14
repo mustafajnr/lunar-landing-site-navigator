@@ -1,0 +1,27 @@
+[project]
+name = "lunarnav-api"
+version = "0.1.0"
+description = "HTTP API for Lunar Landing Site Navigator (FastAPI over lunarnav)"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.162.7",
+    "lunarnav",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[tool.uv.sources]
+lunarnav = { path = "../core", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.13.8,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "certifi>=2026.10.23",
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
