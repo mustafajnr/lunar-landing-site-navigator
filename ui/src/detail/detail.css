@@ -1,0 +1,9 @@
+html, body { margin: 0; height: 100%; background: #000; color: #eee; font: 13px/1.4 system-ui, sans-serif; }
+#map { position: absolute; inset: 0; }
+#info { position: absolute; top: 8px; left: 48px; max-width: 360px; padding: 8px 10px; background: rgba(0,0,0,0.75); border-radius: 6px; z-index: 1; }
+#info h1 { font-size: 14px; margin: 0 0 4px; }
+#info label { display: block; }
+#info label.dim { opacity: 0.5; }
+#info small { color: #aaa; }
+#info a { color: #8cf; }
+#info .k { color: #aaa; }
