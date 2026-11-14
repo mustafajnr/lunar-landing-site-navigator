@@ -83,7 +83,7 @@ For these, the app must use a flat horizon (`horizon_mask = None`) or a global D
 ## Files
 
 - `data/download_dem.sh` — downloads both files into `data/raw/` (resumable, checks sizes).
-- `data/horizon.py` — `Terrain.surface_height(lat, lon)` and `Terrain.horizon_mask(...)`, plus a CLI.
+- `data/src/lunarterrain/horizon.py` (package `lunarterrain`) — `Terrain.surface_height(lat, lon)`, `Terrain.horizon_mask(...)` and `make_mask_json(...)`. `data/horizon.py` is the CLI. `LUNARNAV_DEM_DIR` sets the DEM folder (default `data/raw/`).
 - `data/masks/` — committed example masks.
 
 ## Horizon method (summary)
@@ -105,7 +105,7 @@ uv run python horizon.py -89.45 -137.31 --height 2 -o masks/out.json
 ```
 
 ```python
-from horizon import Terrain
+from lunarterrain import Terrain
 with Terrain() as t:
     h = t.surface_height(-89.45, -137.31)           # m above 1737.4 km sphere (scalar or arrays)
     elev_deg, h_site = t.horizon_mask(-89.45, -137.31, observer_height_m=2.0)

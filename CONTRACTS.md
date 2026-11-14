@@ -190,13 +190,23 @@ A JSON file for each (point, observer height) pair:
 ```json
 {
   "lat_deg": -89.45, "lon_deg": -137.31, "observer_height_m": 2.0,
+  "surface_height_m": 1955.01,
   "dem_source": "<LOLA product name>",
   "az_step_deg": 0.5,
   "elevation_deg": [/* 720 values: azimuth 0.0, 0.5, ... 359.5 */]
 }
 ```
 
-`observer_height_m` is optional only for synthetic masks (section 4).
+| Field | Meaning |
+|---|---|
+| `lat_deg`, `lon_deg` | The point. `lon_deg` is in the range −180 to +180. |
+| `observer_height_m` | Observer height above the terrain, metres. Optional only for synthetic masks (section 4). |
+| `surface_height_m` | Terrain height at the point above the 1,737,400 m sphere, metres, rounded to 0.01 m. Use this value as `surface_height_m` in `evaluate`. Optional. The terrain tool always writes it. |
+| `dem_source` | The DEM products that the tool used |
+| `az_step_deg` | Azimuth step, degrees |
+| `elevation_deg` | Horizon elevation at each azimuth step, degrees, rounded to 0.001° |
+
+The terrain tool is the package `lunarterrain` in `data/` (`data/src/lunarterrain/horizon.py`). The CLI is `data/horizon.py`. The variable `LUNARNAV_DEM_DIR` sets the DEM folder. The default is `data/raw/`. The tool makes no mask if the point or a horizon ray (150 km) is outside the DEMs. Thus there are masks only south of about 65° S.
 
 ## 7. Site list format
 

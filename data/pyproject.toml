@@ -1,8 +1,24 @@
 [project]
-name = "lunar-terrain-data"
+name = "lunarterrain"
 version = "0.1.0"
+description = "Horizon masks and surface heights from LOLA south-pole DEMs"
 requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.5.4",
     "rasterio>=1.5.2",
 ]
+
+[project.scripts]
+lunarterrain-mask = "lunarterrain.horizon:main"
+
+[build-system]
+requires = ["uv_build>=0.13.8,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -2,6 +2,7 @@
  "lat_deg": -89.45,
  "lon_deg": -137.31,
  "observer_height_m": 2.0,
+ "surface_height_m": 1955.01,
  "dem_source": "LDEM_80S_20MPP_ADJ + LDEM_60S_120MPP_ADJ (LOLA, Barker et al. 2023, PGDA product 90)",
  "az_step_deg": 0.5,
  "elevation_deg": [
