@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Node
+node_modules/
+dist/
+build/
+
+# Large data (SPICE kernels, DEMs)
+data/raw/
+*.bsp
+*.tif
+*.img
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
