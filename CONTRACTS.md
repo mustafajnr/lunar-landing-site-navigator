@@ -9,7 +9,7 @@ This file gives the shared rules for all workstreams. It is short on purpose. Ch
 | `ui/` | UI | Vite + TypeScript + three.js web app |
 | `core/` | Core algorithm | Python package `lunarnav` (Sun/Earth geometry, visibility) |
 | `data/` | Terrain data | Scripts that get and process LOLA terrain data and the site list |
-| `api/` | API (later) | FastAPI app that calls `core/` |
+| `api/` | API | FastAPI app that calls `core/` |
 | `docs/` | All | Notes, findings, decisions |
 
 Large data files go in `data/raw/` or `data/cache/`. Git ignores these folders.
