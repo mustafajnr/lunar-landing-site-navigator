@@ -133,10 +133,22 @@ def evaluate(
     ensure_loaded()
     mask = as_mask(horizon_mask)
     check_mask_height(mask, observer_height_m)
-    et = utc_to_et(utc)
-    site = site_position_km(lat_deg, lon_deg, surface_height_m + observer_height_m)
-    enu = local_frame(site)
+    site, enu = site_and_frame(lat_deg, lon_deg, observer_height_m, surface_height_m)
+    return evaluate_at(site, enu, utc_to_et(utc), mask)
 
+
+def site_and_frame(lat_deg, lon_deg, observer_height_m, surface_height_m=0.0):
+    """Observer position (MOON_ME, km) and its east/north/up frame."""
+    site = site_position_km(lat_deg, lon_deg, surface_height_m + observer_height_m)
+    return site, local_frame(site)
+
+
+def evaluate_at(site, enu, et: float, mask: HorizonMask | None) -> Result:
+    """evaluate() for a precomputed site and frame at TDB seconds `et`.
+
+    Used by the time-series layer to skip repeated parsing and checks.
+    The caller must check the mask height (check_mask_height).
+    """
     sun_vec = apparent_vector_km("SUN", et, site)
     earth_vec = apparent_vector_km("EARTH", et, site)
     sun_az, sun_el = az_el(sun_vec, enu)
