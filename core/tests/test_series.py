@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from conftest import needs_kernels
-from lunarnav import evaluate, evaluate_series
+from lunarnav import evaluate, evaluate_series, next_events
 from lunarnav.series import RESULT_FIELDS, count_steps, parse_utc, time_grid
 
 APOLLO11 = (0.674, 23.473)
@@ -27,6 +27,57 @@ def test_time_grid_rejects_bad_span():
         time_grid("2026-11-14T00:00:00Z", "2026-11-13T00:00:00Z", 60)
     with pytest.raises(ValueError):
         time_grid("2026-11-14T00:00:00Z", "2026-11-15T00:00:00Z", 0)
+
+
+def test_time_grid_single_instant():
+    assert len(time_grid(START, START, 60)) == 1
+    assert count_steps(START, START, 60) == 1
+
+
+@needs_kernels
+def test_series_single_instant():
+    r = evaluate_series(*APOLLO11, "2026-11-25T00:00:00Z", "2026-11-25T00:00:00Z", 60, 2.0)
+    ref = evaluate(*APOLLO11, "2026-11-25T00:00:00Z", 2.0)
+    assert r.times_utc == ["2026-11-25T00:00:00Z"]
+    assert r.arrays["sun_el"][0] == pytest.approx(ref.sun_el, abs=1e-12)
+    assert r.events == []
+    s = r.summary
+    assert s["span_h"] == 0.0 and s["n_steps"] == 1
+    assert s["sun_fraction_of_time"] == (1.0 if ref.sun_visible_fraction > 0 else 0.0)
+    assert s["earth_fraction_of_time"] == 1.0
+    assert s["mean_sun_visible_fraction"] == ref.sun_visible_fraction
+
+
+@needs_kernels
+def test_next_events_match_series_events():
+    stop = "2027-01-14T00:00:00Z"
+    ref = evaluate_series(*APOLLO11, START, stop, 30, 2.0)
+    first = {}
+    for e in ref.events:
+        first.setdefault(e["type"], e["utc"])
+    nxt = next_events(*APOLLO11, START, 2.0)
+    assert nxt["earthrise"] is None and nxt["earthset"] is None  # near side
+    for kind in ("sunrise", "sunset"):
+        dt = abs((parse_utc(nxt[kind]) - parse_utc(first[kind])).total_seconds())
+        assert dt <= 2.0
+
+
+@needs_kernels
+def test_next_events_none_behind_a_wall():
+    nxt = next_events(*SHACK, START, 2.0, flat_mask(30.0))
+    assert nxt == {"sunrise": None, "sunset": None, "earthrise": None, "earthset": None}
+
+
+@needs_kernels
+def test_next_events_south_pole_earth():
+    # Earth rises and sets with libration at the pole. With a flat horizon the scan
+    # finds the same first earthset as a fine series.
+    ref = evaluate_series(*SHACK, START, "2027-01-14T00:00:00Z", 30, 2.0)
+    nxt = next_events(*SHACK, START, 2.0)
+    first = next((e["utc"] for e in ref.events if e["type"] == "earthset"), None)
+    if first is not None:
+        dt = abs((parse_utc(nxt["earthset"]) - parse_utc(first)).total_seconds())
+        assert dt <= 2.0
 
 
 @pytest.fixture(scope="module")
