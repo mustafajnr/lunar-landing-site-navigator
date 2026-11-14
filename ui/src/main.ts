@@ -445,20 +445,22 @@ function computeTracks() {
   }
 }
 
-// Sun angular radius: 695,700 km at 1 AU (varies by about ±1.7 % over the year).
-const SUN_RADIUS_DEG = 0.2666;
+// Sun angular radius from the true Sun distance (it changes by about ±1.7 % over the year).
+const SUN_RADIUS_KM = 695700;
+const SUN_RADIUS_DEG_1AU = 0.2666;
 const EARTH_RADIUS_KM = 6371;
 let elZoom: ElZoom = 'auto';
 let azMode: AzMode = 'full';
 
 function drawSky(nowSun: TrackPt | null, nowEarth: TrackPt | null) {
   const earthKm = state?.earthDistanceKm ?? 384400;
+  const sunKm = state ? Math.hypot(...state.sunBodyKm) : 0;
   drawSkyPlot(skyCanvas, {
     sunTrack,
     earthTrack,
     sunNow: nowSun,
     earthNow: nowEarth,
-    sunRadiusDeg: SUN_RADIUS_DEG,
+    sunRadiusDeg: sunKm > 0 ? THREE.MathUtils.radToDeg(Math.asin(SUN_RADIUS_KM / sunKm)) : SUN_RADIUS_DEG_1AU,
     earthRadiusDeg: THREE.MathUtils.radToDeg(Math.asin(EARTH_RADIUS_KM / earthKm)),
     mask: results.horizon?.mask ?? null,
     elZoom,
