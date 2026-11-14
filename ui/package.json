@@ -10,7 +10,6 @@
     "validate": "tsx scripts/validate.ts"
   },
   "dependencies": {
-    "astronomy-engine": "^2.1.19",
     "ol": "^10.11.0",
     "three": "^0.187.0"
   },

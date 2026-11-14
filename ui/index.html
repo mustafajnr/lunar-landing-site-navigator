@@ -7,8 +7,10 @@
   </head>
   <body>
     <canvas id="globe"></canvas>
-    <aside id="panel">
-      <h1>Lunar Landing Site Navigator <small>spike</small></h1>
+    <div id="apiMsg" role="alert" hidden></div>
+
+    <aside id="panel" class="panel">
+      <h1>Lunar Landing Site Navigator</h1>
 
       <section>
         <h2>Time (UTC)</h2>
@@ -31,7 +33,39 @@
       </section>
 
       <section>
-        <h2>Moon geometry <span class="approx">approx.</span></h2>
+        <h2>Point</h2>
+        <label class="field">Site
+          <select id="siteSel"><option value="">Loading sites…</option></select>
+        </label>
+        <form id="pointForm" class="row" novalidate>
+          <label class="field">Lat (°)<input id="latIn" type="text" inputmode="decimal" size="9" /></label>
+          <label class="field">Lon (°)<input id="lonIn" type="text" inputmode="decimal" size="9" /></label>
+          <button type="submit">Go</button>
+        </form>
+        <p id="pointErr" class="error" role="alert" hidden></p>
+        <p class="small">Lat −90 to +90 (not exactly ±90). Lon −180 to +180, east is positive.
+          Or click the globe.</p>
+        <div id="siteInfo" class="small"></div>
+      </section>
+
+      <section>
+        <h2>View</h2>
+        <div class="row">
+          <button id="viewEarth" type="button">View from Earth</button>
+          <button id="viewSouth" type="button">View south pole</button>
+        </div>
+        <label class="small"><input id="showGrid" type="checkbox" checked /> Show latitude/longitude grid</label><br />
+        <label class="small"><input id="showSites" type="checkbox" checked /> Show sites
+          (<span class="dot cand"></span>candidate <span class="dot past"></span>past)</label><br />
+        <label class="small"><input id="follow" type="checkbox" /> Camera turns with the Moon</label><br />
+        <label class="small" title="Celestial north is up, as an observer on Earth sees the Moon. Otherwise the Moon's north pole is up."
+          ><input id="trueSky" type="checkbox" /> True sky orientation (view from Earth)</label>
+        <p class="small">Screen up is the Moon's north pole. With true sky orientation, screen up is
+          celestial north, as seen from Earth.</p>
+      </section>
+
+      <section>
+        <h2>Moon geometry</h2>
         <table class="mono">
           <tr><td><span class="dot sun"></span>Sub-solar</td><td id="subSun"></td></tr>
           <tr><td><span class="dot earth"></span>Sub-Earth</td><td id="subEarth"></td></tr>
@@ -39,33 +73,92 @@
         </table>
       </section>
 
-      <section>
-        <h2>Selected point <span class="approx">flat horizon</span></h2>
-        <p class="small">Click the globe to select a point.</p>
-        <table class="mono">
-          <tr><td><span class="dot sel"></span>Lat, lon</td><td id="selLatLon"></td></tr>
-          <tr><td>Sun az / el</td><td id="selSun"></td></tr>
-          <tr><td>Earth az / el</td><td id="selEarth"></td></tr>
-        </table>
-        <canvas id="sky" width="300" height="150"></canvas>
-        <p class="small">Local sky, ±30 days: azimuth (0–360°, N E S W) vs elevation.
-          Yellow = Sun track, blue = Earth track, large dots = now.</p>
-      </section>
-
-      <section>
-        <h2>Camera</h2>
-        <div class="row">
-          <button id="viewEarth" type="button">View from Earth</button>
-          <button id="viewSouth" type="button">View south pole</button>
-        </div>
-        <label class="small"><input id="follow" type="checkbox" /> Camera turns with the Moon</label>
-      </section>
-
       <p class="small note">
-        Approximate: Moon orientation from the IAU rotation model (astronomy-engine), not the
-        DE/LE-based Moon ME frame. Sub-points agree with JPL Horizons to about 0.01°.
+        Sun, Earth and Moon orientation come from the API (NASA SPICE kernels, DE440, MOON_ME frame).
         Earth size and distance are not to scale.
       </p>
+    </aside>
+
+    <aside id="results" class="panel">
+      <section class="first">
+        <h2>Selected point <span class="tag">flat horizon</span></h2>
+        <div class="row mono"><span><span class="dot sel"></span><span id="selLatLon"></span></span><span id="selName" class="small"></span></div>
+        <div class="cd">
+          <span id="cdSunState" class="state"></span>
+          <div id="cdSun" class="big"></div>
+          <div id="cdSunSub" class="small"></div>
+        </div>
+        <div class="cd">
+          <span id="cdEarthState" class="state"></span>
+          <div id="cdEarth" class="big"></div>
+          <div id="cdEarthSub" class="small"></div>
+        </div>
+        <p id="resStatus" class="small" hidden></p>
+      </section>
+
+      <section>
+        <h2>Now</h2>
+        <table class="mono">
+          <tr><td><span class="dot sun"></span>Sun elevation</td><td id="curSunEl">–</td></tr>
+          <tr><td>Sun disk visible</td><td id="curSunFrac">–</td></tr>
+          <tr><td><span class="dot earth"></span>Earth elevation</td><td id="curEarthEl">–</td></tr>
+          <tr><td title="Earth elevation minus horizon elevation in the Earth direction">Earth margin above horizon</td><td id="curEarthMargin">–</td></tr>
+          <tr><td>Sun az / el</td><td id="selSun">–</td></tr>
+          <tr><td>Earth az / el</td><td id="selEarth">–</td></tr>
+        </table>
+        <div class="row">
+          <label class="small" for="heightIn">Observer height (m)</label>
+          <input id="heightIn" type="text" inputmode="decimal" size="5" />
+        </div>
+        <div class="row presets">
+          <button type="button" data-height="0">Ground 0 m</button>
+          <button type="button" data-height="2">Lander 2 m</button>
+          <button type="button" data-height="10">Mast 10 m</button>
+        </div>
+        <p id="heightErr" class="error" role="alert" hidden></p>
+      </section>
+
+      <section>
+        <h2 class="row">Local sky, ±30 days
+          <button id="skyHelpBtn" type="button" class="info" aria-expanded="false" aria-controls="skyHelp" title="How to read this plot">i</button></h2>
+        <div id="skyHelp" class="help" hidden>
+          <p>Each dot is the position of the Sun or Earth at one hour in the window, as seen
+            from the selected point. Left to right is the compass direction (azimuth), bottom to
+            top is the angle above the horizon (elevation). Dots above the dashed line are
+            visible. The large dots show the time on the clock.</p>
+        </div>
+        <canvas id="sky"></canvas>
+        <div class="legend small">
+          <span><span class="dot sun"></span>Sun track</span>
+          <span><span class="dot earth"></span>Earth track</span>
+          <span><span class="dot ring"></span>Now</span>
+          <span><span class="dash"></span>Horizon (flat, 0°)</span>
+        </div>
+      </section>
+
+      <section id="summary">
+        <h2>Summary for the window</h2>
+        <table class="mono">
+          <tr><td>Window</td><td id="sumSpan">–</td></tr>
+          <tr><td colspan="2" id="sumDates" class="small">–</td></tr>
+          <tr><td><span class="dot sun"></span>Time with Sun</td><td id="sumSun">–</td></tr>
+          <tr><td>Mean Sun disk visible</td><td id="sumSunFrac">–</td></tr>
+          <tr><td><span class="dot earth"></span>Time with Earth</td><td id="sumEarth">–</td></tr>
+          <tr><td>Time with both</td><td id="sumBoth">–</td></tr>
+          <tr><td>Longest Sun period</td><td id="sumLongSun">–</td></tr>
+          <tr><td>Longest Earth period</td><td id="sumLongEarth">–</td></tr>
+          <tr><td>Longest period with both</td><td id="sumLongBoth">–</td></tr>
+        </table>
+        <p class="small">"Sun" means some part of the Sun's disk is above the horizon.
+          "Earth" means Earth's centre is above the horizon.</p>
+      </section>
+
+      <section>
+        <h2>Events (UTC)</h2>
+        <div class="events">
+          <table class="mono"><tbody id="eventRows"></tbody></table>
+        </div>
+      </section>
     </aside>
     <script type="module" src="/src/main.ts"></script>
   </body>
