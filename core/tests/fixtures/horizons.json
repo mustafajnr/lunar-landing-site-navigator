@@ -1,0 +1,75 @@
+{
+  "source": "https://ssd.jpl.nasa.gov/api/horizons.api",
+  "notes": "Fetch JPL Horizons apparent az/el of the Sun and Earth for lunar surface sites.\n\nUsage (from core/):  uv run python scripts/fetch_horizons.py\nWrites tests/fixtures/horizons.json, used offline by tests/test_horizons.py.\n\nHorizons settings (confirmed from the output header):\n  Center pole/equ : MEAN_ME (high precision)  -> same frame as SPICE MOON_ME\n  Center radii    : 1737.4 km sphere          -> GEODETIC == planetocentric here\n  Azimuth         : clockwise from north (N=0, E=90)\n  Elevation       : from plane perpendicular to the local zenith, airless\n  Apparent        : light time, stellar aberration, gravitational light bending",
+  "cases": [
+    {
+      "name": "shackleton",
+      "lat_deg": -89.45,
+      "lon_deg": -137.3,
+      "observer_height_m": 0.0,
+      "utc": "2026-11-14T12:00:00Z",
+      "sun_az": 257.809616634,
+      "sun_el": 1.440535852,
+      "earth_az": 135.349490496,
+      "earth_el": -4.512653046
+    },
+    {
+      "name": "shackleton",
+      "lat_deg": -89.45,
+      "lon_deg": -137.3,
+      "observer_height_m": 0.0,
+      "utc": "2026-11-21T06:00:00Z",
+      "sun_az": 175.715441896,
+      "sun_el": 0.991325271,
+      "earth_az": 130.394564037,
+      "earth_el": 4.278465359
+    },
+    {
+      "name": "shackleton",
+      "lat_deg": -89.45,
+      "lon_deg": -137.3,
+      "observer_height_m": 0.0,
+      "utc": "2026-12-01T18:00:00Z",
+      "sun_az": 48.25456154,
+      "sun_el": 1.832437668,
+      "earth_az": 144.155546417,
+      "earth_el": -3.169415641
+    },
+    {
+      "name": "shackleton_10m",
+      "lat_deg": -89.45,
+      "lon_deg": -137.3,
+      "observer_height_m": 10.0,
+      "utc": "2027-01-10T00:00:00Z",
+      "sun_az": 290.77137987,
+      "sun_el": 1.060214153,
+      "earth_az": 134.108986933,
+      "earth_el": -1.634400064
+    },
+    {
+      "name": "apollo11",
+      "lat_deg": 0.674,
+      "lon_deg": 23.473,
+      "observer_height_m": 0.0,
+      "utc": "2026-11-20T00:00:00Z",
+      "sun_az": 94.233590515,
+      "sun_el": 59.796914769,
+      "earth_az": 262.189233038,
+      "earth_el": 58.897051398
+    },
+    {
+      "name": "apollo11",
+      "lat_deg": 0.674,
+      "lon_deg": 23.473,
+      "observer_height_m": 0.0,
+      "utc": "2026-12-05T12:00:00Z",
+      "sun_az": 267.772958729,
+      "sun_el": -68.178324655,
+      "earth_az": 287.663837328,
+      "earth_el": 71.272669805
+    }
+  ],
+  "horizons_center_frame": [
+    "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}"
+  ]
+}
