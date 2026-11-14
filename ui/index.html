@@ -8,6 +8,7 @@
   <body>
     <canvas id="globe"></canvas>
     <div id="apiMsg" role="alert" hidden></div>
+    <div id="scaleNote" class="small">Not to scale: Earth and Sun distances and sizes are reduced.</div>
 
     <aside id="panel" class="panel">
       <h1>Lunar Landing Site Navigator</h1>
@@ -54,6 +55,10 @@
           <button id="viewEarth" type="button">View from Earth</button>
           <button id="viewSouth" type="button">View south pole</button>
         </div>
+        <div class="row">
+          <label class="small"><input id="trueEarth" type="checkbox" /> True scale Earth</label>
+          <button id="viewTrueScale" type="button" title="Turns on true scale Earth and shows Earth and the Moon together">Earth and Moon, true scale</button>
+        </div>
         <label class="small"><input id="showGrid" type="checkbox" checked /> Show latitude/longitude grid</label><br />
         <label class="small"><input id="showSites" type="checkbox" checked /> Show sites
           (<span class="dot cand"></span>candidate <span class="dot past"></span>past)</label><br />
@@ -75,7 +80,7 @@
 
       <p class="small note">
         Sun, Earth and Moon orientation come from the API (NASA SPICE kernels, DE440, MOON_ME frame).
-        Earth size and distance are not to scale.
+        The globe view is not to scale (see the note at the top).
       </p>
     </aside>
 

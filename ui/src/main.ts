@@ -25,6 +25,9 @@ import { drawSkyPlot, type AzMode, type ElZoom, type TrackPt } from './skyplot';
 // Moon ME frame: body +x = lon 0, body +y = lon 90 E, body +z = north pole.
 const EARTH_DIST = 8; // scaled, not true (true ~221 Moon radii)
 const EARTH_RADIUS = 0.35; // scaled, not true (true ~3.67 Moon radii)
+// "True scale Earth": Earth at its true distance and size, in Moon radii.
+const MOON_R_KM = 1737.4;
+const EARTH_TRUE_RADIUS = 6371 / MOON_R_KM;
 const SUN_DIST = 14;
 const DAY_S = 86400;
 const WINDOW_S = 30 * DAY_S;
@@ -37,7 +40,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
-const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 200);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 200); // far plane grows for true scale Earth
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.minDistance = 1.03;
@@ -611,6 +614,43 @@ $('viewEarth').addEventListener('click', viewEarth);
 // From below the south pole. The camera is 0.5° off the axis toward lon 0, so lon 0 is
 // at the top of the screen.
 $('viewSouth').addEventListener('click', () => viewFrom(worldDir(bodyVecOf(-89.5, 0), moonBody), Math.max(2.5, fitDist() * 0.8)));
+// True scale Earth. The Sun stays at its reduced distance and size.
+let trueEarth = false;
+const trueEarthChk = $<HTMLInputElement>('trueEarth');
+function setTrueEarth(on: boolean) {
+  trueEarth = on;
+  trueEarthChk.checked = on;
+  camera.far = on ? 2000 : 200;
+  camera.updateProjectionMatrix();
+  controls.maxDistance = on ? 900 : 60;
+  if (!on && camera.position.distanceTo(controls.target) > 60) viewEarth();
+  $('scaleNote').textContent = on
+    ? 'Earth: true distance and size. Not to scale: the Sun distance and size are reduced (true distance about 86,000 Moon radii).'
+    : 'Not to scale: Earth and Sun distances and sizes are reduced.';
+}
+trueEarthChk.addEventListener('change', () => setTrueEarth(trueEarthChk.checked));
+// Camera preset: Earth and the Moon side by side at true scale. The camera looks at the
+// middle of the Earth-Moon line from the side.
+$('viewTrueScale').addEventListener('click', () => {
+  setTrueEarth(true);
+  if (!state) return;
+  flight = null;
+  const eDir = worldDir(state.earthDirInertial, inertial);
+  const mid = eDir.clone().multiplyScalar(state.earthDistanceKm / MOON_R_KM / 2);
+  // Side direction: perpendicular to the Earth line, toward the Sun side if possible.
+  const side = worldDir(state.sunDirInertial, inertial).projectOnPlane(eDir);
+  if (side.lengthSq() < 1e-6) side.set(0, 1, 0).projectOnPlane(eDir);
+  side.normalize();
+  const half = mid.length() * 1.25;
+  // Fit the Earth-Moon line in the free screen width (between the panels).
+  const f = freeArea();
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const dist = half / (t * Math.min(f.w / window.innerHeight, f.h / window.innerHeight * 2) * 0.9);
+  controls.target.copy(mid);
+  camera.position.copy(mid).addScaledVector(side, dist);
+  controls.update();
+});
+
 trueSkyChk.addEventListener('change', () => {
   update();
   viewEarth();
@@ -670,9 +710,12 @@ function update() {
   sunLight.position.copy(sunDir).multiplyScalar(20);
   sunMarker.position.copy(sunDir).multiplyScalar(SUN_DIST);
   setLineEnd(sunLine, sunMarker.position);
-  earthMesh.position.copy(earthDir).multiplyScalar(EARTH_DIST);
+  const eDist = trueEarth ? state.earthDistanceKm / MOON_R_KM : EARTH_DIST;
+  const eRad = trueEarth ? EARTH_TRUE_RADIUS : EARTH_RADIUS;
+  earthMesh.position.copy(earthDir).multiplyScalar(eDist);
+  earthMesh.scale.setScalar(eRad / EARTH_RADIUS);
   earthMesh.rotation.set(0, 0, gmstRad(nowMs));
-  setLineEnd(earthLine, earthDir.clone().multiplyScalar(EARTH_DIST - EARTH_RADIUS));
+  setLineEnd(earthLine, earthDir.clone().multiplyScalar(eDist - eRad));
 
   subSunMarker.position.copy(onSurface(state.subSolar.latDeg, state.subSolar.lonDeg));
   subEarthMarker.position.copy(onSurface(state.subEarth.latDeg, state.subEarth.lonDeg));
