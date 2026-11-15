@@ -110,7 +110,16 @@
         <!-- 4 -->
         <section id="site">
           <h2>4. Select a site <a class="anchor" href="#site" aria-label="Link to this section">#</a></h2>
-          <p>You can select a point in four ways. The results are always for one point.</p>
+          <p>You can select a point in five ways. The results are always for one point.</p>
+
+          <h3 id="place-search">Search a place by name</h3>
+          <ol class="steps">
+            <li>Type a name in <span class="ui">Search a place on the Moon</span>. For example, type <span class="ui">Tycho</span>, <span class="ui">Shackleton</span> or <span class="ui">Sea of Tranquility</span>.</li>
+            <li>A list shows up to 8 names. Each name shows the feature type and the diameter.</li>
+            <li>Click a name. Or use the arrow keys and push Enter. Escape closes the list.</li>
+          </ol>
+          <p>The tool selects the centre point of the feature. The globe turns to this point. The result is for this one point, not for the full feature. A large feature, for example a mare, can have very different conditions at its edges.</p>
+          <p>The list has about 9,000 names from the IAU/USGS <a href="https://planetarynames.wr.usgs.gov/">Gazetteer of Planetary Nomenclature</a>. It has the names that the IAU approved. You can type the Latin name or the English name of a mare, a bay, a lake or a marsh. Upper case, lower case and accents do not change the result. Type the full name of a site in the site list and push Enter to select that site.</p>
 
           <h3 id="site-list">Site list</h3>
           <p>The <span class="ui">Site</span> list has 22 sites:</p>
@@ -638,6 +647,7 @@
             <li><strong>Site map images:</strong> <a href="https://trek.nasa.gov/moon/">NASA Moon Trek</a>. LRO WAC and NAC mosaics (LROC: NASA/GSFC/Arizona State University), LOLA hillshades (NASA/GSFC), Kaguya Terrain Camera mosaic (JAXA/SELENE).</li>
             <li><strong>Globe:</strong> CGI Moon Kit, NASA Scientific Visualization Studio (LROC WAC colour mosaic and LOLA elevation). Earth: Blue Marble Next Generation (NASA Earth Observatory, Reto Stöckli). Sun: SDO/HMI image (NASA/SDO and the AIA, EVE and HMI science teams).</li>
             <li><strong>Site positions:</strong> NASA NSSDC (Apollo) and LROC (other landings and the Artemis III regions).</li>
+            <li><strong>Place names:</strong> IAU/USGS <a href="https://planetarynames.wr.usgs.gov/">Gazetteer of Planetary Nomenclature</a> (USGS Astrogeology Science Center, public domain). Name, type, centre and diameter of each feature.</li>
             <li><strong>Validation:</strong> <a href="https://ssd.jpl.nasa.gov/horizons/">JPL Horizons</a>, NASA JPL.</li>
             <li><strong>Software:</strong> three.js, OpenLayers, Vite, TypeScript, Python, FastAPI, numpy and rasterio.</li>
           </ul>

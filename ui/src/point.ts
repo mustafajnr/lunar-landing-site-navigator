@@ -6,6 +6,7 @@ import type { LatLon } from './ephemeris';
 import type { Site } from './api';
 import { setQuickmapLink } from './quickmap';
 import { bestContext, loadBestPoints, onBestLoaded, type BestContext } from './bestpoints';
+import { featureAt, featureInfo, setupPlaceSearch } from './gazetteer';
 
 export type Validation = { ok: true; ll: LatLon } | { ok: false; error: string; field: 'lat' | 'lon' };
 
@@ -102,6 +103,17 @@ export function setupPointUi(
     onSelect(v.ll, null);
   });
 
+  setupPlaceSearch(
+    $<HTMLInputElement>('placeIn'),
+    $<HTMLUListElement>('placeList'),
+    $<HTMLElement>('placeStatus'),
+    () => sites,
+    (ll, site) => {
+      clearErr();
+      onSelect(ll, site);
+    },
+  );
+
   const isDefault = (ll: LatLon) =>
     !!defaultPoint && Math.abs(ll.latDeg - defaultPoint.latDeg) < 1e-6 && Math.abs(ll.lonDeg - defaultPoint.lonDeg) < 1e-6;
 
@@ -172,6 +184,12 @@ export function setupPointUi(
     const qmP = document.createElement('p');
     qmP.append(qm);
     const ctx = bestContext(ll, site);
+    const feature = site ? null : featureAt(ll);
+    if (feature) {
+      const p = document.createElement('p');
+      p.textContent = `${feature.n}: ${feature.t}. ${featureInfo(feature)}`;
+      siteInfo.append(p);
+    }
     if (!site) {
       if (ctx) {
         const p = document.createElement('p');

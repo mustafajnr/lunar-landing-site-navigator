@@ -122,7 +122,7 @@ Other NASA data:
 
 ## Space Agency Partner Data and Other References
 
-(About 2,030 characters.)
+(About 2,220 characters.)
 
 Space Agency Partner data:
 
@@ -130,6 +130,7 @@ Space Agency Partner data:
 
 Other data and references:
 
+- IAU/USGS Gazetteer of Planetary Nomenclature (USGS Astrogeology Science Center): names, centres and diameters of the lunar features for the place search. Public domain. https://planetarynames.wr.usgs.gov/
 - LROC (Arizona State University): coordinates of the post-Apollo landings and the image boxes for the Artemis III candidate regions. Each site in `data/sites.json` has its source URL.
 - Barker, M. K., et al. (2023). LOLA south pole elevation models, NASA PGDA product 90. https://pgda.gsfc.nasa.gov/products/90
 - Park, R. S., et al. (2021). The JPL planetary and lunar ephemerides DE440 and DE441.

@@ -69,6 +69,16 @@
 
       <section>
         <h2>Point</h2>
+        <div class="place-search">
+          <label class="field" for="placeIn" id="placeLabel">Search a place on the Moon</label>
+          <input id="placeIn" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false"
+            aria-controls="placeList" aria-labelledby="placeLabel" aria-describedby="placeHint"
+            autocomplete="off" spellcheck="false" placeholder="For example Tycho or Sea of Tranquility" />
+          <ul id="placeList" role="listbox" aria-labelledby="placeLabel" hidden></ul>
+          <p id="placeStatus" class="sr-only" role="status" aria-live="polite"></p>
+          <p id="placeHint" class="small place-credit">Names: IAU/USGS Gazetteer of Planetary Nomenclature.
+            <a href="https://planetarynames.wr.usgs.gov/" target="_blank" rel="noopener">Source</a></p>
+        </div>
         <label class="field">Site
           <select id="siteSel"><option value="">Loading sites…</option></select>
         </label>

@@ -1632,3 +1632,62 @@ tr.ev.past td:first-child {
     grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto;
   }
 }
+
+/* ---------- Place search: IAU/USGS Gazetteer names (gazetteer.ts, point.ts) ---------- */
+.place-search {
+  position: relative;
+  margin: 4px 0 8px;
+}
+.place-search .field {
+  margin-bottom: 2px;
+}
+#placeIn {
+  box-sizing: border-box;
+  width: 100%;
+}
+#placeList {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  margin: 2px 0 0;
+  padding: 2px 0;
+  list-style: none;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #111;
+  border: 1px solid #555;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+#placeList [role='option'] {
+  padding: 5px 8px;
+  font-size: 12px;
+  color: #ddd;
+  cursor: pointer;
+}
+#placeList [role='option']:hover,
+#placeList [role='option'][aria-selected='true'] {
+  background: #23415a;
+  color: #fff;
+}
+.place-search .place-credit {
+  margin: 2px 0 0;
+  color: #999;
+}
+.place-search .place-credit a {
+  color: #8cc8ff;
+}
+@media (max-width: 760px) {
+  #placeIn {
+    min-height: 44px;
+    font-size: 16px; /* 16 px stops the zoom on focus in iOS Safari. */
+  }
+  #placeList [role='option'] {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+}

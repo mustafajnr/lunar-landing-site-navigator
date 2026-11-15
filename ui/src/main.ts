@@ -16,6 +16,7 @@ import {
 import { createGrid, gridLight, updateGridLabels } from './grid';
 import { createEdgeIndicators } from './edgeind';
 import { setupPointUi, STATUS_COLOR } from './point';
+import { featureAt, featureName } from './gazetteer';
 import { missionStepMinutes, ResultsPanel } from './results';
 import { setupSaved } from './saved';
 import { openCompare } from './compare';
@@ -673,6 +674,8 @@ function selectPoint(ll: LatLon, site: Site | null, fly: boolean, fromMap = fals
 
 function pointName(ll: LatLon, site: Site | null) {
   if (site) return site.name;
+  const feature = featureAt(ll);
+  if (feature) return featureName(feature);
   if (Math.abs(ll.latDeg - DEFAULT_POINT.latDeg) < 1e-6 && Math.abs(ll.lonDeg - DEFAULT_POINT.lonDeg) < 1e-6) return DEFAULT_POINT.name;
   return '';
 }

@@ -151,6 +151,7 @@ On 2026-11-14, the deployed API returned terrain masks for points outside the pr
 | Blue Marble Next Generation, January 2004 | Earth texture | NASA Earth Observatory, Reto Stöckli, NASA GSFC |
 | SDO/HMI continuum image, 2026-11-14 16:00 UTC | Sun texture | Courtesy of NASA/SDO and the AIA, EVE and HMI science teams |
 | LROC QuickMap (TerrainSlope layer, NAC 2 m south pole mosaic, WAC+NAC base) | External link "Open in LROC QuickMap (slope in degrees)": the selected point with terrain slope in degrees. The tool does not copy QuickMap data. | LROC QuickMap, https://quickmap.lroc.im-ldi.com/. NASA/GSFC/Arizona State University. |
+| IAU/USGS Gazetteer of Planetary Nomenclature, `MOON_nomenclature_center_pts` (downloaded 2026-11-15) | Place search "Search a place on the Moon": name, type, centre and diameter of about 9,000 approved features (`data/scripts/make_gazetteer.py`, `ui/public/gazetteer.json`) | USGS Astrogeology Science Center and the IAU, https://planetarynames.wr.usgs.gov/. Public domain (USGS). |
 | JPL Horizons | Validation data | NASA JPL, https://ssd.jpl.nasa.gov/horizons/ |
 | Site coordinates | Curated site list | NASA NSSDC (Apollo), LROC (other landings and the Artemis III regions). Each site in `data/sites.json` has its source URL. |
 
