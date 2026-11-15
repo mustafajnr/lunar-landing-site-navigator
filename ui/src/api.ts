@@ -113,6 +113,23 @@ export interface SeriesOut {
   horizon?: SeriesHorizon | null;
   /** First events after stop_utc, searched over 400 days. Missing in older API versions. */
   next_events?: NextEvents | null;
+  /** The data and settings that made the result. Missing in older API versions. */
+  provenance?: SeriesProvenance | null;
+}
+
+/** CONTRACTS.md section 5, `provenance`. */
+export interface SeriesProvenance {
+  software: { lunarnav: string; api: string };
+  /** File names of the loaded SPICE kernels. */
+  kernels: string[];
+  ephemeris: string;
+  frame: string;
+  mask_origin: 'memory_cache' | 'disk_cache' | 'computed' | 'provided' | 'none';
+  dem_source: string | null;
+  step_minutes: number;
+  /** Accuracy of the event times, seconds. */
+  event_tol_s: number;
+  generated_utc: string;
 }
 
 export interface SeriesHorizon {

@@ -9,11 +9,12 @@ import json
 import os
 import threading
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from importlib.metadata import version
 from pathlib import Path
 from typing import Annotated, Literal
 
+import spiceypy as sp
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import AfterValidator, BaseModel, Field
@@ -21,7 +22,7 @@ from pydantic import AfterValidator, BaseModel, Field
 from lunarnav import spice
 from lunarnav.core import utc_to_et
 from lunarnav.moon import moon_state_et
-from lunarnav.series import count_steps, evaluate_series, format_utc, next_events, time_grid
+from lunarnav.series import EVENT_TOL_S, count_steps, evaluate_series, format_utc, next_events, time_grid
 from lunarnav.spice import ensure_loaded
 
 from .terrain import MaskCache, NoTerrain, TerrainUnavailable, normalize_lon
@@ -54,7 +55,8 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Lunar Landing Site Navigator API", version="0.1.0", lifespan=lifespan)
+API_VERSION = version("lunarnav-api")
+app = FastAPI(title="Lunar Landing Site Navigator API", version=API_VERSION, lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -145,6 +147,25 @@ class NextEvents(BaseModel):
     earthset: str | None
 
 
+class SoftwareOut(BaseModel):
+    lunarnav: str
+    api: str
+
+
+class ProvenanceOut(BaseModel):
+    """The data and settings that made this result (CONTRACTS.md section 5)."""
+
+    software: SoftwareOut
+    kernels: list[str] = Field(description="file names of the loaded SPICE kernels")
+    ephemeris: Literal["DE440"] = "DE440"
+    frame: Literal["MOON_ME"] = "MOON_ME"
+    mask_origin: Literal["memory_cache", "disk_cache", "computed", "provided", "none"]
+    dem_source: str | None
+    step_minutes: float
+    event_tol_s: float = Field(description="accuracy of the event times, seconds")
+    generated_utc: str
+
+
 class SeriesOut(BaseModel):
     times_utc: list[str]
     series: SeriesArrays
@@ -152,6 +173,7 @@ class SeriesOut(BaseModel):
     summary: Summary
     horizon: HorizonOut
     next_events: NextEvents
+    provenance: ProvenanceOut
 
 
 class MaskOut(BaseModel):
@@ -209,8 +231,16 @@ def _no_terrain(e: Exception) -> HTTPException:
     return HTTPException(404, {"code": "no_terrain", "message": str(e)})
 
 
-def _horizon(req: SeriesIn) -> tuple[dict | None, float, dict]:
-    """(mask for the core, surface_height_m, response horizon block). No SPICE here."""
+def _loaded_kernels() -> list[str]:
+    """File names of all kernels that SPICE has loaded. Call inside _spice_lock."""
+    return [Path(sp.kdata(i, "ALL")[0]).name for i in range(sp.ktotal("ALL"))]
+
+
+def _horizon(req: SeriesIn) -> tuple[dict | None, float, dict, str]:
+    """(mask for the core, surface_height_m, response horizon block, mask origin).
+
+    No SPICE here.
+    """
     explicit_h = "surface_height_m" in req.model_fields_set
     if req.mask is not None:
         m = req.mask.model_dump()
@@ -219,11 +249,13 @@ def _horizon(req: SeriesIn) -> tuple[dict | None, float, dict]:
             h = m["surface_height_m"]
         return m, h, {"source": "provided", "surface_height_m": h,
                       "az_step_deg": m["az_step_deg"], "elevation_deg": m["elevation_deg"],
-                      "dem_source": m.get("dem_source"), "terrain_status": "not_requested"}
+                      "dem_source": m.get("dem_source"),
+                      "terrain_status": "not_requested"}, "provided"
     status = "not_requested"
     if req.terrain == "auto":
         try:
-            m = masks.get(req.lat_deg, req.lon_deg, req.observer_height_m)
+            m, origin = masks.get_with_origin(req.lat_deg, req.lon_deg,
+                                              req.observer_height_m)
         except NoTerrain:
             m, status = None, "no_coverage"
         except TerrainUnavailable:
@@ -235,11 +267,11 @@ def _horizon(req: SeriesIn) -> tuple[dict | None, float, dict]:
             return m, h, {"source": "terrain", "surface_height_m": h,
                           "az_step_deg": m["az_step_deg"],
                           "elevation_deg": m["elevation_deg"], "dem_source": m["dem_source"],
-                          "terrain_status": "ok"}
+                          "terrain_status": "ok"}, origin
     h = req.surface_height_m
     return None, h, {"source": "flat", "surface_height_m": h if explicit_h else None,
                      "az_step_deg": None, "elevation_deg": None, "dem_source": None,
-                     "terrain_status": status}
+                     "terrain_status": status}, "none"
 
 
 # --- endpoints --------------------------------------------------------------------
@@ -255,7 +287,7 @@ def healthz() -> dict:
 @app.post("/v1/series", response_model=SeriesOut)
 def series(req: SeriesIn) -> dict:
     _check_steps(req)
-    mask, surface_h, horizon = _horizon(req)  # outside the SPICE lock
+    mask, surface_h, horizon, mask_origin = _horizon(req)  # outside the SPICE lock
     obs_h = req.observer_height_m
     if horizon["source"] == "terrain":
         obs_h = mask["observer_height_m"]
@@ -267,6 +299,7 @@ def series(req: SeriesIn) -> dict:
             )
             nxt = next_events(req.lat_deg, req.lon_deg, req.stop_utc, obs_h, mask,
                               surface_height_m=surface_h)
+            kernels = _loaded_kernels()
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
     return {
@@ -276,6 +309,17 @@ def series(req: SeriesIn) -> dict:
         "summary": r.summary,
         "horizon": horizon,
         "next_events": nxt,
+        "provenance": {
+            "software": {"lunarnav": version("lunarnav"), "api": API_VERSION},
+            "kernels": kernels,
+            "ephemeris": "DE440",
+            "frame": "MOON_ME",
+            "mask_origin": mask_origin,
+            "dem_source": horizon["dem_source"],
+            "step_minutes": req.step_minutes,
+            "event_tol_s": EVENT_TOL_S,
+            "generated_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        },
     }
 
 

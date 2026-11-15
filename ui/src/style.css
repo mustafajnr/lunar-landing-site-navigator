@@ -637,3 +637,44 @@ button.danger {
 #saveForm[hidden] {
   display: none;
 }
+
+/* ---------- Check this result (check.ts) ---------- */
+#checkResult > summary {
+  cursor: pointer;
+  list-style: none;
+}
+#checkResult > summary::-webkit-details-marker {
+  display: none;
+}
+#checkResult > summary h2 {
+  display: inline-block;
+}
+#checkResult > summary::before {
+  content: '▸ ';
+  color: #aaa;
+}
+#checkResult[open] > summary::before {
+  content: '▾ ';
+}
+#checkResult h3 {
+  font-size: 12px;
+  color: #aaa;
+  margin: 8px 0 2px;
+}
+.check-table td:last-child {
+  white-space: pre-line;
+  word-break: break-word;
+}
+.check-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+}
+.check-link {
+  color: #6fb6ff;
+}
+.check-link[aria-disabled='true'] {
+  color: #666;
+  pointer-events: none;
+}
