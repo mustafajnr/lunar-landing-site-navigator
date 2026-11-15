@@ -22,7 +22,7 @@ The narration has about 75 words. That is about 2.5 words per second.
 
 | Time | Screen and actions | Narration |
 |---|---|---|
-| 0:00–0:03 | Title card: "Lunar Landing Site Navigator", "lunarsite.select". Your name and team name. | "I'm TODO(developer: name), team TODO(developer: team name)." |
+| 0:00–0:03 | Title card: "lunarsite.select", "Lunar Landing Site Navigator challenge", "Mustafa Abdeltawwab, team lunarspot". | "I'm Mustafa Abdeltawwab, team lunarspot." |
 | 0:03–0:07 | The overview, with the default point (Shackleton–de Gerlache ridge, 89.45° S, 137.31° W). Date 2026-11-22 00:00. Zoom on the results panel: "SUN IS UP" and "EARTH IS UP, Earthset in 7 d 05 h 19 min". | "Lunar Landing Site Navigator. Our south-pole mission lands November 22. Sun and Earth are up." |
 | 0:07–0:14 | Change the date to 2026-12-06 00:00. Click "View south pole". The panel shows "EARTH IS DOWN, Earthrise in 9 d 15 h 10 min". Point at the sky plot: the blue Earth dot is below the brown terrain outline. | "Launch slips two weeks. Now Earth is behind the terrain. No direct link to Earth for nine days." |
 | 0:14–0:19 | In "Site", select "de Gerlache Rim". The panel shows "SUN IS DOWN, Sunrise in 8 d 07 h 02 min". Point at the sky plot: the Sun is above 0° but below the terrain outline. | "Another site? At de Gerlache Rim, the terrain hides the Sun too." |

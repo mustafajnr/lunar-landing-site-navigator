@@ -8,7 +8,9 @@ Items marked `TODO(developer)` need an answer from the developer.
 
 ## Project Name
 
-Lunar Landing Site Navigator
+lunarsite.select
+
+(Challenge: Lunar Landing Site Navigator. The web app title is the challenge name. The project name is the site address.)
 
 ---
 
@@ -136,8 +138,8 @@ TODO(developer): check that this list is complete. The guide asks for all code, 
 
 ## Other TODO items for the developer
 
-- TODO(developer): team name.
-- TODO(developer): team member name(s) as they appear on the certificate.
-- TODO(developer): country and Local Event. A team of one is eligible for global judging only in a Local Event, not in the Universal Event.
+- Team name: lunarspot.
+- Team member: Mustafa Abdeltawwab.
+- Local Event: London. A team of one is eligible for global judging only in a Local Event. TODO(developer): make sure that your registration for the London event is not "waitlisted" (check the event page and the registration email).
 - TODO(developer): optional FortiGuard Web Filter Classification request for https://lunarsite.select (recommended for a new website, not required).
 - TODO(developer): images for the project page (JPG or PNG, up to 10 MB). The files in `screenshots/` are suitable.
