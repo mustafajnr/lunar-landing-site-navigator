@@ -42,7 +42,6 @@ Each line: Link Text | URL. All URLs were checked on 2026-11-15 (HTTP 200), exce
 | three.js (3D globe, MIT) | https://threejs.org/ |
 | OpenLayers (maps, BSD-2-Clause) | https://openlayers.org/ |
 | Vite (build tool, MIT) | https://vite.dev/ |
-| TypeScript (Apache 2.0) | https://www.typescriptlang.org/ |
 | tsx (MIT) | https://github.com/privatenumber/tsx |
 | FastAPI (API, MIT) | https://fastapi.tiangolo.com/ |
 | Pydantic (MIT) | https://docs.pydantic.dev/ |
@@ -52,8 +51,6 @@ Each line: Link Text | URL. All URLs were checked on 2026-11-15 (HTTP 200), exce
 | Rasterio (BSD-3-Clause) | https://rasterio.readthedocs.io/ |
 | GDAL (MIT) | https://gdal.org/ |
 | nginx (BSD-2-Clause) | https://nginx.org/ |
-| Python (PSF License) | https://www.python.org/ |
-| Node.js (MIT) | https://nodejs.org/ |
 | uv (package manager) | https://docs.astral.sh/uv/ |
 | pytest | https://docs.pytest.org/ |
 | Playwright (tests and screenshots) | https://playwright.dev/ |
@@ -65,4 +62,3 @@ Each line: Link Text | URL. All URLs were checked on 2026-11-15 (HTTP 200), exce
 | Claude Code by Anthropic (AI-assisted development) | https://www.anthropic.com/claude-code |
 | Space Grotesk font (slides, SIL OFL) | https://fonts.google.com/specimen/Space+Grotesk |
 | Inter font (slides, SIL OFL) | https://fonts.google.com/specimen/Inter |
-| Project source code (Apache 2.0) | https://github.com/mustafajnr/lunar-landing-site-navigator |
