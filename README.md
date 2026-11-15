@@ -149,6 +149,7 @@ On 2026-11-14, the deployed API returned terrain masks for points outside the pr
 | CGI Moon Kit: LROC WAC colour mosaic and LOLA elevation map | Globe colour texture and relief (normal map) | NASA Scientific Visualization Studio, https://svs.gsfc.nasa.gov/4720 |
 | Blue Marble Next Generation, January 2004 | Earth texture | NASA Earth Observatory, Reto Stöckli, NASA GSFC |
 | SDO/HMI continuum image, 2026-11-14 16:00 UTC | Sun texture | Courtesy of NASA/SDO and the AIA, EVE and HMI science teams |
+| LROC QuickMap (TerrainSlope layer, NAC 2 m south pole mosaic, WAC+NAC base) | External link "Open in LROC QuickMap (slope in degrees)": the selected point with terrain slope in degrees. The tool does not copy QuickMap data. | LROC QuickMap, https://quickmap.lroc.im-ldi.com/. NASA/GSFC/Arizona State University. |
 | JPL Horizons | Validation data | NASA JPL, https://ssd.jpl.nasa.gov/horizons/ |
 | Site coordinates | Curated site list | NASA NSSDC (Apollo), LROC (other landings and the Artemis III regions). Each site in `data/sites.json` has its source URL. |
 

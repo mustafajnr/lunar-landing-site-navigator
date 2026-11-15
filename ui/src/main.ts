@@ -39,6 +39,20 @@ const WINDOW_S = 30 * DAY_S;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const canvas = $<HTMLCanvasElement>('globe');
+// The globe is hidden (opacity 0) until the first default view is set, then it fades
+// in (style.css). Without this, the start camera shows first and then jumps.
+const globeLoading = $<HTMLDivElement>('globeLoading');
+const GLOBE_SHOW_TIMEOUT_MS = 12000;
+document.body.classList.add('globe-loading');
+let globeShown = false;
+function showGlobe() {
+  if (globeShown) return;
+  globeShown = true;
+  document.body.classList.remove('globe-loading');
+  globeLoading.hidden = true;
+}
+// Do not keep the globe hidden if the first Moon state is very slow.
+setTimeout(showGlobe, GLOBE_SHOW_TIMEOUT_MS);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -380,6 +394,7 @@ const apiMsg = $<HTMLDivElement>('apiMsg');
 
 function showApiError(e: unknown) {
   const unreachable = e instanceof ApiError && e.unreachable;
+  showGlobe(); // the globe with the start view, under the error box
   apiMsg.hidden = false;
   apiMsg.innerHTML = '';
   const p = document.createElement('p');
@@ -923,7 +938,10 @@ function update() {
     earthUp: api ? api.earthVisible : sky.earthElDeg > 0,
   });
   gridLight.sun.value.set(...state.sunBodyKm).normalize();
-  if (first) defaultView();
+  if (first) {
+    defaultView();
+    showGlobe(); // this frame renders the default view, so the fade-in shows no jump
+  }
 }
 
 // The globe centre is the centre of the free screen area: between the side panels and
@@ -947,6 +965,8 @@ function resize() {
   const f = freeArea();
   camera.setViewOffset(w, h, w / 2 - f.cx, h / 2 - f.cy, w, h);
   camera.updateProjectionMatrix();
+  globeLoading.style.left = `${f.cx}px`;
+  globeLoading.style.top = `${f.cy}px`;
 }
 window.addEventListener('resize', () => (layoutDirty = true));
 /** Camera distance at which the Moon fills about 85 % of the free area. */
