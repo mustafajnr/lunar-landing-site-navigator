@@ -6,7 +6,7 @@ The short lists below go into the form: one entry for each resource. The full li
 
 | Link Text | URL |
 |---|---|
-| NASA Moon Trek (map images) | https://trek.nasa.gov/moon/ |
+| NASA Moon Trek (map images, including the JAXA Kaguya Terrain Camera mosaic) | https://trek.nasa.gov/moon/ |
 | JPL Horizons System (validation) | https://ssd.jpl.nasa.gov/horizons/ |
 | LROC QuickMap (slope link) | https://quickmap.lroc.im-ldi.com/ |
 | NASA NAIF SPICE, with the JPL DE440 ephemeris (Sun, Earth and Moon positions) | https://naif.jpl.nasa.gov/naif/ |
@@ -21,11 +21,10 @@ The short lists below go into the form: one entry for each resource. The full li
 | NASA Blue Marble (Earth image) | https://visibleearth.nasa.gov/collection/1484/blue-marble |
 | NASA Solar Dynamics Observatory (Sun image) | https://sdo.gsfc.nasa.gov/data/ |
 
-## Short list: Space Agency Partner and Other Data (12)
+## Short list: Space Agency Partner and Other Data (11)
 
 | Link Text | URL |
 |---|---|
-| JAXA Kaguya (SELENE) Terrain Camera mosaic, through NASA Moon Trek | https://darts.isas.jaxa.jp/planet/pdap/selene/ |
 | IAU/USGS Gazetteer of Planetary Nomenclature (place names) | https://planetarynames.wr.usgs.gov/ |
 | Voyager Technologies: Griffin landing site (Mons Mouton) | https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/ |
 | Mazarico et al. 2011, Illumination conditions of the lunar polar regions (Icarus) | https://doi.org/10.1016/j.icarus.2010.10.030 |
