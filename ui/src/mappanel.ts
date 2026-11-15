@@ -7,6 +7,7 @@ import type { DetailMap, MapSky } from './detail/detailmap';
 import type { LatLon } from './ephemeris';
 import type { Site } from './api';
 import { setQuickmapLink } from './quickmap';
+import { bestContext, onBestLoaded, type BestContext } from './bestpoints';
 
 export interface MapPanel {
   setPoint(ll: LatLon, site: Site | null, name: string, recenter: boolean): void;
@@ -92,13 +93,34 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
     }
   });
 
+  let ctx: BestContext | null = null;
+  const marks = () =>
+    ctx ? ctx.points.map((p, i) => ({ latDeg: p.lat_deg, lonDeg: p.lon_deg, label: String(i + 1) })) : [];
   const apply = () => {
     if (!dm || !pending) return;
     const { ll, site, recenter } = pending;
     pending = null;
-    dm.setPoint({ latDeg: ll.latDeg, lonDeg: ll.lonDeg, radiusM: site?.radius_m ?? null }, { recenter });
+    // A best point of a site: keep the site circle and the view.
+    const inSite = ctx && ctx.active >= 0 ? ctx.site : null;
+    dm.setMarks(marks());
+    dm.setPoint(
+      {
+        latDeg: ll.latDeg,
+        lonDeg: ll.lonDeg,
+        // A small site: the circle shows the best-points search area (at least 5 km).
+        radiusM: Math.max((site ?? inSite)?.radius_m ?? 0, ctx?.searchRadiusM ?? 0) || null,
+        circleCentre: inSite ? { latDeg: inSite.lat_deg, lonDeg: inSite.lon_deg } : null,
+      },
+      { recenter: recenter && !inSite },
+    );
     dm.setSky(sky);
   };
+  let last: { ll: LatLon; site: Site | null } | null = null;
+  onBestLoaded(() => {
+    if (!last) return;
+    ctx = bestContext(last.ll, last.site);
+    dm?.setMarks(marks());
+  });
 
   const load = () => {
     if (loading) return;
@@ -125,6 +147,8 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
       setQuickmapLink(qm, ll.latDeg, ll.lonDeg, site?.radius_m ?? null);
       qm.hidden = false;
       pending = { ll, site, recenter };
+      last = { ll, site };
+      ctx = bestContext(ll, site);
       if (dm) apply();
       else load();
     },

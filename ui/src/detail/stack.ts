@@ -52,5 +52,6 @@ export function stackFor(lat: number, lon: number): TrekLayer[] {
   const sp = SP_LAYERS.filter((l) => (l.role === 'overlay' && !l.url) || hasDataAt(l, lon, lat));
   // NAC mosaic below the overlays, so a hillshade shows on top when the user turns it on.
   sp.sort((a, b) => (a === NAC_SP ? -1 : b === NAC_SP ? 1 : 0));
-  return [base, ...sp, ...local];
+  // Data overlays (slope, average illumination) on top, also above the local EQ mosaics.
+  return [base, ...sp.filter((l) => l.kind !== 'data'), ...local, ...sp.filter((l) => l.kind === 'data')];
 }

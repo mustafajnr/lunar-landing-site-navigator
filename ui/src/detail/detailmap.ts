@@ -20,7 +20,7 @@ import VectorSource from 'ol/source/Vector.js';
 import TileLayer from 'ol/layer/Tile.js';
 import type XYZ from 'ol/source/XYZ.js';
 import type Projection from 'ol/proj/Projection.js';
-import { Style, Circle, Fill, Stroke } from 'ol/style.js';
+import { Style, Circle, Fill, Stroke, Text } from 'ol/style.js';
 import { ScaleLine, Zoom, Attribution } from 'ol/control.js';
 import { defaults as defaultInteractions } from 'ol/interaction/defaults.js';
 import { transform, getPointResolution } from 'ol/proj.js';
@@ -39,6 +39,15 @@ export interface MapPoint {
   name?: string;
   /** Site radius in metres. Drawn as a circle. */
   radiusM?: number | null;
+  /** Centre of the site circle, if it is not the point (a point inside a site). */
+  circleCentre?: { latDeg: number; lonDeg: number } | null;
+}
+
+/** A small numbered marker (for example the best points of a site). */
+export interface MapMark {
+  latDeg: number;
+  lonDeg: number;
+  label: string;
 }
 
 export interface MapSky {
@@ -93,6 +102,8 @@ export class DetailMap {
   private readonly markerSrc = new VectorSource();
   private readonly marker = new Feature(new Point([0, 0]));
   private readonly circle = new Feature<Polygon>();
+  private marks: MapMark[] = [];
+  private readonly markFeatures: Feature<Point>[] = [];
   private readonly el: Record<'map' | 'bar' | 'barText' | 'progress' | 'best' | 'showing' | 'cursor' | 'layers' | 'legend', HTMLElement>;
   private readonly svg: SVGSVGElement;
   private requested = 0;
@@ -230,6 +241,12 @@ export class DetailMap {
       return;
     this.sky = s;
     this.drawArrows();
+  }
+
+  /** Numbered markers. An empty list removes them. */
+  setMarks(marks: MapMark[]) {
+    this.marks = marks;
+    this.updateFeatures();
   }
 
   updateSize() {
@@ -387,10 +404,24 @@ export class DetailMap {
     this.marker.setGeometry(new Point(transform([p.lonDeg, p.latDeg], LONLAT, proj)));
     if (this.markerSrc.hasFeature(this.circle)) this.markerSrc.removeFeature(this.circle);
     if (p.radiusM && p.radiusM > 0) {
+      const c = p.circleCentre ?? p;
       const ring: Coordinate[] = [];
-      for (let b = 0; b <= 360; b += 5) ring.push(transform(destination(p.latDeg, p.lonDeg, b, p.radiusM / R), LONLAT, proj));
+      for (let b = 0; b <= 360; b += 5) ring.push(transform(destination(c.latDeg, c.lonDeg, b, p.radiusM / R), LONLAT, proj));
       this.circle.setGeometry(new Polygon([ring]));
       this.markerSrc.addFeature(this.circle);
+    }
+    for (const f of this.markFeatures) this.markerSrc.removeFeature(f);
+    this.markFeatures.length = 0;
+    for (const m of this.marks) {
+      const f = new Feature(new Point(transform([m.lonDeg, m.latDeg], LONLAT, proj)));
+      f.setStyle(
+        new Style({
+          image: new Circle({ radius: 8, fill: new Fill({ color: 'rgba(0,0,0,0.75)' }), stroke: new Stroke({ color: '#7fdcff', width: 1.5 }) }),
+          text: new Text({ text: m.label, font: 'bold 10px sans-serif', fill: new Fill({ color: '#fff' }) }),
+        }),
+      );
+      this.markFeatures.push(f);
+      this.markerSrc.addFeature(f);
     }
   }
 

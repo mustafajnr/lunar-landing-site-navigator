@@ -33,6 +33,8 @@ export type TrekLayer = {
   /** Short legend, shown when the layer is on. */
   legend?: { colour: string; label: string }[];
   legendNote?: string;
+  /** Own tiles: the credit line. */
+  attribution?: string;
 };
 
 const TREK = 'https://trek.nasa.gov/tiles/Moon';
@@ -175,8 +177,49 @@ export const SLOPE_LAYER: TrekLayer = {
   legendNote:
     'Slope from LOLA 20 m elevation data. Small rocks are not included. ' +
     'Each pixel shows the steepest slope inside it, so a coarse view never hides a steep spot.',
+  attribution: 'Slope: made from NASA LRO LOLA 20 m DEM (LDEM_80S_20MPP_ADJ)',
 };
 if (tileCacheOn()) SP_LAYERS.push(SLOPE_LAYER);
+
+// ---------- Own average illumination tiles (NASA PGDA) ----------
+// Made by data/scripts/make_illum_tiles.py from NASA PGDA product 69 (Mazarico et al. 2011):
+// the 60 m maps south of 85° S, the 120 m maps for 75-85° S. Uploaded to
+// {tile cache}/illum_sun/{z}/{row}/{col}.png and {tile cache}/illum_earth/... Max zoom 7
+// (66.9 m/px); the map overzooms above it.
+/** Inferno at 0, 20, ... 100 % (the same colour scale as make_illum_tiles.py, alpha 160/255). */
+export const ILLUM_LEGEND = [
+  { colour: '#000004', label: '0 %' },
+  { colour: '#420a68', label: '20 %' },
+  { colour: '#932667', label: '40 %' },
+  { colour: '#dd513a', label: '60 %' },
+  { colour: '#fca50a', label: '80 %' },
+  { colour: '#fcffa4', label: '100 %' },
+];
+/** 75° S in the SP projection (the half-width of the 120 m PGDA maps). */
+export const ILLUM_RHO_MAX = 457440;
+const PGDA_CREDIT = 'Average illumination: NASA PGDA, Mazarico et al. 2011 (LOLA)';
+const illumLayer = (id: string, title: string, what: string): TrekLayer => ({
+  id,
+  title,
+  proj: 'SP',
+  ext: 'png',
+  maxZ: 7,
+  bbox: [-ILLUM_RHO_MAX, -ILLUM_RHO_MAX, ILLUM_RHO_MAX, ILLUM_RHO_MAX],
+  kind: 'data',
+  on: false,
+  role: 'overlay',
+  opaque: false,
+  rhoMax: ILLUM_RHO_MAX,
+  url: `${CACHE_BASE}/${id}`,
+  legend: ILLUM_LEGEND,
+  legendNote:
+    `Percent of time that ${what} is visible, averaged over 18.6 years in hourly steps (NASA PGDA). ` +
+    'Each pixel shows the mean value inside it. Map pixel 60 m south of 85° S, 120 m for 75–85° S.',
+  attribution: PGDA_CREDIT,
+});
+export const ILLUM_SUN_LAYER = illumLayer('illum_sun', 'Average sunlight (NASA PGDA, 18.6 years)', 'a part of the Sun');
+export const ILLUM_EARTH_LAYER = illumLayer('illum_earth', 'Average Earth visibility (NASA PGDA, 18.6 years)', 'a part of the Earth');
+if (tileCacheOn()) SP_LAYERS.push(ILLUM_SUN_LAYER, ILLUM_EARTH_LAYER);
 
 export function makeLayer(l: TrekLayer): TileLayer<XYZ> {
   const isEq = l.proj === 'EQ';
@@ -213,7 +256,7 @@ export function makeLayer(l: TrekLayer): TileLayer<XYZ> {
     },
     crossOrigin: 'anonymous',
     attributions: l.url
-      ? 'Slope: made from NASA LRO LOLA 20 m DEM (LDEM_80S_20MPP_ADJ)'
+      ? l.attribution ?? ''
       : 'Imagery: NASA Moon Trek (NASA/GSFC/ASU LROC, LOLA; JAXA SELENE)',
     wrapX: false,
   });

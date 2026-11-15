@@ -5,6 +5,7 @@
 import type { LatLon } from './ephemeris';
 import type { Site } from './api';
 import { setQuickmapLink } from './quickmap';
+import { bestContext, loadBestPoints, onBestLoaded, type BestContext } from './bestpoints';
 
 export type Validation = { ok: true; ll: LatLon } | { ok: false; error: string; field: 'lat' | 'lon' };
 
@@ -77,6 +78,8 @@ export function setupPointUi(
   const siteInfo = $<HTMLDivElement>('siteInfo');
   let sites: Site[] = [];
   let shown: LatLon | null = null;
+  let shownSite: Site | null = null;
+  let bestOpen = true;
 
   const clearErr = () => {
     err.hidden = true;
@@ -115,6 +118,52 @@ export function setupPointUi(
     }
   });
 
+  /** "Best points in this site" list. A click selects the point as a custom point. */
+  function bestList(ctx: BestContext): HTMLElement {
+    const d = document.createElement('details');
+    d.className = 'best-points';
+    d.open = bestOpen;
+    d.addEventListener('toggle', () => (bestOpen = d.open));
+    const sum = document.createElement('summary');
+    const wider = ctx.searchRadiusM > ctx.site.radius_m;
+    sum.textContent = wider
+      ? `Best points within ${Math.round(ctx.searchRadiusM / 1000)} km (NASA PGDA long-term average)`
+      : 'Best points in this site (NASA PGDA long-term average)';
+    const ol = document.createElement('ol');
+    ctx.points.forEach((p, i) => {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'best-point' + (i === ctx.active ? ' active' : '');
+      const slope = p.slope_deg === null ? 'slope not known' : `slope ${Math.round(p.slope_deg)}°`;
+      b.textContent = `${i + 1}. Sun ${Math.round(p.sun_pct)} %, Earth ${Math.round(p.earth_pct)} %, ${slope}`;
+      b.title = `${p.lat_deg.toFixed(4)}°, ${p.lon_deg.toFixed(4)}°. Click to select this point.`;
+      if (i === ctx.active) b.setAttribute('aria-current', 'true');
+      b.onclick = () => {
+        clearErr();
+        onSelect({ latDeg: p.lat_deg, lonDeg: p.lon_deg }, null);
+      };
+      li.append(b);
+      ol.append(li);
+    });
+    const rule = document.createElement('p');
+    rule.className = 'best-note';
+    rule.textContent =
+      'Rank: mean of average sunlight % and average Earth visibility %. Slope less than 15° (LOLA 20 m). Points at least 500 m apart.' +
+      (wider ? ` The site is small. Thus, the search area is ${Math.round(ctx.searchRadiusM / 1000)} km around the site centre.` : '');
+    const note = document.createElement('p');
+    note.className = 'best-note';
+    note.textContent =
+      'Long-term averages over 18.6 years at ground level. Select a point to see the result for your period and height.';
+    const src = document.createElement('a');
+    src.href = 'https://pgda.gsfc.nasa.gov/products/69';
+    src.target = '_blank';
+    src.rel = 'noopener';
+    src.textContent = 'Source: NASA PGDA, Mazarico et al. (2011)';
+    d.append(sum, ol, rule, note, src);
+    return d;
+  }
+
   function showSiteInfo(ll: LatLon, site: Site | null) {
     siteInfo.innerHTML = '';
     const qm = document.createElement('a');
@@ -122,7 +171,13 @@ export function setupPointUi(
     setQuickmapLink(qm, ll.latDeg, ll.lonDeg, site?.radius_m ?? null);
     const qmP = document.createElement('p');
     qmP.append(qm);
+    const ctx = bestContext(ll, site);
     if (!site) {
+      if (ctx) {
+        const p = document.createElement('p');
+        p.textContent = `Best point ${ctx.active + 1} of ${ctx.site.name}.`;
+        siteInfo.append(p, bestList(ctx));
+      }
       siteInfo.append(qmP);
       return;
     }
@@ -146,12 +201,19 @@ export function setupPointUi(
       a.textContent = 'Coordinate source';
       siteInfo.append(a);
     }
+    if (ctx) siteInfo.append(bestList(ctx));
     siteInfo.append(qmP);
   }
+
+  onBestLoaded(() => {
+    if (shown) showSiteInfo(shown, shownSite);
+  });
+  void loadBestPoints();
 
   return {
     show(ll, site) {
       shown = ll;
+      shownSite = site;
       latIn.value = ll.latDeg.toFixed(4);
       lonIn.value = ll.lonDeg.toFixed(4);
       siteSel.value = site ? site.id : isDefault(ll) && siteSel.querySelector(`option[value="${DEFAULT_VALUE}"]`) ? DEFAULT_VALUE : '';

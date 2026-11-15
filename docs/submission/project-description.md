@@ -104,6 +104,7 @@ Other NASA data:
 - **NASA NAIF SPICE toolkit and generic kernels:** leap seconds, body constants and lunar frames.
 - **JPL DE440 planetary ephemeris and DE440 lunar orientation:** positions of the Sun, Earth and Moon, and the Moon's orientation. All Sun and Earth directions come from these data.
 - **LRO LOLA elevation models** (NASA GSFC PGDA product 90, Barker et al. 2023): `LDEM_80S_20MPP_ADJ` (20 m/pixel) and `LDEM_60S_120MPP_ADJ` (120 m/pixel). They give the terrain horizon and the surface height.
+- **LOLA average Sun and Earth visibility maps** (NASA GSFC PGDA product 69, https://pgda.gsfc.nasa.gov/products/69; Mazarico, E., Neumann, G. A., Smith, D. E., Zuber, M. T., Torrence, M. H. (2011), Illumination conditions of the lunar polar regions using LOLA topography, Icarus 211, 1066–1081, doi:10.1016/j.icarus.2010.10.030): 60 m/pixel (85–90° S) and 120 m/pixel (75–90° S). They give the site map layers "Average sunlight" and "Average Earth visibility" (18.6 years), and the "Best points in this site" list.
 - **NASA Moon Trek** map tiles: LRO WAC global mosaic, LRO NAC mosaics (south pole, Malapert Massif, Apollo sites, Von Kármán), LOLA hillshades and the NAC PSR mosaic. LROC: NASA/GSFC/Arizona State University.
 - **NASA SVS CGI Moon Kit:** LROC WAC colour mosaic and LOLA elevation map for the globe.
 - **NASA Earth Observatory Blue Marble Next Generation:** Earth texture.
@@ -126,7 +127,7 @@ Other data and references:
 - Barker, M. K., et al. (2023). LOLA south pole elevation models, NASA PGDA product 90. https://pgda.gsfc.nasa.gov/products/90
 - Park, R. S., et al. (2021). The JPL planetary and lunar ephemerides DE440 and DE441.
 - Annex, A. M., et al. (2020). SpiceyPy: a Pythonic wrapper for the SPICE toolkit.
-- Mazarico, E., et al. (2011). Illumination conditions of the lunar polar regions using LOLA topography.
+- Mazarico, E., Neumann, G. A., Smith, D. E., Zuber, M. T., Torrence, M. H. (2011). Illumination conditions of the lunar polar regions using LOLA topography. Icarus 211, 1066–1081, doi:10.1016/j.icarus.2010.10.030. NASA PGDA product 69, https://pgda.gsfc.nasa.gov/products/69
 
 Open-source software: three.js (MIT), OpenLayers (BSD-2-Clause), Vite (MIT), TypeScript (Apache 2.0), FastAPI (MIT), uvicorn (BSD-3-Clause), spiceypy (MIT), numpy (BSD-3-Clause), rasterio (BSD-3-Clause), nginx (BSD-2-Clause).
 

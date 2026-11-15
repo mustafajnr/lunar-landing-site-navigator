@@ -55,6 +55,14 @@ uv run python scripts/make_slope_tiles.py --area disk   # about 4 min, 21681 til
 gcloud storage rsync -r cache/slope_tiles gs://lunar-site-select-tiles/slope --cache-control="public, max-age=31536000"
 ```
 
+Average illumination tiles (our own, from NASA PGDA product 69). `data/scripts/make_illum_tiles.py` makes two sets in the Trek SP grid (z 0-7, south of 75° S) from the PGDA GeoTIFFs in `data/raw/pgda/`. The UI loads them from `{VITE_TILE_CACHE_URL}/illum_sun/{z}/{row}/{col}.png` and `{VITE_TILE_CACHE_URL}/illum_earth/{z}/{row}/{col}.png`. They are not in the manifest. Make and upload (from `data/`):
+
+```bash
+uv run python scripts/make_illum_tiles.py   # about 30 s, 3205 tiles per set, 62 MB + 42 MB
+gcloud storage rsync -r cache/illum_tiles/illum_sun gs://lunar-site-select-tiles/illum_sun --cache-control="public, max-age=31536000"
+gcloud storage rsync -r cache/illum_tiles/illum_earth gs://lunar-site-select-tiles/illum_earth --cache-control="public, max-age=31536000"
+```
+
 Bucket setup (done once):
 
 ```bash

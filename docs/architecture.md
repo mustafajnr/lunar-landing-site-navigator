@@ -71,6 +71,8 @@ There are two kinds of data:
 | Precomputed horizon masks | Calculation | API image | API | The same masks that the DEMs give. They are faster and work without the DEM bucket. |
 | `data/sites.json` | Input | API image | API, UI | The curated site points and radii. Each site has its source. |
 | NASA Moon Trek tiles (LRO WAC, NAC, LOLA hillshade, Kaguya) | Display | Moon Trek, and a copy in the tile bucket | UI site map | None |
+| Slope tiles from `LDEM_80S_20MPP_ADJ` (`data/scripts/make_slope_tiles.py`) | Display | Tile bucket, `slope/` | UI site map | None |
+| NASA PGDA product 69 average Sun and Earth visibility (Mazarico et al. 2011), 60 m and 120 m maps | Display | Tile bucket, `illum_sun/` and `illum_earth/` (`data/scripts/make_illum_tiles.py`), and `ui/public/bestpoints.json` (`data/scripts/make_best_points.py`) | UI site map layers, "Best points in this site" list | None. They are 18.6-year averages at ground level. The period results come from the core. |
 | CGI Moon Kit (LROC colour, LOLA relief) | Display | UI image | UI globe | None |
 | Blue Marble (Earth), SDO/HMI (Sun) | Display | UI image | UI globe | None |
 | JPL Horizons | Check | Test fixtures in `core/tests/fixtures/` | Tests | None. It is the independent reference for the validation. |
