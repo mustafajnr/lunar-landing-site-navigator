@@ -66,7 +66,7 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
   const setFolded = (f: boolean) => {
     panel.classList.toggle('folded', f);
     foldBtn.setAttribute('aria-expanded', String(!f));
-    foldBtn.textContent = f ? '▸ Site map' : '▾ Site map';
+    foldBtn.textContent = f ? '▸ Map' : '▾ Map';
     try {
       // The phone layout always starts folded. Keep the desktop setting.
       if (!matchMedia(PHONE).matches) localStorage.setItem(FOLD_KEY, f ? '1' : '0');
