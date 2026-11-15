@@ -245,6 +245,8 @@ If a download stops with a certificate error, read "Troubleshooting" in `core/RE
 
 The developer built this project with Claude Code (Anthropic). Several Claude Code agents worked in parallel on the UI, core, terrain, API and documentation workstreams. The developer directed and reviewed the work. Each commit has a `Co-Authored-By: Claude` line in its metadata. This README and the files in `docs/submission/` were also written with Claude Code.
 
+The web app shows the same note in its left panel and in its HTML metadata (`<meta name="generator">`). The package metadata (`ui/package.json`, `core/`, `data/` and `api/` `pyproject.toml`) also has it. The data and images in the tool come from NASA sources. They are not AI-generated.
+
 ## License
 
 The original code and documentation use the [Apache License 2.0](LICENSE).

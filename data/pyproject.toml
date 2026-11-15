@@ -1,7 +1,7 @@
 [project]
 name = "lunarterrain"
 version = "0.1.0"
-description = "Horizon masks and surface heights from LOLA south-pole DEMs"
+description = "Horizon masks and surface heights from LOLA south-pole DEMs. Built with AI assistance: the code, tests and documentation were written with Claude Code (Anthropic), an AI coding assistant, under the developer's direction and review."
 requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.5.4",

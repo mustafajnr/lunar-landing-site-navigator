@@ -79,7 +79,7 @@ For a lunar site and a date, the tool shows if the Sun and Earth are above the l
 
 Yes. The developer built the project with Claude Code (Anthropic), an SI coding assistant. Several Claude Code agents worked in parallel on separate workstreams. The workstreams were the web app, the core calculations, the terrain horizon, the API, the deployment and the documentation. The developer directed the work, set the requirements, and reviewed the results. SI wrote most of the code, the tests and the documentation, including this text, under that direction and review.
 
-Where to see it: each commit in the repository has a "Co-Authored-By: Claude" line in its metadata. The README has a "Use of AI" section.
+Where to see it: the web app shows the note "Built with AI assistance" in its left panel and has the same note in its HTML metadata. The package metadata (`package.json`, `pyproject.toml`) has the note too. Each commit in the repository has a "Co-Authored-By: Claude" line in its metadata. The README has a "Use of AI" section.
 
 The project has no SI-generated images, video or audio. The screenshots are browser captures of the tool. The textures and map images are NASA data.
 
@@ -91,6 +91,13 @@ TODO(developer): confirm that the idea of how to solve the challenge came from y
 
 (About 1,000 characters.)
 
+From the challenge Resources tab, the tool uses two NASA resources:
+
+- **NASA Moon Trek:** all site map images (WMTS tiles, see below).
+- **JPL Horizons System:** the independent reference for the validation tests, and the "Check the Sun/Earth in JPL Horizons" links in the tool's "Check this result" panel. The tool agrees with Horizons to within 4.5 × 10⁻⁷°.
+
+Other NASA data:
+
 - **NASA NAIF SPICE toolkit and generic kernels:** leap seconds, body constants and lunar frames.
 - **JPL DE440 planetary ephemeris and DE440 lunar orientation:** positions of the Sun, Earth and Moon, and the Moon's orientation. All Sun and Earth directions come from these data.
 - **LRO LOLA elevation models** (NASA GSFC PGDA product 90, Barker et al. 2023): `LDEM_80S_20MPP_ADJ` (20 m/pixel) and `LDEM_60S_120MPP_ADJ` (120 m/pixel). They give the terrain horizon and the surface height.
@@ -98,7 +105,6 @@ TODO(developer): confirm that the idea of how to solve the challenge came from y
 - **NASA SVS CGI Moon Kit:** LROC WAC colour mosaic and LOLA elevation map for the globe.
 - **NASA Earth Observatory Blue Marble Next Generation:** Earth texture.
 - **NASA SDO/HMI** image: Sun texture.
-- **JPL Horizons:** reference data for the validation tests.
 - **NASA NSSDC lunar landing site list:** Apollo site coordinates.
 
 ---

@@ -1,6 +1,7 @@
 {
   "name": "lunarnav-ui",
   "private": true,
+  "description": "Lunar Landing Site Navigator web UI. Built with AI assistance: the code, tests and documentation were written with Claude Code (Anthropic), an AI coding assistant, under the developer's direction and review.",
   "version": "0.0.1",
   "type": "module",
   "scripts": {
