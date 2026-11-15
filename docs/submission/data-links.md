@@ -10,7 +10,7 @@ The short lists below go into the form: one entry for each resource. The full li
 | JPL Horizons System (validation) | https://ssd.jpl.nasa.gov/horizons/ |
 | LROC QuickMap (slope link) | https://quickmap.lroc.im-ldi.com/ |
 | NASA NAIF SPICE, with the JPL DE440 ephemeris (Sun, Earth and Moon positions) | https://naif.jpl.nasa.gov/naif/ |
-| NASA GSFC Planetary Geodesy Data Archive (PGDA): LOLA elevation and illumination data | https://pgda.gsfc.nasa.gov/ |
+| NASA GSFC Planetary Geodesy Data Archive (PGDA): LOLA elevation and illumination data (illumination maps: Mazarico et al. 2011) | https://pgda.gsfc.nasa.gov/ |
 | LRO Camera (LROC): landing site positions | https://www.lroc.asu.edu/ |
 | NASA NSSDC lunar landing sites | https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html |
 | NASA Artemis III candidate landing regions | https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/ |
@@ -21,16 +21,13 @@ The short lists below go into the form: one entry for each resource. The full li
 | NASA Blue Marble (Earth image) | https://visibleearth.nasa.gov/collection/1484/blue-marble |
 | NASA Solar Dynamics Observatory (Sun image) | https://sdo.gsfc.nasa.gov/data/ |
 
-## Short list: Space Agency Partner and Other Data (11)
+## Short list: Space Agency Partner and Other Data (8)
 
 | Link Text | URL |
 |---|---|
 | IAU/USGS Gazetteer of Planetary Nomenclature (place names) | https://planetarynames.wr.usgs.gov/ |
 | Voyager Technologies: Griffin landing site (Mons Mouton) | https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/ |
-| Mazarico et al. 2011, Illumination conditions of the lunar polar regions using LOLA topography (NASA NTRS copy) | https://ntrs.nasa.gov/citations/20120010094 |
 | Gläser et al. 2014, Connecting Ridge: a landing site at the lunar south pole with extended illumination (EPSC abstract, DLR library) | https://elib.dlr.de/94242/ |
-| Park et al. 2021, The JPL planetary and lunar ephemerides DE440 and DE441 (JPL ephemeris page) | https://ssd.jpl.nasa.gov/planets/eph_export.html |
-| Annex et al. 2020, SpiceyPy: a Pythonic wrapper for the SPICE toolkit (JOSS) | https://joss.theoj.org/papers/10.21105/joss.02050 |
 | Open-source libraries: three.js, OpenLayers, Vite, tsx, FastAPI, Pydantic, Uvicorn, SpiceyPy, NumPy, Rasterio, GDAL, nginx (full list with licences and links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
 | Development and test tools: uv, pytest, Playwright, axe-core, Pillow (full list with links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
 | Google Cloud (Cloud Run, Cloud Build, Cloud Storage) for hosting | https://cloud.google.com/ |
