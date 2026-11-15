@@ -27,10 +27,10 @@ The short lists below go into the form: one entry for each resource. The full li
 |---|---|
 | IAU/USGS Gazetteer of Planetary Nomenclature (place names) | https://planetarynames.wr.usgs.gov/ |
 | Voyager Technologies: Griffin landing site (Mons Mouton) | https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/ |
-| Mazarico et al. 2011, Illumination conditions of the lunar polar regions (Icarus) | https://doi.org/10.1016/j.icarus.2010.10.030 |
-| Gläser et al. 2014, Illumination conditions at the lunar south pole (Icarus) | https://doi.org/10.1016/j.icarus.2014.08.013 |
-| Park et al. 2021, The JPL ephemerides DE440 and DE441 | https://doi.org/10.3847/1538-3881/abd414 |
-| Annex et al. 2020, SpiceyPy | https://doi.org/10.21105/joss.02050 |
+| Mazarico et al. 2011, Illumination conditions of the lunar polar regions using LOLA topography (NASA NTRS copy) | https://ntrs.nasa.gov/citations/20120010094 |
+| Gläser et al. 2014, Connecting Ridge: a landing site at the lunar south pole with extended illumination (EPSC abstract, DLR library) | https://elib.dlr.de/94242/ |
+| Park et al. 2021, The JPL planetary and lunar ephemerides DE440 and DE441 (JPL ephemeris page) | https://ssd.jpl.nasa.gov/planets/eph_export.html |
+| Annex et al. 2020, SpiceyPy: a Pythonic wrapper for the SPICE toolkit (JOSS) | https://joss.theoj.org/papers/10.21105/joss.02050 |
 | Open-source libraries: three.js, OpenLayers, Vite, tsx, FastAPI, Pydantic, Uvicorn, SpiceyPy, NumPy, Rasterio, GDAL, nginx (full list with licences and links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
 | Development and test tools: uv, pytest, Playwright, axe-core, Pillow (full list with links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
 | Google Cloud (Cloud Run, Cloud Build, Cloud Storage) for hosting | https://cloud.google.com/ |
@@ -74,7 +74,7 @@ The short lists below go into the form: one entry for each resource. The full li
 | IAU/USGS Gazetteer of Planetary Nomenclature (place search) | https://planetarynames.wr.usgs.gov/ |
 | Voyager Technologies: Griffin landing site (Mons Mouton) | https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/ (blocks automatic checks: test it in a browser) |
 | Mazarico et al. 2011, Illumination conditions of the lunar polar regions using LOLA topography (Icarus) | https://doi.org/10.1016/j.icarus.2010.10.030 |
-| Gläser et al. 2014, Illumination conditions at the lunar south pole (Icarus) | https://doi.org/10.1016/j.icarus.2014.08.013 |
+| Gläser et al. 2014, Connecting Ridge: a landing site at the lunar south pole with extended illumination (EPSC abstract, DLR library) | https://elib.dlr.de/94242/ |
 | Park et al. 2021, The JPL planetary and lunar ephemerides DE440 and DE441 | https://doi.org/10.3847/1538-3881/abd414 |
 | Annex et al. 2020, SpiceyPy (Journal of Open Source Software) | https://doi.org/10.21105/joss.02050 |
 | three.js (3D globe, MIT) | https://threejs.org/ |
