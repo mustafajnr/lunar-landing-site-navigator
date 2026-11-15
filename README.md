@@ -1,4 +1,6 @@
-<img src="docs/logo/logo-ai.svg" alt="Logo: the Moon in front of Earth, Earth in front of the Sun. Marked as an AI-generated image." width="400" height="400" />
+<p align="center">
+  <img src="docs/logo/logo-ai.svg" alt="Logo: the Moon in front of Earth, Earth in front of the Sun. Marked as an AI-generated image." width="400" height="400" />
+</p>
 
 # Lunar Landing Site Navigator
 
