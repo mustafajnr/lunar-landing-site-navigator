@@ -12,7 +12,7 @@ import {
   type MoonStateBatch,
   type Vec3,
 } from './ephemeris';
-import { createGrid, updateGridLabels } from './grid';
+import { createGrid, gridLight, updateGridLabels } from './grid';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel, SERIES_STEP_MIN } from './results';
 import { setupSaved } from './saved';
@@ -679,6 +679,7 @@ function defaultView() {
     viewFrom(new THREE.Vector3(0, -0.5, 1).normalize(), Math.max(3, fitDist()));
     return;
   }
+  controls.target.set(0, 0, 0);
   const e = worldDir(state.earthDirInertial, inertial);
   const s = worldDir(state.sunDirInertial, inertial);
   const pole = worldDir([0, 0, 1], moonBody);
@@ -742,7 +743,7 @@ function defaultView() {
   }
   viewFrom(best.d, best.dist);
 }
-$('viewDefault').addEventListener('click', defaultView);
+$('viewDefault').addEventListener('click', () => startView());
 // From below the south pole. The camera is 0.5° off the axis toward lon 0, so lon 0 is
 // at the top of the screen.
 $('viewSouth').addEventListener('click', () => viewFrom(worldDir(bodyVecOf(-89.5, 0), moonBody), Math.max(2.5, fitDist() * 0.8)));
@@ -787,6 +788,225 @@ trueSkyChk.addEventListener('change', () => {
   update();
   viewEarth();
 });
+
+// ---------- SPIKE: candidate default views (?view=a|b|c|d) ----------
+// Without the URL parameter, the old defaultView() stays. With it, the "Default view"
+// button and the first view use the candidate, the grid is dimmed on the night side,
+// and edge indicators show the Sun and the Earth when they are off the screen.
+const VIEW = (new URLSearchParams(location.search).get('view') ?? '').toLowerCase();
+if (VIEW) gridLight.night.value = 0.25;
+
+/** World directions and the free-area view tangents (half width, half height). */
+function viewCtx() {
+  const s = state!;
+  const f = freeArea();
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  return {
+    e: worldDir(s.earthDirInertial, inertial),
+    sun: worldDir(s.sunDirInertial, inertial),
+    pole: worldDir([0, 0, 1], moonBody),
+    tH: (t * f.w) / window.innerHeight,
+    tV: (t * f.h) / window.innerHeight,
+  };
+}
+/** Unit vector at elevation `elDeg` above the Moon equator, azimuth along horizontal `h`. */
+function dirFrom(h: THREE.Vector3, pole: THREE.Vector3, elDeg: number) {
+  const el = THREE.MathUtils.degToRad(elDeg);
+  return h.clone().multiplyScalar(Math.cos(el)).addScaledVector(pole, Math.sin(el)).normalize();
+}
+const horiz = (v: THREE.Vector3, pole: THREE.Vector3) => v.clone().projectOnPlane(pole).normalize();
+/** Screen tangents (x right, y up) of world point p for a camera at `cam` looking at `target`. */
+function screenTan(p: THREE.Vector3, cam: THREE.Vector3, target: THREE.Vector3) {
+  const fwd = target.clone().sub(cam).normalize();
+  const r = fwd.clone().cross(camera.up).normalize();
+  const u = r.clone().cross(fwd);
+  const rel = p.clone().sub(cam);
+  const z = rel.dot(fwd);
+  return { x: rel.dot(r) / z, y: rel.dot(u) / z, z };
+}
+function setCam(pos: THREE.Vector3, target: THREE.Vector3) {
+  flight = null;
+  camera.position.copy(pos);
+  controls.target.copy(target);
+  controls.update();
+}
+
+/**
+ * A. Orrery view. North up. Camera 10° to 20° below the equator. The camera direction is
+ * 45° to 85° from the Sun, so the lit side and the terminator are both visible. The Earth
+ * is on the screen if it fits with the Moon not too small; else an edge arrow shows it.
+ */
+function viewOrrery() {
+  const { e, sun, pole, tH, tV } = viewCtx();
+  const earthPos = e.clone().multiplyScalar(EARTH_DIST);
+  const fit = fitDist();
+  let best: { pos: THREE.Vector3; score: number } | null = null;
+  for (const el of [-10, -15, -20]) {
+    for (let az = 0; az < 360; az += 5) {
+      const h = horiz(sun, pole).applyAxisAngle(pole, THREE.MathUtils.degToRad(az));
+      const d = dirFrom(h, pole, el);
+      const sunAng = THREE.MathUtils.radToDeg(d.angleTo(sun));
+      if (sunAng < 45 || sunAng > 85) continue;
+      // Smallest distance (Moon as large as possible) that keeps the Earth disk on the
+      // screen and off the Moon disk. Limit: the Moon is at least 1/1.8 of its fit size.
+      let dist = 0;
+      for (let k = 1.1; k <= 1.8; k += 0.05) {
+        const cam = d.clone().multiplyScalar(fit * k);
+        const p = screenTan(earthPos, cam, new THREE.Vector3());
+        if (p.z <= 0) continue;
+        const er = EARTH_RADIUS / p.z;
+        if (Math.abs(p.x) + er > tH * 0.9 || Math.abs(p.y) + er > tV * 0.9) continue;
+        const moonR = 1 / Math.sqrt(fit * k * fit * k - 1);
+        if (Math.hypot(p.x, p.y) < moonR + er + 0.03) continue;
+        dist = fit * k;
+        break;
+      }
+      const earthOff = dist === 0;
+      if (earthOff) dist = fit * 1.25;
+      const score = dist / fit + (earthOff ? 1.5 : 0) + Math.abs(sunAng - 65) / 40 + Math.abs(el + 15) / 40;
+      if (!best || score < best.score) best = { pos: d.multiplyScalar(dist), score };
+    }
+  }
+  if (best) setCam(best.pos, new THREE.Vector3());
+}
+
+/**
+ * B. Over the shoulder. The camera is behind the Earth (as seen from the Moon), moved up
+ * and to the side. The Earth is in the foreground in a lower corner. The Moon is in the
+ * centre and shows the phase that people on Earth see.
+ */
+function viewShoulder() {
+  const { e, sun, pole, tH, tV } = viewCtx();
+  const k = 6; // camera distance behind the Earth centre
+  const L = EARTH_DIST + k;
+  // Lateral offsets that put the Earth at about 55 % of the half width / half height.
+  const side = horiz(e, pole).cross(pole).normalize();
+  const latH = (0.7 * tH * L * k) / EARTH_DIST;
+  const latV = (0.55 * tV * L * k) / EARTH_DIST;
+  let pos = new THREE.Vector3();
+  for (const sgn of [1, -1]) {
+    pos = e.clone().multiplyScalar(L).addScaledVector(side, sgn * latH).addScaledVector(pole, latV);
+    // Keep the Earth on the screen side away from the Sun direction (less overlap).
+    const ps = screenTan(sun.clone().multiplyScalar(SUN_DIST), pos, new THREE.Vector3());
+    const pe = screenTan(e.clone().multiplyScalar(EARTH_DIST), pos, new THREE.Vector3());
+    const sunX = ps.z > 0 ? ps.x : -ps.x;
+    if (Math.sign(sunX) !== Math.sign(pe.x)) break;
+  }
+  setCam(pos, new THREE.Vector3());
+}
+
+/**
+ * C. South pole focus. The camera is 40° from the south pole axis (latitude 50° S), on the
+ * side 90° from the Sun, so the terminator crosses the pole region on the screen. It looks
+ * at a point between the Moon centre and the south pole.
+ */
+function viewSouthFocus() {
+  const { e, sun, pole } = viewCtx();
+  const target = pole.clone().multiplyScalar(-0.2);
+  // Of the two sides 90° from the Sun, take the one nearer to the Earth.
+  const hs = horiz(sun, pole);
+  const h = hs.clone().applyAxisAngle(pole, Math.PI / 2);
+  if (h.dot(e) < 0) h.negate();
+  const d = dirFrom(h, pole, -50);
+  const dist = Math.max(2.4, fitDist() * 1.02);
+  setCam(target.clone().addScaledVector(d, dist), target);
+}
+
+/**
+ * D. Polar plan, Earth up. The camera is under the south pole, 12° off the axis toward the
+ * Earth, so the Earth direction is at the top of the screen. The terminator is a line
+ * near the pole; the Sun arrow at the screen edge turns around once per month.
+ */
+function viewPolarPlan() {
+  const { e, pole } = viewCtx();
+  const d = dirFrom(horiz(e, pole), pole, -78);
+  setCam(d.multiplyScalar(Math.max(2.5, fitDist() * 0.95)), new THREE.Vector3());
+}
+
+function startView() {
+  if (!state || !VIEW) return defaultView();
+  if (VIEW === 'a') viewOrrery();
+  else if (VIEW === 'b') viewShoulder();
+  else if (VIEW === 'c') viewSouthFocus();
+  else if (VIEW === 'd') viewPolarPlan();
+  else defaultView();
+}
+
+// Edge indicators: a label on the body when it is on the screen; an arrow and a label at
+// the edge of the free area when it is off the screen.
+function makeIndicator(color: string) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;left:0;top:0;pointer-events:none;z-index:2;color:${color};font:600 13px system-ui,sans-serif;white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000;display:none;gap:6px;align-items:center;`;
+  el.innerHTML = '<span class="arr" style="display:inline-block;font-size:18px;line-height:1">&#10148;</span><span class="lbl"></span>';
+  document.body.append(el);
+  return el;
+}
+const sunInd = makeIndicator('#ffd54a');
+const earthInd = makeIndicator('#7cc0ff');
+function placeIndicator(el: HTMLElement, world: THREE.Vector3, onText: string, offText: string) {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const l = $('panel').getBoundingClientRect();
+  const r = $('results').getBoundingClientRect();
+  const left = l.width && l.right < W / 2 ? l.right : 0;
+  const right = r.width && r.left > W / 2 ? r.left : W;
+  const m = 30;
+  const box = { x0: left + m, x1: right - m, y0: m + 20, y1: freeArea().h - m };
+  const toPx = (v: THREE.Vector3) => ({ x: ((v.x + 1) / 2) * W, y: ((1 - v.y) / 2) * H });
+  camera.updateMatrixWorld();
+  const viewOf = (p: THREE.Vector3) => p.clone().applyMatrix4(camera.matrixWorldInverse);
+  // The Sun and Earth lines start at the Moon centre. Clip the line to the space in
+  // front of the camera, then project it.
+  const c0 = viewOf(new THREE.Vector3());
+  const pv = viewOf(world);
+  const nearZ = -camera.near * 5;
+  let p1 = pv.clone();
+  if (p1.z > nearZ) {
+    const t = (nearZ - c0.z) / (p1.z - c0.z);
+    p1 = c0.clone().lerp(p1, Math.max(0, Math.min(1, t)) * 0.999);
+  }
+  const a = toPx(c0.clone().applyMatrix4(camera.projectionMatrix));
+  const b = toPx(p1.applyMatrix4(camera.projectionMatrix));
+  const arr = el.querySelector<HTMLElement>('.arr')!;
+  const lbl = el.querySelector<HTMLElement>('.lbl')!;
+  el.style.display = 'flex';
+  const inside = pv.z < nearZ && b.x > box.x0 && b.x < box.x1 && b.y > box.y0 && b.y < box.y1;
+  if (inside) {
+    arr.style.display = 'none';
+    lbl.textContent = onText;
+    el.style.transform = `translate(${b.x + 14}px, ${b.y - 9}px)`;
+    return;
+  }
+  // From the Moon centre toward the body; stop at the box edge.
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  let t = Infinity;
+  if (dx > 1e-9) t = Math.min(t, (box.x1 - a.x) / dx);
+  if (dx < -1e-9) t = Math.min(t, (box.x0 - a.x) / dx);
+  if (dy > 1e-9) t = Math.min(t, (box.y1 - a.y) / dy);
+  if (dy < -1e-9) t = Math.min(t, (box.y0 - a.y) / dy);
+  if (!Number.isFinite(t)) t = 0;
+  const x = a.x + dx * t;
+  const y = a.y + dy * t;
+  arr.style.display = 'inline-block';
+  arr.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+  lbl.textContent = offText;
+  // The arrow is at the edge point; the label is on the inner side.
+  el.style.flexDirection = dx >= 0 ? 'row-reverse' : 'row';
+  const w = el.offsetWidth;
+  el.style.transform = `translate(${dx >= 0 ? x - w + 9 : x - 9}px, ${y - 10}px)`;
+}
+function updateEdgeIndicators() {
+  if (!VIEW || !state) return;
+  placeIndicator(sunInd, sunMarker.getWorldPosition(new THREE.Vector3()), 'Sun', 'To the Sun');
+  placeIndicator(earthInd, earthMesh.getWorldPosition(new THREE.Vector3()), 'Earth', 'To the Earth');
+  // If the two labels overlap, move the Earth label down by one line.
+  const a = sunInd.getBoundingClientRect();
+  const b = earthInd.getBoundingClientRect();
+  if (a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom) {
+    earthInd.style.transform += ` translateY(${a.bottom - b.top + 4}px)`;
+  }
+}
 
 // ---------- Update loop ----------
 const m4 = new THREE.Matrix4();
@@ -879,7 +1099,8 @@ function update() {
     earthEl: sky.earthElDeg,
     earthUp: api ? api.earthVisible : sky.earthElDeg > 0,
   });
-  if (first) defaultView();
+  gridLight.sun.value.set(...state.sunBodyKm).normalize();
+  if (first) startView();
 }
 
 // The globe centre is the centre of the free screen area: between the side panels and
@@ -940,6 +1161,7 @@ function frame(now: number) {
   controls.update();
   updateGridLabels(grid, camera, window.innerHeight);
   renderer.render(scene, camera);
+  updateEdgeIndicators();
   requestAnimationFrame(frame);
 }
 
@@ -953,5 +1175,5 @@ requestAnimationFrame(frame);
 
 // Dev builds only: handles for debugging in the browser console.
 if (import.meta.env.DEV) {
-  (window as unknown as Record<string, unknown>).__lunarnav = { camera, controls, earthMesh, sunMarker, moonBody };
+  (window as unknown as Record<string, unknown>).__lunarnav = { camera, controls, earthMesh, sunMarker, moonBody, startView };
 }

@@ -15,6 +15,25 @@ const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true
 const equatorMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false });
 const polarMat = new THREE.LineBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0.6, depthWrite: false });
 
+// SPIKE (?view=...): dim the grid on the night side, so the terminator stays clear.
+// gridLight.sun is the Sun direction in the Moon body frame; night = brightness factor on
+// the night side (1 = no dimming, the old look).
+export const gridLight = { sun: { value: new THREE.Vector3(1, 0, 0) }, night: { value: 1 } };
+for (const m of [lineMat, equatorMat, polarMat]) {
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uSunBody = gridLight.sun;
+    sh.uniforms.uNight = gridLight.night;
+    sh.vertexShader = sh.vertexShader
+      .replace('void main() {', 'varying vec3 vBodyPos;\nvoid main() {\n  vBodyPos = position;')
+    sh.fragmentShader = sh.fragmentShader
+      .replace('void main() {', 'uniform vec3 uSunBody;\nuniform float uNight;\nvarying vec3 vBodyPos;\nvoid main() {')
+      .replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\n  diffuseColor.a *= mix(uNight, 1.0, smoothstep(-0.08, 0.08, dot(normalize(vBodyPos), uSunBody)));',
+      );
+  };
+}
+
 function pt(lat: number, lon: number, r = R_LINE) {
   const v = bodyVecOf(lat, lon);
   return new THREE.Vector3(v[0] * r, v[1] * r, v[2] * r);
@@ -153,6 +172,10 @@ export function updateGridLabels(grid: THREE.Group, camera: THREE.PerspectiveCam
     const unitsPerPx = camera.position.distanceTo(tmpPos) / pxPerUnit;
     const hgt = Math.min(Math.max(info.height, info.minPx * unitsPerPx), LABEL_MAX_PX * unitsPerPx);
     obj.scale.set(hgt * info.aspect, hgt, 1);
+    if (gridLight.night.value < 1) {
+      const lit = obj.position.clone().normalize().dot(gridLight.sun.value);
+      ((obj as THREE.Sprite).material as THREE.SpriteMaterial).opacity = lit > 0 ? 1 : Math.max(gridLight.night.value * 1.5, 0.35);
+    }
     const hPx = hgt / unitsPerPx;
     if (info.kind === 'latPolar' || info.kind === 'lonPolar') {
       obj.visible = hPx >= POLAR_MIN_PX;
