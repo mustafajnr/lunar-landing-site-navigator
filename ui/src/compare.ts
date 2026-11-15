@@ -115,7 +115,7 @@ export function openCompare(searches: SavedSearch[]) {
   scaleLabel.title = 'On: all images use the same metres per pixel. Off: each image fits its site.';
   scaleLabel.append(scaleBox, ' Same scale');
   const imgHead = el('div');
-  imgHead.append(el('div', '', 'Site image'), scaleLabel);
+  imgHead.append(el('div', '', 'Site image'), el('div', 'small', 'Arrows: Sun and Earth at the start of the period. A dim arrow: hidden by the terrain or below the horizon.'), scaleLabel);
   scaleBox.addEventListener('change', () => {
     sameScale = scaleBox.checked;
     applyScale();
@@ -216,6 +216,24 @@ export function openCompare(searches: SavedSearch[]) {
     e.state = 'ok';
     e.data = d;
     e.times = d.times_utc.map((t) => Date.parse(t));
+    applySky(entries.indexOf(e));
+  }
+
+  /** Sun and Earth arrows on a site image: the directions at the start of the period (the landing time). */
+  function applySky(i: number) {
+    const e = entries[i];
+    const im = imgs[i];
+    if (!e || !im?.dm || !e.data) return;
+    const sr = e.data.series;
+    if (!sr.sun_az?.length) return;
+    im.dm.setSky({
+      sunAz: sr.sun_az[0],
+      sunEl: sr.sun_el[0],
+      sunUp: sr.sun_visible_fraction[0] > 0,
+      earthAz: sr.earth_az[0],
+      earthEl: sr.earth_el[0],
+      earthUp: !!sr.earth_visible[0],
+    });
   }
 
   // ---------- Table ----------
@@ -759,6 +777,7 @@ export function openCompare(searches: SavedSearch[]) {
         const minPx = w && h ? Math.max(100, Math.min(w, h)) : 220;
         im.fitMpp = s.radiusM ? (s.radiusM * dmod.RADIUS_VIEW_FACTOR) / minPx : dmod.DEFAULT_START_MPP;
         dm.setPoint({ latDeg: s.latDeg, lonDeg: s.lonDeg, name: s.siteName, radiusM: s.radiusM });
+        applySky(i);
         im.msg.hidden = true;
         // Tile errors: a short message in the cell. The table and the timeline do not wait.
         dm.map.on('loadend', () => {
