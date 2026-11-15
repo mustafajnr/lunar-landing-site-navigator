@@ -649,7 +649,7 @@
             <li>All times are in UTC. A lunar time standard (Coordinated Lunar Time) is in development. It does not change the geometry.</li>
             <li>The site radius is not used in the calculation. The result is for the centre point.</li>
             <li>A line of sight to Earth is not a full communication check. The antenna pattern, the power and the ground station time are not included.</li>
-            <li>The tool uses 1-hour steps. It can miss two events that are less than 1 hour apart, for example a short sunrise behind a peak.</li>
+            <li>The tool samples the period in steps of 10 min (up to 31 days), 30 min (up to 100 days) or 60 min (longer periods), and then finds each event to 1 second. It can miss two events that are closer together than one step, for example a short sunrise behind a peak. The landing window search uses 30-min steps.</li>
             <li>The terrain data has 20 m and 120 m pixels. Small rocks and boulders are not in the data. Terrain more than 150 km away is not included.</li>
             <li>The globe is not to scale.</li>
           </ul>
