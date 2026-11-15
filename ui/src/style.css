@@ -18,6 +18,28 @@ body {
   height: 100%;
   display: block;
 }
+/* At load, the globe stays hidden until the first default view is set (main.ts
+   showGlobe()). Then it fades in. This removes the jump from the start camera. */
+/* The transition is only in the shown state: hiding is instant, showing fades in. */
+body:not(.globe-loading) #globe,
+body:not(.globe-loading) .edge-layer {
+  transition: opacity 0.3s ease-out;
+}
+body.globe-loading #globe,
+body.globe-loading .edge-layer {
+  opacity: 0;
+}
+#globeLoading {
+  position: fixed;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  color: #8a93a0;
+  pointer-events: none;
+}
+#globeLoading[hidden] {
+  display: none;
+}
 .panel {
   position: fixed;
   top: 8px;
