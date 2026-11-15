@@ -16,7 +16,7 @@ lunarsite.select
 
 ## High-Level Project Summary
 
-(About 1,343 characters.)
+(About 1,424 characters.)
 
 Lunar Landing Site Navigator is a web tool that compares lunar landing sites over a mission period. For a point on the Moon, it shows when the Sun and Earth are above the local terrain horizon. Thus a planner can estimate solar power and direct-to-Earth communication.
 
@@ -24,7 +24,7 @@ You select a site, a start and a duration (up to 400 days). The Verdict tab give
 
 The tool uses NASA SPICE with the JPL DE440 ephemeris, and LOLA elevation data for the terrain horizon at the south pole. At six test instants, its Sun and Earth directions agree with JPL Horizons to better than 0.000001°.
 
-Example: NASA plans VIPER for about 100 days at Mons Mouton. With an example start of 2027-09-01, the longest night at the IM-2 landing point is 13 d 22 h. The best-points list finds a point 27 km away with 4 d 18 h and Earth in view all the time. Both nights are longer than the 50 h limit, and the tool shows this.
+Example: NASA plans Artemis IV, the first crewed landing, for early 2028 at the south pole, with a stay of about 6.5 days. At a Malapert Massif best point, an example landing on 2028-01-10 meets 3 of 3 requirements. If the launch slips 12 days, the Sun is down at the landing and the point meets 1 of 3. The tool then finds the next landing window, or a point at de Gerlache Rim that meets 3 of 3.
 
 The tool is for mission planners, educators and the public. It runs in a web browser at https://lunarsite.select.
 
@@ -46,13 +46,13 @@ TODO(developer): the code repository is private now. Make it public and add its 
 
 ## Detailed Project Description
 
-(About 6,100 characters. A short version follows.)
+(About 7,100 characters. A short version follows.)
 
 **What it does.** The tool answers two questions for a landing site and a mission period. Can a solar array see the Sun? Can an antenna see Earth? You select one of 22 curated sites or type coordinates. The curated sites are 15 past landings (Apollo, Chang'e, Chandrayaan-3, SLIM, IM-1, IM-2 and Blue Ghost Mission 1) and the 7 Artemis III candidate regions. You set a UTC start and a duration (presets from 1 week to 1 year, or 1 to 400 days). You set the observer height: ground 0 m, lander 2 m, mast 10 m or a custom value. Play moves the time through the period. The results panel has two tabs.
 
 - **Verdict:** a plain-language headline, and three blocks: "Solar power", "Talk to Earth" and "Both together". Each block has a rating: Good, Limited or Poor. The rating is our rule of thumb, not a NASA standard. It uses the NASA exclusion floors: a site with the Sun up less than 5 % or Earth up less than 25 % of the period is Poor. "Mission requirements" gives a pass or fail line for each limit. The NASA defaults are 50 h of darkness or less (VIPER mission planning), 6.5 days of sunlight from the start (NASA Lunar Site Selection white paper) and 25 % Earth visibility (Artemis HLS update). You can change the limits.
 - **Next landing window:** the tool searches the 60 days after the start and gives the next time when a landing meets all three mission requirements. One click sets this landing time as the start.
-- **Details:** the Sun and Earth now, and the time to the next sunset, sunrise, Earthset or Earthrise. The period result: the time with the Sun, with Earth and with both, and the longest periods. All events. A local sky plot with the Sun and Earth tracks and the terrain horizon, with a time strip for long periods. "Check this result" gives JPL Horizons links for an independent check.
+- **Details:** the Sun and Earth now, and the time to the next sunset, sunrise, Earthset or Earthrise. The period result: the time with the Sun, with Earth and with both, and the longest periods. The full list of events, with filters. A local sky plot with the Sun and Earth tracks and the terrain horizon, with a time strip for long periods. "Check this result" gives JPL Horizons links for an independent check.
 
 You can save searches and compare up to 4 of them side by side. The comparison shows a site image for each search, and a ★ marks the best value in each row.
 
@@ -64,7 +64,14 @@ The tool has a phone layout, a welcome card, a user guide and accessibility labe
 
 **Validation.** At six test instants, the Sun and Earth directions agree with JPL Horizons. The largest difference is 0.00000045°. The sub-solar and sub-Earth points agree with Horizons to about 0.005°. The terrain horizon is not validated against independent illumination data.
 
-**Example.** NASA plans the VIPER rover for about 100 days at Mons Mouton in 2027. NASA has not published a landing day or a landing point. Thus we use an example start of 2027-09-01, 100 days and an observer height of 2 m. At the IM-2 Athena landing point (84.79° S, 29.20° E), the average illumination is 52.4 %. The longest continuous darkness is 13 d 22 h. Earth is in view 81 % of the time. The point meets 1 of 3 mission requirements. Then we select the Artemis III region "Nobile Rim 1 and Mons Mouton" and open "Best points in this site". Point 1 (84.769° S, 38.986° E) is about 27 km away. There, the illumination is 86.0 %, the longest darkness is 4 d 18 h and Earth is in view 100 % of the time. It meets 2 of 3 requirements. The night is 2.9 times shorter, but it is still longer than the VIPER limit of 50 h. The tool shows this as a failed line.
+**Example.** NASA plans Artemis IV, the first crewed landing, for early 2028 at the south pole. The surface stay is about 6.5 days. NASA has not chosen a region or a day. Thus the landing days below are examples. We use a duration of 6.5 days, an observer height of 2 m and the NASA default requirements.
+
+- **Plan.** In the Malapert Massif region, "Best points in this site" gives point 1 (85.98° S, 1.85° W). For a landing on 2028-01-10 00:00 UTC, the Sun is up 100 % and Earth is up 99 % of the stay. The point meets 3 of 3 requirements.
+- **Slip.** The launch slips 12 days to 2028-01-22. At the same point, the Sun is up only 10 % of the stay. The Sun is down at the landing. The longest darkness is at least 5 d 14 h. The point meets 1 of 3 requirements.
+- **Wait.** We select Malapert best point 4 (85.96° S, 2.32° W). "Next landing window" finds a window from 2028-02-03 13:00 to 2028-02-16 18:30 UTC. "Use this start" sets this start, and the point meets 3 of 3 requirements.
+- **Move.** We keep the landing on 2028-01-22 and select de Gerlache Rim best point 1 (88.66° S, 68.40° W). The Sun is up 100 % and Earth is up 49 % of the stay. The point meets 3 of 3 requirements. But Earth is below the horizon for about half of the stay. Thus the crew needs a relay satellite for that time. Our rating shows "Talk to Earth" as Poor.
+
+Small distances have a large effect. Near de Gerlache Rim, points 0.4 to 1.5 km apart gave 0 % to 100 % Sun for 22–29 January 2028. For this reason, the tool uses the best-points list from the NASA PGDA maps and then calculates each point.
 
 Height also has an effect. At the Shackleton–de Gerlache ridge in 2027, a 2 m observer has sunlight 72 % of the time and a longest night of 14 days. A 10 m mast has 96 % and 3 days.
 
@@ -76,9 +83,9 @@ Height also has an effect. At the Shackleton–de Gerlache ridge in 2027, a 2 m 
 
 **Tools and languages.** TypeScript, three.js, OpenLayers and Vite for the web app. Python, FastAPI, spiceypy, numpy and rasterio for the API and the calculations. Google Cloud Run, Cloud Build and nginx for hosting. uv and npm for packages. pytest for tests. Claude Code for SI-assisted development (see the SI field).
 
-### Short version (about 1,120 characters)
+### Short version (about 1,118 characters)
 
-For a lunar site and a mission period (up to 400 days), the tool shows when the Sun and Earth are above the local terrain horizon. You select one of 22 curated sites (15 past landings and the 7 Artemis III candidate regions) or type coordinates. The Verdict tab gives a plain-language result and checks NASA mission requirements: 50 h of darkness (VIPER), 6.5 days of sunlight and 25 % Earth visibility (Artemis). The Details tab has a sky plot, events and JPL Horizons check links. A site map shows NASA Moon Trek images, slope, NASA PGDA average sunlight and the best points in a site. You can compare up to 4 saved searches. A Python API on Google Cloud Run uses NASA SPICE, JPL DE440 and LOLA terrain south of about 65° S. Its Sun and Earth directions agree with JPL Horizons to 0.00000045°. Example: for VIPER at Mons Mouton (example start 2027-09-01, 100 days), the best-points list finds a point with a 4 d 18 h longest night instead of 13 d 22 h. Limitations: "Earth up" uses Earth's centre only, and results are for one point. Tools: TypeScript, three.js, OpenLayers, Python, FastAPI, spiceypy, Google Cloud Run.
+For a lunar site and a mission period (up to 400 days), the tool shows when the Sun and Earth are above the local terrain horizon. You select one of 22 curated sites (15 past landings and the 7 Artemis III candidate regions) or type coordinates. The Verdict tab gives a plain-language result and checks NASA mission requirements: 50 h of darkness (VIPER), 6.5 days of sunlight and 25 % Earth visibility (Artemis). It finds the next landing window that meets all three. The Details tab has a sky plot, events and Horizons links. A site map shows Moon Trek images, slope, PGDA average sunlight and the best points in a site. You can compare up to 4 saved searches. A Python API on Google Cloud Run uses NASA SPICE, JPL DE440 and LOLA terrain south of about 65° S. Its Sun and Earth directions agree with JPL Horizons to 0.00000045°. Example: an Artemis IV point at Malapert Massif meets 3 of 3 requirements on 2028-01-10, and 1 of 3 after a 12-day slip. Limitations: "Earth up" uses Earth's centre only, and results are for one point. Tools: TypeScript, three.js, OpenLayers, Python, FastAPI, spiceypy, Google Cloud Run.
 
 ---
 
@@ -161,4 +168,4 @@ TODO(developer): check that this list is complete. The guide asks for all code, 
 - TODO(developer): confirm that the idea came from you, not from SI (see the SI field).
 - TODO(developer): check that the reference list is complete (see the references field).
 - TODO(developer): optional FortiGuard Web Filter Classification request for https://lunarsite.select (recommended for a new website, not required).
-- TODO(developer): images for the project page (JPG or PNG, up to 10 MB). The files in `screenshots/` are suitable. Add a new screenshot of the VIPER example (Verdict tab and best points).
+- TODO(developer): images for the project page (JPG or PNG, up to 10 MB). The files in `screenshots/` are suitable. Add a new screenshot of the Artemis IV example (Verdict tab, best points and next landing window).
