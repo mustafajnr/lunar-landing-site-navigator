@@ -2,7 +2,7 @@
 
 The short lists below go into the form: one entry for each resource. The full lists after them give each part separately. All URLs were checked on 2026-11-15.
 
-## Short list: NASA Data (14)
+## Short list: NASA Data (16)
 
 | Link Text | URL |
 |---|---|
@@ -14,7 +14,9 @@ The short lists below go into the form: one entry for each resource. The full li
 | LRO Camera (LROC): landing site positions | https://www.lroc.asu.edu/ |
 | NASA NSSDC lunar landing sites | https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html |
 | NASA Artemis III candidate landing regions | https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/ |
-| NASA Commercial Lunar Payload Services (planned landing sites) | https://www.nasa.gov/commercial-lunar-payload-services/ |
+| NASA CLPS: Blue Origin Blue Moon MK1 (planned landing site) | https://www.nasa.gov/event/clps-flight-blue-origins-blue-moon-mark-1/ |
+| NASA CLPS: Intuitive Machines IM-4 (planned landing site) | https://www.nasa.gov/event/clps-flight-intuitive-machines-im-4-2/ |
+| NASA VIPER mission (planned landing site) | https://science.nasa.gov/mission/viper/ |
 | NASA Technical Reports Server (mission requirement defaults: Artemis HLS 2024, Lunar Site Selection 2023, VIPER planning 2022) | https://ntrs.nasa.gov/ |
 | JPL IPN Progress Report 42-176 (lunar pole illumination and communications) | https://ipnpr.jpl.nasa.gov/progress_report/42-176/176C.html |
 | NASA SVS CGI Moon Kit (globe images) | https://svs.gsfc.nasa.gov/4720 |
@@ -28,8 +30,8 @@ The short lists below go into the form: one entry for each resource. The full li
 | IAU/USGS Gazetteer of Planetary Nomenclature (place names) | https://planetarynames.wr.usgs.gov/ |
 | Voyager Technologies: Griffin landing site (Mons Mouton) | https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/ |
 | Gläser et al. 2014, Connecting Ridge: a landing site at the lunar south pole with extended illumination (EPSC abstract, DLR library) | https://elib.dlr.de/94242/ |
-| Open-source libraries: three.js, OpenLayers, Vite, tsx, FastAPI, Pydantic, Uvicorn, SpiceyPy, NumPy, Rasterio, GDAL, nginx (full list with licences and links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
-| Development and test tools: uv, pytest, Playwright, axe-core, Pillow (full list with links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
+| Open-source libraries: three.js, OpenLayers, Vite, tsx, TypeScript type definitions for three.js, FastAPI, Pydantic, Uvicorn, SpiceyPy, NumPy, Rasterio, GDAL, certifi, HTTPX, nginx (full list with licences and links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
+| Development and test tools: uv, pytest, Pillow, and Playwright and axe-core (used during development for screenshots and accessibility checks) (full list with links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
 | Google Cloud (Cloud Run, Cloud Build, Cloud Storage) for hosting | https://cloud.google.com/ |
 | Claude Code by Anthropic (AI-assisted development) | https://www.anthropic.com/claude-code |
 | Google Fonts: Space Grotesk and Inter (slides) | https://fonts.google.com/ |
@@ -70,10 +72,8 @@ The short lists below go into the form: one entry for each resource. The full li
 | JAXA Kaguya (SELENE) Terrain Camera ortho mosaic, a map layer in NASA Moon Trek (we used it through Moon Trek) | https://trek.nasa.gov/moon/ |
 | IAU/USGS Gazetteer of Planetary Nomenclature (place search) | https://planetarynames.wr.usgs.gov/ |
 | Voyager Technologies: Griffin landing site (Mons Mouton) | https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/ (blocks automatic checks: test it in a browser) |
-| Mazarico et al. 2011, Illumination conditions of the lunar polar regions using LOLA topography (Icarus) | https://doi.org/10.1016/j.icarus.2010.10.030 |
+| Mazarico et al. 2011, Illumination conditions of the lunar polar regions using LOLA topography (citation that PGDA asks for, NASA NTRS copy) | https://ntrs.nasa.gov/citations/20120010094 |
 | Gläser et al. 2014, Connecting Ridge: a landing site at the lunar south pole with extended illumination (EPSC abstract, DLR library) | https://elib.dlr.de/94242/ |
-| Park et al. 2021, The JPL planetary and lunar ephemerides DE440 and DE441 | https://doi.org/10.3847/1538-3881/abd414 |
-| Annex et al. 2020, SpiceyPy (Journal of Open Source Software) | https://doi.org/10.21105/joss.02050 |
 | three.js (3D globe, MIT) | https://threejs.org/ |
 | OpenLayers (maps, BSD-2-Clause) | https://openlayers.org/ |
 | Vite (build tool, MIT) | https://vite.dev/ |
@@ -86,10 +86,13 @@ The short lists below go into the form: one entry for each resource. The full li
 | Rasterio (BSD-3-Clause) | https://rasterio.readthedocs.io/ |
 | GDAL (MIT) | https://gdal.org/ |
 | nginx (BSD-2-Clause) | https://nginx.org/ |
+| certifi (MPL-2.0) | https://github.com/certifi/python-certifi |
+| HTTPX (BSD-3-Clause, API tests) | https://www.python-httpx.org/ |
+| @types/three (MIT, TypeScript types) | https://www.npmjs.com/package/@types/three |
 | uv (package manager) | https://docs.astral.sh/uv/ |
 | pytest | https://docs.pytest.org/ |
-| Playwright (tests and screenshots) | https://playwright.dev/ |
-| axe-core (accessibility tests, MPL-2.0) | https://github.com/dequelabs/axe-core |
+| Playwright (screenshots and browser tests during development) | https://playwright.dev/ |
+| axe-core (accessibility checks during development, MPL-2.0) | https://github.com/dequelabs/axe-core |
 | Pillow (image processing) | https://python-pillow.org/ |
 | Google Cloud Run (hosting) | https://cloud.google.com/run |
 | Google Cloud Build | https://cloud.google.com/build |

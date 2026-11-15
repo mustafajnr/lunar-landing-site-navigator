@@ -144,8 +144,6 @@ Other data and references:
 - IAU/USGS Gazetteer of Planetary Nomenclature (USGS Astrogeology Science Center): names, centres and diameters of the lunar features for the place search. Public domain. https://planetarynames.wr.usgs.gov/
 - LROC (Arizona State University): coordinates of the post-Apollo landings and the image boxes for the Artemis III candidate regions. NASA CLPS mission pages: the two planned landing sites. Each site in `data/sites.json` has its source URL.
 - Barker, M. K., et al. (2023). LOLA south pole elevation models, NASA PGDA product 90. https://pgda.gsfc.nasa.gov/products/90
-- Park, R. S., et al. (2021). The JPL planetary and lunar ephemerides DE440 and DE441.
-- Annex, A. M., et al. (2020). SpiceyPy: a Pythonic wrapper for the SPICE toolkit.
 - Mazarico, E., Neumann, G. A., Smith, D. E., Zuber, M. T., Torrence, M. H. (2011). Illumination conditions of the lunar polar regions using LOLA topography. Icarus 211, 1066–1081, doi:10.1016/j.icarus.2010.10.030. NASA PGDA product 69, https://pgda.gsfc.nasa.gov/products/69
 - NASA LaRC (2024). Artemis Human Landing System update: areas with Earth visibility below 25 % or solar visibility below 5 % are excluded. https://ntrs.nasa.gov/api/citations/20240009596/downloads/ArtemisHLSUpdate_2024.pdf
 - NASA (2023). Lunar Site Selection white paper: the first landing site has sunlight for the full surface stay of about 6 to 6.5 days. https://ntrs.nasa.gov/api/citations/20230016267/downloads/Lunar%20Site%20Selection.pdf
@@ -153,7 +151,7 @@ Other data and references:
 - Bryant, S. (2009). Lunar pole illumination and communications maps computed from GSSR elevation data. JPL IPN Progress Report 42-176. https://ipnpr.jpl.nasa.gov/progress_report/42-176/176C.html
 - Gläser, P., et al. (2014). Illumination conditions at the lunar south pole using high resolution Digital Terrain Models from LOLA. Icarus 243, 78–90, doi:10.1016/j.icarus.2014.08.013
 
-Open-source software: three.js (MIT), OpenLayers (BSD-2-Clause), Vite (MIT), TypeScript (Apache 2.0), tsx (MIT), FastAPI (MIT), pydantic (MIT), uvicorn (BSD-3-Clause), spiceypy (MIT), NASA NAIF CSPICE (public), numpy (BSD-3-Clause), rasterio (BSD-3-Clause) with GDAL (MIT), nginx (BSD-2-Clause), Python (PSF License), Node.js (MIT).
+Open-source software: three.js (MIT), OpenLayers (BSD-2-Clause), Vite (MIT), TypeScript (Apache 2.0), tsx (MIT), FastAPI (MIT), pydantic (MIT), uvicorn (BSD-3-Clause), spiceypy (MIT), NASA NAIF CSPICE (public), numpy (BSD-3-Clause), rasterio (BSD-3-Clause) with GDAL (MIT), certifi (MPL-2.0), HTTPX (BSD-3-Clause), @types/three (MIT), nginx (BSD-2-Clause), Python (PSF License), Node.js (MIT).
 
 Fonts (slide deck only): Space Grotesk and Inter (SIL Open Font License), from Google Fonts.
 
