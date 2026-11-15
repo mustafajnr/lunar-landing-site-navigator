@@ -1495,3 +1495,35 @@ tr.ev.past td:first-child {
     font-size: 15px;
   }
 }
+/* ---------- Best points in this site (bestpoints.ts, point.ts) ---------- */
+#siteInfo .best-points {
+  margin: 6px 0;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+#siteInfo .best-points summary {
+  cursor: pointer;
+  color: #ddd;
+}
+#siteInfo .best-points ol {
+  list-style: none;
+  margin: 4px 0;
+  padding: 0;
+}
+#siteInfo .best-point {
+  display: block;
+  width: 100%;
+  margin: 2px 0;
+  padding: 3px 6px;
+  text-align: left;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+#siteInfo .best-point.active {
+  outline: 2px solid #7fdcff;
+}
+#siteInfo .best-points p.best-note {
+  margin: 4px 0;
+  color: #aaa;
+}

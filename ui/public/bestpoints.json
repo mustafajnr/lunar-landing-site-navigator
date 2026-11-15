@@ -1,0 +1,367 @@
+{
+ "version": 1,
+ "source": "NASA PGDA product 69, LOLA average Sun and Earth visibility (https://pgda.gsfc.nasa.gov/products/69). Mazarico, E., Neumann, G. A., Smith, D. E., Zuber, M. T., Torrence, M. H. (2011), Illumination conditions of the lunar polar regions using LOLA topography, Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030. Slope: LOLA LDEM_80S_20MPP_ADJ (20 m).",
+ "rule": "Rank by the mean of average sunlight % and average Earth visibility %. Keep only points with slope < 15\u00b0 (steepest 20 m DEM slope in the map pixel). Keep points at least 500 m apart. Search inside the site circle, but at least 5 km from the site centre.",
+ "sites": {
+  "im-1": {
+   "search_radius_m": 5000.0,
+   "points": [
+    {
+     "lat_deg": -80.17975,
+     "lon_deg": 1.71617,
+     "sun_pct": 53.1,
+     "earth_pct": 100.0,
+     "slope_deg": 4.0
+    },
+    {
+     "lat_deg": -80.16047,
+     "lon_deg": 1.6438,
+     "sun_pct": 53.1,
+     "earth_pct": 100.0,
+     "slope_deg": 6.5
+    },
+    {
+     "lat_deg": -80.14061,
+     "lon_deg": 1.68637,
+     "sun_pct": 52.9,
+     "earth_pct": 100.0,
+     "slope_deg": 6.2
+    },
+    {
+     "lat_deg": -80.22623,
+     "lon_deg": 0.86788,
+     "sun_pct": 52.2,
+     "earth_pct": 100.0,
+     "slope_deg": 1.7
+    },
+    {
+     "lat_deg": -80.12467,
+     "lon_deg": 1.72946,
+     "sun_pct": 52.0,
+     "earth_pct": 100.0,
+     "slope_deg": 5.1
+    }
+   ]
+  },
+  "im-2": {
+   "search_radius_m": 5000.0,
+   "points": [
+    {
+     "lat_deg": -84.81414,
+     "lon_deg": 29.15009,
+     "sun_pct": 51.2,
+     "earth_pct": 94.3,
+     "slope_deg": 2.0
+    },
+    {
+     "lat_deg": -84.81145,
+     "lon_deg": 28.93372,
+     "sun_pct": 51.5,
+     "earth_pct": 91.8,
+     "slope_deg": 2.9
+    },
+    {
+     "lat_deg": -84.79861,
+     "lon_deg": 29.0546,
+     "sun_pct": 47.6,
+     "earth_pct": 93.2,
+     "slope_deg": 4.0
+    },
+    {
+     "lat_deg": -84.78173,
+     "lon_deg": 29.07569,
+     "sun_pct": 46.4,
+     "earth_pct": 93.1,
+     "slope_deg": 3.2
+    },
+    {
+     "lat_deg": -84.79781,
+     "lon_deg": 29.24921,
+     "sun_pct": 45.7,
+     "earth_pct": 93.1,
+     "slope_deg": 5.4
+    }
+   ]
+  },
+  "artemis3-peak-near-cabeus-b": {
+   "search_radius_m": 18700.0,
+   "points": [
+    {
+     "lat_deg": -83.58361,
+     "lon_deg": -68.43785,
+     "sun_pct": 63.0,
+     "earth_pct": 96.3,
+     "slope_deg": 6.6
+    },
+    {
+     "lat_deg": -83.64801,
+     "lon_deg": -68.55286,
+     "sun_pct": 55.6,
+     "earth_pct": 99.2,
+     "slope_deg": 8.0
+    },
+    {
+     "lat_deg": -83.53384,
+     "lon_deg": -68.08476,
+     "sun_pct": 55.6,
+     "earth_pct": 99.1,
+     "slope_deg": 9.7
+    },
+    {
+     "lat_deg": -83.55142,
+     "lon_deg": -68.09749,
+     "sun_pct": 53.8,
+     "earth_pct": 99.4,
+     "slope_deg": 8.6
+    },
+    {
+     "lat_deg": -83.51844,
+     "lon_deg": -68.02663,
+     "sun_pct": 54.3,
+     "earth_pct": 98.9,
+     "slope_deg": 9.1
+    }
+   ]
+  },
+  "artemis3-haworth": {
+   "search_radius_m": 29200.0,
+   "points": [
+    {
+     "lat_deg": -86.36462,
+     "lon_deg": -23.18222,
+     "sun_pct": 63.1,
+     "earth_pct": 77.6,
+     "slope_deg": 8.2
+    },
+    {
+     "lat_deg": -86.34178,
+     "lon_deg": -23.23113,
+     "sun_pct": 57.3,
+     "earth_pct": 80.6,
+     "slope_deg": 5.5
+    },
+    {
+     "lat_deg": -86.32335,
+     "lon_deg": -23.27549,
+     "sun_pct": 55.9,
+     "earth_pct": 79.5,
+     "slope_deg": 9.3
+    },
+    {
+     "lat_deg": -86.43064,
+     "lon_deg": -22.63574,
+     "sun_pct": 62.1,
+     "earth_pct": 71.4,
+     "slope_deg": 5.6
+    },
+    {
+     "lat_deg": -86.30777,
+     "lon_deg": -23.3719,
+     "sun_pct": 55.3,
+     "earth_pct": 78.0,
+     "slope_deg": 13.8
+    }
+   ]
+  },
+  "artemis3-malapert-massif": {
+   "search_radius_m": 16200.0,
+   "points": [
+    {
+     "lat_deg": -85.97989,
+     "lon_deg": -1.8467,
+     "sun_pct": 61.0,
+     "earth_pct": 100.0,
+     "slope_deg": 4.8
+    },
+    {
+     "lat_deg": -85.91184,
+     "lon_deg": -4.17548,
+     "sun_pct": 59.7,
+     "earth_pct": 100.0,
+     "slope_deg": 8.0
+    },
+    {
+     "lat_deg": -85.97377,
+     "lon_deg": 1.92837,
+     "sun_pct": 59.2,
+     "earth_pct": 100.0,
+     "slope_deg": 6.8
+    },
+    {
+     "lat_deg": -85.96484,
+     "lon_deg": -2.31755,
+     "sun_pct": 68.4,
+     "earth_pct": 90.7,
+     "slope_deg": 4.3
+    },
+    {
+     "lat_deg": -85.8242,
+     "lon_deg": -6.32221,
+     "sun_pct": 59.1,
+     "earth_pct": 100.0,
+     "slope_deg": 9.4
+    }
+   ]
+  },
+  "artemis3-mons-mouton-plateau": {
+   "search_radius_m": 69600.0,
+   "points": [
+    {
+     "lat_deg": -84.83013,
+     "lon_deg": 38.25938,
+     "sun_pct": 63.6,
+     "earth_pct": 99.8,
+     "slope_deg": 4.7
+    },
+    {
+     "lat_deg": -85.08024,
+     "lon_deg": 36.30336,
+     "sun_pct": 62.8,
+     "earth_pct": 100.0,
+     "slope_deg": 9.6
+    },
+    {
+     "lat_deg": -84.65501,
+     "lon_deg": 39.59661,
+     "sun_pct": 61.8,
+     "earth_pct": 100.0,
+     "slope_deg": 5.6
+    },
+    {
+     "lat_deg": -84.77223,
+     "lon_deg": 38.92041,
+     "sun_pct": 61.0,
+     "earth_pct": 100.0,
+     "slope_deg": 7.9
+    },
+    {
+     "lat_deg": -84.37216,
+     "lon_deg": 43.37724,
+     "sun_pct": 60.4,
+     "earth_pct": 98.8,
+     "slope_deg": 11.1
+    }
+   ]
+  },
+  "artemis3-nobile-rim-1-mons-mouton": {
+   "search_radius_m": 28200.0,
+   "points": [
+    {
+     "lat_deg": -84.76865,
+     "lon_deg": 38.98618,
+     "sun_pct": 66.5,
+     "earth_pct": 99.4,
+     "slope_deg": 3.8
+    },
+    {
+     "lat_deg": -84.80111,
+     "lon_deg": 38.57643,
+     "sun_pct": 61.3,
+     "earth_pct": 100.0,
+     "slope_deg": 5.8
+    },
+    {
+     "lat_deg": -84.65766,
+     "lon_deg": 39.57886,
+     "sun_pct": 60.2,
+     "earth_pct": 100.0,
+     "slope_deg": 6.4
+    },
+    {
+     "lat_deg": -85.06686,
+     "lon_deg": 36.14642,
+     "sun_pct": 60.1,
+     "earth_pct": 100.0,
+     "slope_deg": 12.7
+    },
+    {
+     "lat_deg": -85.40245,
+     "lon_deg": 31.58086,
+     "sun_pct": 57.9,
+     "earth_pct": 99.9,
+     "slope_deg": 9.9
+    }
+   ]
+  },
+  "artemis3-nobile-rim-2": {
+   "search_radius_m": 19800.0,
+   "points": [
+    {
+     "lat_deg": -83.55185,
+     "lon_deg": 58.81937,
+     "sun_pct": 51.1,
+     "earth_pct": 88.0,
+     "slope_deg": 7.5
+    },
+    {
+     "lat_deg": -83.52271,
+     "lon_deg": 58.7304,
+     "sun_pct": 50.5,
+     "earth_pct": 87.8,
+     "slope_deg": 7.3
+    },
+    {
+     "lat_deg": -83.5758,
+     "lon_deg": 58.35901,
+     "sun_pct": 50.2,
+     "earth_pct": 88.0,
+     "slope_deg": 6.6
+    },
+    {
+     "lat_deg": -83.41448,
+     "lon_deg": 55.83776,
+     "sun_pct": 50.1,
+     "earth_pct": 87.8,
+     "slope_deg": 7.0
+    },
+    {
+     "lat_deg": -83.47307,
+     "lon_deg": 58.01853,
+     "sun_pct": 50.0,
+     "earth_pct": 87.8,
+     "slope_deg": 6.0
+    }
+   ]
+  },
+  "artemis3-de-gerlache-rim": {
+   "search_radius_m": 28500.0,
+   "points": [
+    {
+     "lat_deg": -88.66463,
+     "lon_deg": -68.39564,
+     "sun_pct": 82.7,
+     "earth_pct": 61.4,
+     "slope_deg": 10.8
+    },
+    {
+     "lat_deg": -88.46254,
+     "lon_deg": -67.80836,
+     "sun_pct": 74.5,
+     "earth_pct": 61.8,
+     "slope_deg": 3.0
+    },
+    {
+     "lat_deg": -88.58747,
+     "lon_deg": -67.90798,
+     "sun_pct": 73.5,
+     "earth_pct": 61.6,
+     "slope_deg": 4.7
+    },
+    {
+     "lat_deg": -88.68117,
+     "lon_deg": -68.1108,
+     "sun_pct": 72.7,
+     "earth_pct": 61.3,
+     "slope_deg": 4.2
+    },
+    {
+     "lat_deg": -88.3931,
+     "lon_deg": -68.66365,
+     "sun_pct": 71.9,
+     "earth_pct": 61.8,
+     "slope_deg": 3.2
+    }
+   ]
+  }
+ }
+}

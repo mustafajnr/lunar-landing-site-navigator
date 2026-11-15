@@ -421,6 +421,40 @@
             <li><strong>Steepest slope.</strong> Each pixel shows the steepest slope inside it. Thus, a coarse view does not hide a steep spot.</li>
             <li><strong>Source.</strong> The slope comes from the LOLA 20 m elevation data (LDEM_80S_20MPP_ADJ). Rocks and small craters that are smaller than 20 m are not in it.</li>
           </ul>
+
+          <h3 id="illum-layers">Average sunlight and Earth visibility layers</h3>
+          <p>The site map has two layers from NASA data (NASA PGDA product 69, Mazarico et al. 2011):</p>
+          <ul>
+            <li><span class="ui">Average sunlight (NASA PGDA, 18.6 years)</span>: the percent of time that a part of the Sun is above the local horizon.</li>
+            <li><span class="ui">Average Earth visibility (NASA PGDA, 18.6 years)</span>: the percent of time that a part of the Earth is above the local horizon.</li>
+          </ul>
+          <ol class="steps">
+            <li>Click <span class="ui">Layers</span> in the box at the lower right of the site map.</li>
+            <li>Select one of the two layers. The layers are off when the map opens.</li>
+          </ol>
+          <ul>
+            <li><strong>Colours.</strong> Dark is 0 % (no light). Light yellow is 100 %. A legend shows the colours.</li>
+            <li><strong>Area.</strong> The layers are only south of 75° S. The map pixel is 60 m south of 85° S and 120 m for 75–85° S.</li>
+            <li><strong>Mean value.</strong> Each pixel shows the mean value inside it.</li>
+            <li><strong>Slightly high values.</strong> A pixel counts as "visible" if any part of the disc is visible. Thus, the values are slightly optimistic.</li>
+          </ul>
+
+          <h3 id="best-points">Best points in this site</h3>
+          <p>Select an Artemis III region, a past landing or another curated site south of 75° S. Below the site description, the list <span class="ui">Best points in this site (NASA PGDA long-term average)</span> shows up to 5 points. The site map shows the same points as small numbered markers.</p>
+          <ul>
+            <li><strong>Rank.</strong> The points are in order of the mean of average sunlight % and average Earth visibility %.</li>
+            <li><strong>Slope.</strong> Each point has a slope less than 15°. The slope is the steepest LOLA 20 m slope in the map pixel.</li>
+            <li><strong>Distance.</strong> The points are at least 500 m apart.</li>
+            <li><strong>Small sites.</strong> For a small site (for example a past landing with radius 500 m), the tool searches 5 km around the site centre. The list title is then <span class="ui">Best points within 5 km</span>, and the site map circle shows the 5 km search area.</li>
+            <li><strong>Select a point.</strong> Click a row. The tool selects that point and calculates the results for it. The site circle and the list stay on the screen.</li>
+          </ul>
+          <h3 id="long-term">Long-term average and the result for the period</h3>
+          <p>The layers and the list show long-term averages. NASA calculated them over 18.6 years in hourly steps, at ground level. The results panel shows a different thing: the result for your period and your observer height.</p>
+          <ul>
+            <li>A point with 60 % average sunlight can have sunlight 92 % of the time in a good month, and much less in a bad month.</li>
+            <li>A mast or a solar panel above the ground sees more sunlight than the ground.</li>
+            <li>Use the list to find good points. Then use the results panel to check the point for your mission dates and height.</li>
+          </ul>
         </section>
 
         <!-- 12 -->
