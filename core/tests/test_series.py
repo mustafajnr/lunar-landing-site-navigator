@@ -1,4 +1,6 @@
+import json
 from datetime import timedelta
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -206,3 +208,88 @@ def test_moon_state_basic():
     assert abs(s["sub_earth_lat_deg"]) < 8 and abs(s["sub_earth_lon_deg"]) < 9  # libration
     assert abs(s["sub_solar_lat_deg"]) < 1.6
     assert np.allclose(m @ np.array(s["sun_dir_me"]), s["sun_dir_j2000"])
+
+
+# --- gaps: longest night, longest Earth outage, longest time without both ---------
+
+MASKS = Path(__file__).resolve().parents[2] / "data" / "masks"
+
+
+def test_gaps_of_intervals():
+    from lunarnav.series import _gaps, _longest_gap
+
+    assert _gaps([], 0.0, 10.0) == [(0.0, 10.0)]
+    assert _gaps([(0.0, 10.0)], 0.0, 10.0) == []
+    assert _gaps([(2.0, 3.0), (5.0, 9.0)], 0.0, 10.0) == [(0.0, 2.0), (3.0, 5.0), (9.0, 10.0)]
+    assert _longest_gap([(2.0, 3.0), (5.0, 9.0)], 0.0, 10.0) == (2.0, True)  # first gap wins a tie
+    assert _longest_gap([(1.0, 3.0), (7.0, 9.0)], 0.0, 10.0) == (4.0, False)
+    assert _longest_gap([(0.0, 10.0)], 0.0, 10.0) == (0.0, False)
+
+
+@needs_kernels
+def test_apollo11_longest_night(apollo):
+    s = apollo.summary
+    # Night at the start, then sunrise, sunset, sunrise: one full night of about 14.8 d.
+    assert s["sun_up_at_start"] is False and s["earth_up_at_start"] is True
+    ev = [(parse_utc(e["utc"]), e["type"]) for e in apollo.events]
+    sunset = next(t for t, k in ev if k == "sunset")
+    rise2 = [t for t, k in ev if k == "sunrise"][1]
+    full_night_h = (rise2 - sunset).total_seconds() / 3600
+    assert s["longest_no_sun_period_h"] == pytest.approx(full_night_h, abs=2 / 3600)
+    assert 14.5 * 24 < s["longest_no_sun_period_h"] < 15.1 * 24
+    assert s["longest_no_sun_period_truncated"] is False
+    # Earth is always up, so there is no Earth outage. "Not both" is the night.
+    assert s["longest_no_earth_period_h"] == 0.0
+    assert s["longest_no_earth_period_truncated"] is False
+    assert s["longest_no_both_period_h"] == pytest.approx(s["longest_no_sun_period_h"])
+    expect_h = (sunset - parse_utc(START)).total_seconds() / 3600
+    assert s["time_to_first_sunset_h"] == pytest.approx(expect_h, abs=2 / 3600)
+    assert s["time_to_next_sunset_h"] is None  # the old field: null, the Sun is down at start
+
+
+@needs_kernels
+def test_far_side_earth_outage_is_full_span():
+    s = evaluate_series(*FAR_SIDE, START, "2026-12-19T00:00:00Z", 60, 2.0).summary
+    assert s["earth_up_at_start"] is False
+    assert s["longest_no_earth_period_h"] == pytest.approx(s["span_h"])
+    assert s["longest_no_earth_period_truncated"] is True
+    assert s["longest_no_both_period_h"] == pytest.approx(s["span_h"])
+
+
+@needs_kernels
+def test_shackleton_floor_night_is_full_span():
+    mask = json.loads((MASKS / "shackleton_floor_-89.67_129.78_h2.json").read_text())
+    s = evaluate_series(-89.67, 129.78, START, "2026-12-14T00:00:00Z", 60, 2.0, mask,
+                        surface_height_m=mask.get("surface_height_m", 0.0)).summary
+    assert s["sun_fraction_of_time"] == 0.0
+    assert s["sun_up_at_start"] is False
+    assert s["longest_no_sun_period_h"] == pytest.approx(s["span_h"])
+    assert s["longest_no_sun_period_truncated"] is True
+    assert s["longest_no_both_period_h"] == pytest.approx(s["span_h"])
+    assert s["time_to_first_sunset_h"] is None
+
+
+@needs_kernels
+def test_gaps_and_periods_fill_the_span():
+    # The longest gap and the total of each state agree with the intervals.
+    r = evaluate_series(*SHACK, START, "2026-12-14T00:00:00Z", 30, 2.0)
+    s = r.summary
+    span = s["span_h"]
+    for body in ("sun", "earth", "both"):
+        lit = s[f"{body}_fraction_of_time"] * span
+        assert s[f"longest_no_{body}_period_h"] <= span - lit + 1e-6
+        if s[f"{body}_fraction_of_time"] < 1.0:
+            assert s[f"longest_no_{body}_period_h"] > 0.0
+    assert s["longest_no_both_period_h"] >= max(s["longest_no_sun_period_h"],
+                                                s["longest_no_earth_period_h"]) - 1e-9
+
+
+@needs_kernels
+def test_single_instant_gaps():
+    s = evaluate_series(*APOLLO11, "2026-11-25T00:00:00Z", "2026-11-25T00:00:00Z", 60, 2.0).summary
+    assert s["longest_no_sun_period_h"] == 0.0
+    assert s["longest_no_earth_period_h"] == 0.0
+    assert s["longest_no_both_period_h"] == 0.0
+    assert s["longest_no_sun_period_truncated"] is False
+    assert s["time_to_first_sunset_h"] is None
+    assert isinstance(s["sun_up_at_start"], bool)

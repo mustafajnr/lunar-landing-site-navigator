@@ -106,8 +106,17 @@ An event is a change between two adjacent steps. Bisection finds its time. Two c
 | `longest_sun_period_h` | Longest continuous period with the Sun visible | hours |
 | `longest_earth_period_h` | Longest continuous period with Earth visible | hours |
 | `longest_both_period_h` | Longest continuous period with the Sun and Earth both visible | hours |
+| `longest_no_sun_period_h` | Longest continuous period with no part of the Sun's disk visible (`sun_visible_fraction` = 0). The longest night. | hours |
+| `longest_no_earth_period_h` | Longest continuous period with Earth not visible. The longest Earth outage. | hours |
+| `longest_no_both_period_h` | Longest continuous period when the Sun and Earth are not both visible | hours |
+| `longest_no_sun_period_truncated` | The longest period without the Sun touches `start_utc` or `stop_utc`. The real period can be longer. | boolean |
+| `longest_no_earth_period_truncated` | The same, for `longest_no_earth_period_h` | boolean |
+| `longest_no_both_period_truncated` | The same, for `longest_no_both_period_h` | boolean |
+| `time_to_first_sunset_h` | Time from `start_utc` to the first sunset in the span. The Sun can be down at `start_utc`. Null if there is no sunset in the span. | hours |
+| `sun_up_at_start` | `sun_visible_fraction` > 0 at `start_utc` | boolean |
+| `earth_up_at_start` | `earth_visible` at `start_utc` | boolean |
 
-The fractions and periods use the event times. A period that touches `start_utc` or `stop_utc` stops at that edge.
+The fractions, periods and gaps use the event times. A period or a gap that touches `start_utc` or `stop_utc` stops at that edge. For a single instant, each gap is 0 and each `*_truncated` is false. If two gaps have the same length, `*_truncated` is for the first one.
 
 ### Next events
 
@@ -303,3 +312,4 @@ The terrain tool is the package `lunarterrain` in `data/` (`data/src/lunarterrai
 - 2026-11-14: `surface_height_m` added to the mask format. `GET /v1/mask` added. `/v1/series` has `terrain`, `horizon` and `next_events`. The API accepts `lon_deg` up to 360. `stop_utc` can be equal to `start_utc`. `next_events` added to section 4.
 - 2026-11-14: `horizon.terrain_status` added. `/v1/health` added for Cloud Run.
 - 2026-11-15: `provenance` added to the `/v1/series` response.
+- 2026-11-15: Mission summary fields added to section 4 and to the `/v1/series` `summary`: `longest_no_sun_period_h`, `longest_no_earth_period_h`, `longest_no_both_period_h`, the three `*_truncated` flags, `time_to_first_sunset_h`, `sun_up_at_start` and `earth_up_at_start`. The change is additive.

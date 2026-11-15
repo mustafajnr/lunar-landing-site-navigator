@@ -143,6 +143,27 @@ def _intersect(a: list[tuple], b: list[tuple]) -> list[tuple]:
     return out
 
 
+def _gaps(iv: list[tuple], t0: float, t1: float) -> list[tuple]:
+    """Complement of sorted, disjoint intervals inside [t0, t1]."""
+    out, t = [], t0
+    for a, b in iv:
+        if a > t:
+            out.append((t, a))
+        t = max(t, b)
+    if t1 > t:
+        out.append((t, t1))
+    return out
+
+
+def _longest_gap(iv: list[tuple], t0: float, t1: float) -> tuple[float, bool]:
+    """Longest gap (seconds) and True if that gap touches t0 or t1 (cut at the edge)."""
+    best, cut = 0.0, False
+    for a, b in _gaps(iv, t0, t1):
+        if b - a > best:
+            best, cut = b - a, (a == t0 or b == t1)
+    return best, cut
+
+
 def _hours(s: float) -> float:
     return s / 3600.0
 
@@ -162,7 +183,8 @@ def evaluate_series(
     """evaluate() at each step from start_utc to stop_utc, plus events and summary.
 
     Summary durations use the refined event times, so they do not depend much on the
-    step. Periods that touch start_utc or stop_utc are cut at the span edges.
+    step. Periods and gaps that touch start_utc or stop_utc are cut at the span edges.
+    The longest_no_*_period_truncated flags say if the longest gap touches an edge.
     """
     ensure_loaded()
     mask = as_mask(horizon_mask)
@@ -217,6 +239,15 @@ def evaluate_series(
         t = next((et for et, kind in events if kind == event_type), None)
         return None if t is None else _hours(float(t - ets[0]))
 
+    def gap(iv):
+        g, cut = _longest_gap(iv, float(ets[0]), float(ets[-1]))
+        return _hours(g), cut
+
+    no_sun, no_sun_cut = gap(intervals["sun"])
+    no_earth, no_earth_cut = gap(intervals["earth"])
+    no_both, no_both_cut = gap(intervals["both"])
+    first_sunset = next((et for et, kind in events if kind == "sunset"), None)
+
     # Time-weighted mean (trapezoid rule over the samples).
     f = arrays["sun_visible_fraction"]
     dt = np.diff(ets)
@@ -234,6 +265,15 @@ def evaluate_series(
         "longest_sun_period_h": longest(intervals["sun"]),
         "longest_earth_period_h": longest(intervals["earth"]),
         "longest_both_period_h": longest(intervals["both"]),
+        "longest_no_sun_period_h": no_sun,
+        "longest_no_earth_period_h": no_earth,
+        "longest_no_both_period_h": no_both,
+        "longest_no_sun_period_truncated": no_sun_cut,
+        "longest_no_earth_period_truncated": no_earth_cut,
+        "longest_no_both_period_truncated": no_both_cut,
+        "time_to_first_sunset_h": None if first_sunset is None else _hours(float(first_sunset - ets[0])),
+        "sun_up_at_start": bool(states["sun"][0]),
+        "earth_up_at_start": bool(states["earth"][0]),
     }
 
     return SeriesResult(
