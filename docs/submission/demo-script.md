@@ -20,33 +20,29 @@ All values below come from the deployed tool on 2026-11-14. The observer height 
 
 The narration has about 75 words. That is about 2.5 words per second.
 
+Set up before each clip: close the welcome card (✕). In "Time and period (UTC)", click **1 week** once. To set the start, click the "Start (UTC)" field, type the date and 00:00, then press Enter or click outside the field.
+
 | Time | Screen and actions | Narration |
 |---|---|---|
 | 0:00–0:03 | Title card: "lunarsite.select", "Lunar Landing Site Navigator challenge", "Mustafa Abdeltawwab, team lunarspot". | "I'm Mustafa Abdeltawwab, team lunarspot." |
-| 0:03–0:07 | The overview, with the default point (Shackleton–de Gerlache ridge, 89.45° S, 137.31° W). Date 2026-11-22 00:00. Zoom on the results panel: "SUN IS UP" and "EARTH IS UP, Earthset in 7 d 05 h 19 min". | "Lunar Landing Site Navigator. Our south-pole mission lands November 22. Sun and Earth are up." |
-| 0:07–0:14 | Change the date to 2026-12-06 00:00. Click "View south pole". The panel shows "EARTH IS DOWN, Earthrise in 9 d 15 h 10 min". Point at the sky plot: the blue Earth dot is below the brown terrain outline. | "Launch slips two weeks. Now Earth is behind the terrain. No direct link to Earth for nine days." |
-| 0:14–0:19 | In "Site", select "de Gerlache Rim". The panel shows "SUN IS DOWN, Sunrise in 8 d 07 h 02 min". Point at the sky plot: the Sun is above 0° but below the terrain outline. | "Another site? At de Gerlache Rim, the terrain hides the Sun too." |
-| 0:19–0:25 | Type Lat −89.45, Lon −137.31, click "Go". Change the date to 2026-12-16 00:00. The panel shows "SUN IS UP" and "EARTH IS UP, Earthset in 10 d 11 h 09 min". Click "±2°" on the sky plot. | "Move to December 16: Sun and Earth both up for ten days." |
-| 0:25–0:30 | Click "Full screen" on the site map: the Sun and Earth arrows on the NASA images. Then cut to the title card with the URL. | "NASA SPICE ephemeris, LOLA terrain, any site, any date. Free at lunarsite dot select." |
+| 0:03–0:08 | The default point (Shackleton–de Gerlache ridge). Start 2026-11-22 00:00, 1 week. Zoom on the results panel: "▲ SUN IS UP", "▲ EARTH IS UP". Scroll to "Result for the period": Sun 100 %, Earth 100 %. | "lunarsite dot select. Our south-pole mission lands November 22, for one week. Sun and Earth are up all week." |
+| 0:08–0:14 | Change the start to 2026-12-06 00:00. The panel shows "▼ EARTH IS DOWN". "Result for the period": Earth 0.0 %, "Longest Earth outage: 7 d 0 h". Point at the sky plot: the blue Earth track is below the brown terrain outline. | "Launch slips two weeks. Now Earth is behind the terrain. No radio link to Earth for the whole week." |
+| 0:14–0:19 | In "Site", select "de Gerlache Rim" (group "Artemis III candidate regions"). The panel shows "▼ SUN IS DOWN" and "Longest night: 7 d 0 h". | "Another site? At de Gerlache Rim, the terrain hides the Sun too." |
+| 0:19–0:25 | Select the ridge again (the first item in the site list). Change the start to 2026-12-16 00:00. Sun 100 %, Earth 100 %. Click Play (1 day / s) and let the dots move on the sky plot. | "Move to December 16: Sun and Earth up all week." |
+| 0:25–0:30 | Click "Full screen" on the site map: the Sun and Earth arrows on the NASA images. Then cut to the end card with the URL. | "NASA ephemeris and LOLA terrain. Any site, any date. Free at lunarsite dot select." |
 
 ## Values to show (check them in the recording)
 
-| Scene | Point | UTC | Sun | Earth |
+All values are from the live site on 2026-11-15, observer height 2 m, period 1 week.
+
+| Scene | Point | Start (UTC) | Cards | Result for the period |
 |---|---|---|---|---|
-| Plan | Ridge | 2026-11-22 00:00 | Up, +1.00°, 100 % of the disk visible. Sunset in 59 d 08 h 58 min (2027-01-20 08:58, after the window). | Up, +4.98°, margin +4.14°. Earthset in 7 d 05 h 19 min (2026-11-29 05:19). |
-| Slip | Ridge | 2026-12-06 00:00 | Up, +2.00°. | Down, −7.10°, margin −7.88°. Earthrise in 9 d 15 h 10 min (2026-12-15 15:10). |
-| Compare | de Gerlache Rim | 2026-12-06 00:00 | Down. Sun at +1.76°, terrain at +5.04° in that direction. Sunrise in 8 d 07 h 02 min (2026-12-14 07:02). | Down, −6.06°, margin −5.71°. Earthrise in 7 d 15 h 05 min (2026-12-13 15:05). |
-| New date | Ridge | 2026-12-16 00:00 | Up, +1.04°. | Up, +1.34°, margin +0.52°. Earthset in 10 d 11 h 09 min (2026-12-26 11:09). |
+| Plan | Ridge | 2026-11-22 00:00 | ▲ Sun is up, ▲ Earth is up. "No Earthset before the end of the period (7 d)". Next Earthset 2026-11-29 05:19. | Sun 100 %, Earth 100 %, both 100 %. |
+| Slip | Ridge | 2026-12-06 00:00 | ▲ Sun is up, ▼ Earth is down. Next Earthrise 2026-12-15 15:10. | Sun 100 %, Earth 0.0 %. Longest Earth outage: 7 d 0 h, until the end of the period. |
+| Compare | de Gerlache Rim | 2026-12-06 00:00 | ▼ Sun is down, ▼ Earth is down. Next sunrise 2026-12-14 07:02. | Sun 0.0 %, Earth 0.0 %. Longest night: 7 d 0 h. |
+| New date | Ridge | 2026-12-16 00:00 | ▲ Sun is up, ▲ Earth is up. Next Earthset 2026-12-26 11:09. | Sun 100 %, Earth 100 %, both 100 %. |
 
-7-day totals from the API (`POST /v1/series`, 30-minute steps) support the narration:
-
-| 7 days from | Ridge: Sun / Earth / both | de Gerlache Rim: Sun / Earth / both |
-|---|---|---|
-| 2026-11-22 | 100 % / 100 % / 100 % | 100 % / 100 % / 100 % |
-| 2026-12-06 | 100 % / 0 % / 0 % | 0 % / 0 % / 0 % |
-| 2026-12-16 | 100 % / 100 % / 100 % | 100 % / 100 % / 100 % |
-
-Note for the narration "both up for ten days": at the ridge, Earth is up from 2026-12-15 15:10 to 2026-12-26 11:09. The Sun is up for the full period. The Earth margin on 2026-12-16 at 00:00 is only +0.52°. Do not say that the link is "strong".
+Note: on 2026-12-16 00:00 the Earth margin at the ridge is only +0.52°. Do not say that the link is "strong".
 
 ## Alternative: 7-slide deck
 
