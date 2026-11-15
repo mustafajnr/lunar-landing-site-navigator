@@ -56,6 +56,7 @@ export function createEdgeIndicators(canvas: HTMLCanvasElement) {
   canvas.after(layer);
   const sun = make(layer, 'sun', 'Sun', 'To the Sun');
   const earth = make(layer, 'earth', 'Earth', 'To the Earth');
+  const moon = make(layer, 'moon', 'Moon', 'To the Moon');
   const tmp = new THREE.Vector3();
 
   /** Screen position (CSS px) of a view-space point. */
@@ -148,7 +149,17 @@ export function createEdgeIndicators(canvas: HTMLCanvasElement) {
 
   return {
     /** Call once per frame, after the camera update. A null body hides its indicator. */
-    update(camera: THREE.PerspectiveCamera, box: ScreenBox, sunBody: Body | null, earthBody: Body | null) {
+    update(
+      camera: THREE.PerspectiveCamera,
+      box: ScreenBox,
+      sunBody: Body | null,
+      earthBody: Body | null,
+      /** Moon label: only for the true scale view, where the Moon is small. Null hides it. */
+      moonBody: Body | null = null,
+      /** Text next to the Sun marker when it is on the screen. */
+      sunOnText = 'Sun',
+    ) {
+      sun.onText = sunOnText;
       camera.updateMatrixWorld();
       // Phone layout: the canvas is in the page flow, so the layer follows its box.
       if (getComputedStyle(canvas).position !== 'fixed') {
@@ -160,11 +171,13 @@ export function createEdgeIndicators(canvas: HTMLCanvasElement) {
         layer.style.top = layer.style.left = layer.style.width = layer.style.height = '';
       }
       place(earth, earthBody, camera, box, null);
+      place(moon, moonBody, camera, box, earthBody ? diskRect(earthBody, camera) : null);
       // The Sun indicator keeps off the Earth disk and off the Earth indicator.
       let avoid = earthBody ? diskRect(earthBody, camera) : null;
       place(sun, sunBody, camera, box, avoid);
-      if (!earth.el.hidden && !sun.el.hidden) {
-        avoid = earth.el.getBoundingClientRect();
+      for (const other of [earth, moon]) {
+        if (other.el.hidden || sun.el.hidden) continue;
+        avoid = other.el.getBoundingClientRect();
         const r = sun.el.getBoundingClientRect();
         if (r.left < avoid.right && avoid.left < r.right && r.top < avoid.bottom && avoid.top < r.bottom) {
           sun.el.style.transform += ` translateY(${Math.round(avoid.top - r.bottom - 4)}px)`;

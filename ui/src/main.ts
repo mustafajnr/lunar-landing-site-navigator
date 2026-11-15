@@ -579,7 +579,7 @@ canvas.addEventListener('pointerup', (e) => {
 });
 
 // ---------- Selected point: inputs, site picker, globe click ----------
-const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true));
+const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true), DEFAULT_POINT);
 // Site-detail map panel. A click on the map selects the point; the globe follows.
 let layoutDirty = true;
 const mapPanel = setupMapPanel(
@@ -859,6 +859,10 @@ function updateEdgeIndicators() {
     box,
     { pos: sunMarker.getWorldPosition(new THREE.Vector3()), radius: SUN_RADIUS },
     { pos: earthMesh.getWorldPosition(new THREE.Vector3()), radius: trueEarth ? EARTH_TRUE_RADIUS : EARTH_RADIUS },
+    // True scale: the Moon is small, so it gets a label. The Sun marker stays at its reduced
+    // distance near the Moon, so its label says that it shows only the direction.
+    trueEarth ? { pos: new THREE.Vector3(0, 0, 0), radius: 1 } : null,
+    trueEarth ? 'Sun direction' : 'Sun',
   );
 }
 
