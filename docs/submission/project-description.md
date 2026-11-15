@@ -16,13 +16,13 @@ lunarsite.select
 
 ## High-Level Project Summary
 
-(163 words. The form asks for 50 to 200 words.)
+(188 words. The form suggests 50 to 200 words. Paragraphs: what we developed, how it addresses the challenge, why it is important.)
 
-lunarsite.select is a free web tool that tells mission planners, teachers and the public if a lunar landing site will have solar power and a direct radio link to Earth. You pick a site, a landing date and a mission duration. The tool calculates where the Sun and Earth are relative to the local terrain horizon, with NASA SPICE (JPL DE440) and LRO LOLA terrain data. It then gives a plain-language verdict and checks NASA mission requirements.
+We developed lunarsite.select, a free web tool that tells if a lunar landing site will have solar power and a direct radio link to Earth for the whole mission. You pick a site, a landing date and a mission duration. The tool calculates where the Sun and Earth are relative to the local terrain horizon, with NASA SPICE (JPL DE440) and LRO LOLA terrain data.
 
-At the lunar south pole, the Sun and Earth stay near the horizon, so a small change in date or place can remove power or communication. When a launch slips, the tool finds the next landing window, ranks the best points in a site from NASA illumination maps, and compares sites and dates side by side.
+It addresses the challenge with a plain-language verdict and a check against NASA mission requirements. When a launch slips, it finds the next landing window, ranks the best points in a site from NASA illumination maps, and compares sites and dates side by side. Example: in our assumed Artemis IV plan, a 12-day slip makes a Malapert Massif point fail. The tool finds a new date and a new site in a few clicks.
 
-Example: in our assumed Artemis IV plan, a 12-day slip makes a Malapert Massif point fail. The tool finds a new date and a new site in a few clicks.
+This is important because missions slip, and at the lunar south pole a small change in date or place can remove power or communication. Today, each new check needs several detailed tools and raw data. Our tool gives the answer in seconds, for mission planners, teachers and the public.
 
 ---
 
