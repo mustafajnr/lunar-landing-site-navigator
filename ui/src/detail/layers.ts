@@ -35,6 +35,8 @@ export type TrekLayer = {
   legendNote?: string;
   /** Own tiles: the credit line. */
   attribution?: string;
+  /** Overlays with the same group are mutually exclusive in the layer list. */
+  group?: string;
 };
 
 const TREK = 'https://trek.nasa.gov/tiles/Moon';
@@ -216,6 +218,7 @@ const illumLayer = (id: string, title: string, what: string): TrekLayer => ({
     `Percent of time that ${what} is visible, averaged over 18.6 years in hourly steps (NASA PGDA). ` +
     'Each pixel shows the mean value inside it. Map pixel 60 m south of 85° S, 120 m for 75–85° S.',
   attribution: PGDA_CREDIT,
+  group: 'illum',
 });
 export const ILLUM_SUN_LAYER = illumLayer('illum_sun', 'Average sunlight (NASA PGDA, 18.6 years)', 'a part of the Sun');
 export const ILLUM_EARTH_LAYER = illumLayer('illum_earth', 'Average Earth visibility (NASA PGDA, 18.6 years)', 'a part of the Earth');

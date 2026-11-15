@@ -340,11 +340,19 @@
     <section id="mapPanel" aria-label="Site map">
       <header>
         <button id="mapFold" type="button" aria-expanded="true" aria-controls="mapBody">▾ Site map</button>
+        <div id="mapTabs" role="tablist" aria-label="Map view">
+          <button id="mapTabMain" type="button" role="tab" aria-selected="true" aria-controls="mapBody">Site map</button>
+          <button id="mapTabPair" type="button" role="tab" aria-selected="false" aria-controls="mapPair" tabindex="-1">Sun and Earth</button>
+        </div>
         <span id="mapTitle" class="small"></span>
         <a id="mapQuickmap" class="small" hidden></a>
         <button id="mapFull" type="button">Full screen</button>
       </header>
-      <div id="mapBody"><p id="mapStatus" class="small">Select a point to show the map.</p></div>
+      <div id="mapBody" role="tabpanel" aria-labelledby="mapTabMain"><p id="mapStatus" class="small">Select a point to show the map.</p></div>
+      <div id="mapPair" role="tabpanel" aria-labelledby="mapTabPair" hidden>
+        <p id="mapPairNote" class="small" hidden></p>
+        <div id="mapPairGrid"></div>
+      </div>
     </section>
     <script type="module" src="/src/main.ts"></script>
   </body>

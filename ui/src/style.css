@@ -1527,3 +1527,108 @@ tr.ev.past td:first-child {
   margin: 4px 0;
   color: #aaa;
 }
+
+/* ---------- Site map tabs: "Site map" and "Sun and Earth" (two synchronised maps) ---------- */
+#mapTabs {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+#mapTabs [role='tab'] {
+  padding: 2px 8px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+#mapTabs [role='tab'][aria-selected='true'] {
+  opacity: 1;
+  background: #2f5f9e;
+  color: #fff;
+}
+#mapBody[hidden],
+#mapPair[hidden],
+#mapPairGrid[hidden],
+#mapPairNote[hidden] {
+  display: none;
+}
+#mapPair {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#mapPairNote {
+  padding: 8px;
+  margin: 0;
+}
+#mapPairGrid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 4px;
+  padding: 4px;
+}
+#mapPairGrid .pair-cell {
+  margin: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #333;
+}
+#mapPairGrid figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+#mapPairGrid .pair-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  font-size: 11px;
+  color: #ccc;
+}
+#mapPairGrid .pair-legend span {
+  white-space: nowrap;
+}
+#mapPairGrid .pair-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 3px;
+  vertical-align: -1px;
+  border: 1px solid #000;
+  opacity: 0.85;
+}
+#mapPairGrid .pair-map {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+#mapPairGrid .pair-map > .dm {
+  position: absolute;
+  inset: 0;
+}
+#mapPairGrid .pair-credit {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0 4px;
+  color: #aaa;
+}
+@media (max-width: 760px) {
+  #mapPanel.folded #mapPair {
+    display: none;
+  }
+  /* Two maps, one above the other: more height. */
+  #mapPanel.pair-tab:not(.folded) {
+    height: 88vh;
+  }
+  #mapPairGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+}
