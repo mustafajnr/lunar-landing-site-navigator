@@ -793,6 +793,9 @@ button.danger {
 .edge-ind.earth {
   color: #7cc0ff;
 }
+.edge-ind.moon {
+  color: #e6e6e6;
+}
 /* ---------- Mission (mission.ts) ---------- */
 .mis-presets {
   justify-content: flex-start;
@@ -1062,4 +1065,21 @@ button.danger {
     right: 8px;
     transform: none;
   }
+}
+
+/* ---------- Usability quick fixes ---------- */
+/* Past events: grey text with a contrast of at least 4.5:1, not opacity. */
+tr.ev.past {
+  opacity: 1;
+}
+tr.ev.past td,
+tr.ev.past td:first-child {
+  color: #9aa0a8;
+}
+/* Up and down: a shape, so colour is not the only cue. */
+.state.up::before {
+  content: '▲ ';
+}
+.state.down::before {
+  content: '▼ ';
 }
