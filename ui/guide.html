@@ -24,7 +24,7 @@
           <li><a href="#screen">The screen</a></li>
           <li><a href="#site">Select a site</a></li>
           <li><a href="#time">Time and period</a></li>
-          <li><a href="#results">Read the results</a></li>
+          <li><a href="#results">Read the results</a> (<a href="#verdict">Verdict</a>)</li>
           <li><a href="#sky-plot">The sky plot</a></li>
           <li><a href="#height">Observer height</a></li>
           <li><a href="#terrain">Terrain</a></li>
@@ -65,7 +65,7 @@
             <li>Open the tool at <a href="https://lunarsite.select">lunarsite.select</a>.</li>
             <li>In the left panel, under <span class="ui">Point</span>, select a site in the <span class="ui">Site</span> list. For example, select <span class="ui">Malapert Massif</span>.</li>
             <li>Under <span class="ui">Time (UTC)</span>, set the date and the time in the date field. For example, set 6 December 2026, 00:00. The field can show the date in the format of your computer.</li>
-            <li>Look at the top of the results panel on the right. Read <span class="up">Sun is up</span> or <span class="down">Sun is down</span>, and <span class="up">Earth is up</span> or <span class="down">Earth is down</span>.</li>
+            <li>Read the <span class="ui">Verdict</span> tab of the results panel on the right. It gives a short answer for the period. See <a href="#verdict">Verdict</a>. For the live values, click the <span class="ui">Details</span> tab. At the top, read <span class="up">Sun is up</span> or <span class="down">Sun is down</span>, and <span class="up">Earth is up</span> or <span class="down">Earth is down</span>.</li>
             <li>Read the countdown below each line. It tells you the time to the next change, for example "Sunset in 7 d 06 h 55 min".</li>
           </ol>
           <p>The tool needs a few seconds to load the results. The status line says "Loading…" until the results are ready.</p>
@@ -85,24 +85,24 @@
             <li><span class="marker">3</span><strong>Saved searches (left panel).</strong> See <a href="#compare">Save and compare</a>.</li>
             <li><span class="marker">4</span><strong>View (left panel).</strong> The camera buttons for the globe. See <a href="#globe">The globe views</a>.</li>
             <li><span class="marker">5</span><strong>Globe.</strong> The Moon with the lit half, the grid and the sites. Drag to turn it. Use the mouse wheel to zoom.</li>
-            <li><span class="marker">6</span><strong>Results panel (right).</strong> The selected point, the horizon tag and the two countdowns. See <a href="#results">Read the results</a>.</li>
-            <li><span class="marker">7</span><strong>Observer height.</strong> See <a href="#height">Observer height</a>.</li>
-            <li><span class="marker">8</span><strong>Sky plot.</strong> The local sky over the period. See <a href="#sky-plot">The sky plot</a>.</li>
+            <li><span class="marker">6</span><strong>Results panel (right).</strong> It has two tabs. <span class="ui">Verdict</span> gives a short answer for the period (see <a href="#verdict">Verdict</a>). <span class="ui">Details</span> gives the selected point, the horizon tag and the two countdowns (see <a href="#results">Read the results</a>). The screenshot shows the <span class="ui">Details</span> tab.</li>
+            <li><span class="marker">7</span><strong>Observer height.</strong> It is in both tabs. See <a href="#height">Observer height</a>.</li>
+            <li><span class="marker">8</span><strong>Sky plot.</strong> The local sky over the period, in the <span class="ui">Details</span> tab. See <a href="#sky-plot">The sky plot</a>.</li>
             <li><span class="marker">9</span><strong>Site map.</strong> NASA images of the site, with Sun and Earth arrows. See <a href="#map">The site map</a>.</li>
             <li><span class="marker">10</span><strong>Edge arrows.</strong> "To the Sun" and "To the Earth" point to a body that is off the screen.</li>
           </ol>
-          <p>Below the sky plot, the results panel also has the result for the period, the event list and <span class="ui">Check this result</span>. Scroll the results panel to see them.</p>
+          <p>In the <span class="ui">Details</span> tab, below the sky plot, the results panel also has the result for the period, the event list and <span class="ui">Check this result</span>. Scroll the results panel to see them.</p>
           <p>On a computer, use a screen that is 1280 pixels wide or more. On a smaller screen, the panels cover a large part of the globe. Scroll each panel to see all of it.</p>
           <h3 id="phone">On a phone</h3>
           <p>On a phone or a narrow window (760 pixels or less), the tool shows all parts in one column. Scroll down to see them in this sequence:</p>
           <ol>
             <li>The title, the guide link and the welcome card.</li>
-            <li>The results: <span class="up">Sun is up</span> or <span class="down">Sun is down</span>, and the same for Earth, with the countdowns.</li>
+            <li>The <span class="ui">Verdict</span> and <span class="ui">Details</span> tabs, then the open tab. The <span class="ui">Verdict</span> tab gives the short answer. The <span class="ui">Details</span> tab gives <span class="up">Sun is up</span> or <span class="down">Sun is down</span>, and the same for Earth, with the countdowns.</li>
             <li>The point and the time controls.</li>
             <li>The globe. Drag on the globe to turn it. Use two fingers to zoom. To scroll the page, touch the page above or below the globe.</li>
-            <li>The sky plot.</li>
+            <li>The sky plot (only with the <span class="ui">Details</span> tab open).</li>
             <li>The site map. It is folded at the start. Tap <span class="ui">▸ Site map</span> to open it.</li>
-            <li>The other sections: Now, the result for the period, the events, saved searches and the view controls.</li>
+            <li>The other sections: with the <span class="ui">Details</span> tab open, Now, the result for the period, the events, saved searches and the view controls.</li>
           </ol>
           <p>The comparison fills the screen. Scroll the table to the side to see all columns.</p>
         </section>
@@ -169,6 +169,29 @@
         <!-- 6 -->
         <section id="results">
           <h2>6. Read the results <a class="anchor" href="#results" aria-label="Link to this section">#</a></h2>
+          <h3 id="verdict">Verdict</h3>
+          <p>The <span class="ui">Verdict</span> tab is the first tab of the results panel. It gives a short answer for the full period: the start and the duration in the time box. It is for the public and for mission planners.</p>
+          <ul>
+            <li><strong>Headline.</strong> One sentence with the site, the dates and the answer. For example: "Good site for this period: sunlight and a direct link to Earth all the time." Or: "Difficult: no direct link to Earth for at least 7 d. The lander needs a relay satellite."</li>
+            <li><strong>Solar power.</strong> The part of the period with the Sun up, and the longest night. The battery must last this time.</li>
+            <li><strong>Talk to Earth.</strong> The part of the period with Earth up, and the longest time without a direct radio link. For this time, the lander needs a relay satellite, or it has no contact.</li>
+            <li><strong>Both together.</strong> The part of the period with the Sun and Earth up together, and the longest time without both.</li>
+            <li><strong>Right now.</strong> The Sun and Earth at the slider time, and the next change.</li>
+          </ul>
+          <p>Each block has a rating: <strong>✓ Good</strong>, <strong>◐ Limited</strong> or <strong>✕ Poor</strong>. The grey line below the sentence gives the numbers for planners.</p>
+          <p>The rules:</p>
+          <ul>
+            <li><strong>Good:</strong> up for 90 % of the period or more, and the longest gap is shorter than 1 day.</li>
+            <li><strong>Limited:</strong> not good, but up for 50 % of the period or more. Or up for some time, and the longest gap is shorter than 7 days.</li>
+            <li><strong>Poor:</strong> all other cases.</li>
+          </ul>
+          <p>The headline uses the lowest rating. Click <span class="ui">How we rate</span> in the tab to see the rules.</p>
+          <p>"At least" means that the gap touches the start or the end of the period. The real gap can be longer. Such a gap does not count as a short gap. Make the period longer to find its full length.</p>
+          <p>The tab also has the observer height (see <a href="#height">Observer height</a>) and <span class="ui">Save search</span>. The observer height is the same in both tabs. The tool keeps the last open tab for your next visit.</p>
+          <p>Limits: "Earth up" uses Earth's centre only. The result is for one point, not for the full site area. Where the tool has no terrain data, the horizon is flat.</p>
+
+          <h3 id="details-tab">Details</h3>
+          <p>The <span class="ui">Details</span> tab gives all the values. The sections below describe them.</p>
           <figure class="narrow">
             <img src="/guide/results-top.jpg" width="354" height="270" alt="Top of the results panel: Sun is up, sunset in 45 days. Earth is down, Earthrise in 9 days 15 hours." />
             <figcaption>Shackleton–de Gerlache ridge, 2026-12-06 00:00 UTC. The Sun is up. Earth is down.</figcaption>
@@ -394,7 +417,7 @@
           <p>A saved search keeps the point, the observer height, the start and the duration. Click <span class="ui">Load</span> to show it again. The time box then shows its start and duration.</p>
           <ol class="steps">
             <li>Select a point, a start, a duration and an observer height.</li>
-            <li>In the results panel, click <span class="ui">Save search</span>.</li>
+            <li>In the results panel, click <span class="ui">Save search</span>. It is in both tabs.</li>
             <li>Type a name, or keep the name that the tool gives.</li>
             <li>Click <span class="ui">Save</span>.</li>
           </ol>

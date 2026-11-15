@@ -141,6 +141,55 @@
     </aside>
 
     <aside id="results" class="panel">
+      <div id="resTabs" class="res-tabs" role="tablist" aria-label="Results">
+        <button id="tabBtnVerdict" type="button" role="tab" data-tab="verdict" aria-controls="tabVerdict" aria-selected="true">Verdict</button>
+        <button id="tabBtnDetails" type="button" role="tab" data-tab="details" aria-controls="tabDetails" aria-selected="false" tabindex="-1">Details</button>
+      </div>
+
+      <div id="tabVerdict" class="res-tabpanel" role="tabpanel" aria-labelledby="tabBtnVerdict" tabindex="0">
+        <section class="first verdict">
+          <h2 class="sr-only">Verdict for the period</h2>
+          <p id="vWhere" class="small v-where"></p>
+          <p id="vHead" class="v-head" aria-live="polite">Select a point.</p>
+          <div id="vSun" class="v-block">
+            <h3><span class="dot sun"></span>Solar power <span class="v-rate"></span></h3>
+            <p class="v-plain"></p>
+            <p class="v-planner mono"></p>
+          </div>
+          <div id="vEarth" class="v-block">
+            <h3><span class="dot earth"></span>Talk to Earth <span class="small">(direct radio link)</span> <span class="v-rate"></span></h3>
+            <p class="v-plain"></p>
+            <p class="v-planner mono"></p>
+          </div>
+          <div id="vBoth" class="v-block">
+            <h3>Both together <span class="v-rate"></span></h3>
+            <p class="v-plain"></p>
+            <p class="v-planner mono"></p>
+          </div>
+          <p id="vNow" class="v-now"></p>
+          <p id="vCaveat" class="small v-caveat"></p>
+          <details class="v-rules">
+            <summary>How we rate</summary>
+            <ul id="vRules"></ul>
+          </details>
+        </section>
+        <section class="verdict-input">
+          <div class="row">
+            <label class="small" for="heightInV">Observer height (m)</label>
+            <input id="heightInV" type="text" inputmode="decimal" size="5" aria-describedby="heightHelpV" />
+          </div>
+          <div class="row presets">
+            <button type="button" data-height="0">Ground 0 m</button>
+            <button type="button" data-height="2">Lander 2 m</button>
+            <button type="button" data-height="10">Mast 10 m</button>
+          </div>
+          <p id="heightHelpV" class="small">Height of the solar panel or antenna above the ground.</p>
+          <p id="heightErrV" class="error" role="alert" hidden></p>
+          <div id="saveSlotVerdict"></div>
+        </section>
+      </div>
+
+      <div id="tabDetails" class="res-tabpanel" role="tabpanel" aria-labelledby="tabBtnDetails" tabindex="0" hidden>
       <section class="first">
         <h2>Selected point <span id="horizonTag" class="tag">–</span></h2>
         <div class="row mono"><span><span class="dot sel"></span><span id="selLatLon"></span></span><span id="selName" class="small"></span></div>
@@ -155,7 +204,7 @@
           <div id="cdEarthSub" class="small"></div>
         </div>
         <p id="resStatus" class="small" hidden></p>
-        <div id="saveBox">
+        <div id="saveSlotDetails"><div id="saveBox">
           <button id="saveOpen" type="button" title="Save the point, the observer height, the start and the duration of this search">Save search</button>
           <form id="saveForm" class="row" hidden>
             <label class="field">Name<input id="saveName" type="text" maxlength="160" /></label>
@@ -163,7 +212,7 @@
             <button id="saveCancel" type="button">Cancel</button>
           </form>
           <p id="saveMsg" class="small" role="status" hidden></p>
-        </div>
+        </div></div>
       </section>
 
       <section>
@@ -258,6 +307,7 @@
           <table class="mono"><tbody id="eventRows"></tbody></table>
         </div>
       </section>
+      </div>
     </aside>
     <section id="mapPanel" aria-label="Site map">
       <header>
