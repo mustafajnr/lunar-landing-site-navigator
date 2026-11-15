@@ -99,7 +99,7 @@ Where to see it: the web app shows the note "Built with AI assistance" in its le
 
 The project logo is the only SI-generated image. It has a visible "AI-generated image" mark, and only the README and the slide deck use it. The web app has no logo and no favicon. The project has no other SI-generated images, and no SI-generated video or audio. The screenshots are browser captures of the tool. The textures and map images are NASA data.
 
-The developer confirmed that the idea of how to solve the challenge is his own. SI did not come up with the idea. SI helped to build it under his direction.
+The developer confirmed that the idea of how to solve the challenge is the developer's own. SI did not come up with the idea. SI helped to build it under the developer's direction.
 
 ---
 
