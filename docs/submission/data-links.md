@@ -22,7 +22,6 @@ Each line: Link Text | URL. All URLs were checked on 2026-11-15 (HTTP 200), exce
 | NASA Artemis III landing region update (candidate regions) | https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/ |
 | NASA CLPS: Blue Origin Blue Moon MK1 (planned site) | https://www.nasa.gov/event/clps-flight-blue-origins-blue-moon-mark-1/ |
 | NASA CLPS: Intuitive Machines IM-4 (planned site) | https://www.nasa.gov/event/clps-flight-intuitive-machines-im-4-2/ |
-| NASA Moon Base rovers update (Griffin Mission One at Mons Mouton) | https://www.nasa.gov/missions/moon-base/nasa-provides-progress-update-on-moon-base-rovers/ |
 | NASA VIPER mission | https://science.nasa.gov/mission/viper/ |
 | NASA NTRS: Artemis Human Landing System update 2024 (Earth and Sun visibility limits) | https://ntrs.nasa.gov/api/citations/20240009596/downloads/ArtemisHLSUpdate_2024.pdf |
 | NASA NTRS: Lunar Site Selection white paper 2023 (sunlight for the surface stay) | https://ntrs.nasa.gov/api/citations/20230016267/downloads/Lunar%20Site%20Selection.pdf |
