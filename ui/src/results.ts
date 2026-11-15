@@ -218,10 +218,10 @@ export class ResultsPanel {
       o.stepMinutes === k.stepMinutes
     )
       return;
-    const pointChanged = !o || o.point.latDeg !== k.point.latDeg || o.point.lonDeg !== k.point.lonDeg;
     this.key = k;
-    if (pointChanged) {
-      // Old values belong to another point: clear them now.
+    {
+      // Old values belong to another point or another period: clear them now, so the
+      // panel never shows the result of the previous search while the new one loads.
       this.data = null;
       this.horizon = null;
       this.nextAfter = null;
