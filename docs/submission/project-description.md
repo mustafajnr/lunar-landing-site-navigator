@@ -81,7 +81,7 @@ Yes. The developer built the project with Claude Code (Anthropic), an SI coding 
 
 Where to see it: the web app shows the note "Built with AI assistance" in its left panel and has the same note in its HTML metadata. The package metadata (`package.json`, `pyproject.toml`) has the note too. Each commit in the repository has a "Co-Authored-By: Claude" line in its metadata. The README has a "Use of AI" section.
 
-The project has no SI-generated images, video or audio. The screenshots are browser captures of the tool. The textures and map images are NASA data.
+The project logo is the only SI-generated image. It has a visible "AI-generated" mark, as the guide requires (the 16 px favicon is too small for a mark). The project has no other SI-generated images, and no SI-generated video or audio. The screenshots are browser captures of the tool. The textures and map images are NASA data.
 
 TODO(developer): confirm that the idea of how to solve the challenge came from you, not from SI. The guide says that SI should not be used to come up with the idea. If the demo video uses an SI voice or SI images, add a visible watermark or an acknowledgement as the guide requires.
 
