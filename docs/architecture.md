@@ -89,7 +89,7 @@ The horizon mask has three possible sources. The API response says which one it 
 | `horizon.source` | `terrain_status` | Meaning | UI tag |
 |---|---|---|---|
 | `terrain` | `ok` | A LOLA horizon mask | "Terrain (LOLA 20 m)" or "Terrain (LOLA 120 m)" |
-| `flat` | `no_coverage` | The point is north of 60° S. The DEMs do not cover it. | Flat horizon |
+| `flat` | `no_coverage` | The point is north of about 65° S. The DEMs end at 60° S and do not cover the 150 km around the point. | Flat horizon |
 | `flat` | `unavailable` | The DEMs cover the point, but the server cannot read them | Red tag: "Flat horizon: terrain not available. Results can be wrong." |
 | `flat` | `not_requested` | The request asked for no terrain | Flat horizon |
 | `provided` | `not_requested` | The request included its own mask | Provided mask |
@@ -124,7 +124,7 @@ flowchart TD
   MQ -- yes --> MP["Use the provided mask<br/>source = provided"]
   MQ -- no --> TQ{"terrain = auto?"}
   TQ -- no --> FLAT["Flat horizon, 0°<br/>source = flat"]
-  TQ -- yes --> COV{"Point at or south of 60° S?"}
+  TQ -- yes --> COV{"DEMs cover the point and 150 km around it (about 65° S and south)?"}
   COV -- no --> FLAT_NC["Flat horizon<br/>status = no_coverage"]
   COV -- yes --> C1{"Mask in the memory cache<br/>or in the disk cache?"}
   C1 -- yes --> MT["Terrain mask<br/>status = ok"]
@@ -190,7 +190,7 @@ Look at the horizon tag in the results panel and in the comparison table.
 
 - "Terrain (LOLA 20 m)" is the best case.
 - "Terrain (LOLA 120 m)" means that the point is north of 80° S. The near horizon is less detailed.
-- "Flat horizon" north of 60° S is normal. Near the equator the Sun and Earth rise high, so a flat horizon has a small effect on the results. Large nearby craters or hills can still change the rise and set times.
+- "Flat horizon" north of about 65° S is normal. Near the equator the Sun and Earth rise high, so a flat horizon has a small effect on the results. Large nearby craters or hills can still change the rise and set times.
 - **A red "Flat horizon: terrain not available" tag means that you must not use the result** for a polar point. Near the pole, the terrain controls the result.
 
 ### 3.2 Are the Sun and Earth positions correct? (independent check with JPL Horizons)

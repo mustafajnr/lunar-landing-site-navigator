@@ -53,7 +53,7 @@
             <li>It does not calculate the power of a solar panel or the strength of a radio link.</li>
             <li>It does not calculate results over an area. The results are for one point.</li>
             <li>It does not include relay satellites, slopes, rocks or the shadow of the lander.</li>
-            <li>It does not use terrain data north of about 60° S. There, the horizon is flat.</li>
+            <li>It uses terrain data only south of about 65° S. The elevation data ends at 60° S, and each horizon needs the terrain up to 150 km around the point. Elsewhere, the horizon is flat.</li>
           </ul>
         </section>
 
@@ -364,7 +364,7 @@
               <tbody>
                 <tr><td><span class="tag terrain">Terrain (LOLA 20 m)</span></td><td>A LOLA horizon mask. The near terrain uses 20 m data. This is the best case. It applies south of 80° S.</td></tr>
                 <tr><td><span class="tag terrain">Terrain (LOLA 120 m)</span></td><td>A LOLA horizon mask with 120 m data only. The point is north of 80° S. The near horizon has less detail.</td></tr>
-                <tr><td><span class="tag flat">Flat horizon (no terrain data here)</span></td><td>The point is north of 60° S. The elevation data does not cover it. The horizon is flat, at 0°. This is normal.</td></tr>
+                <tr><td><span class="tag flat">Flat horizon (no terrain data here)</span></td><td>The point is north of about 65° S. The elevation data does not cover the 150 km around it. The horizon is flat, at 0°. This is normal.</td></tr>
                 <tr><td><span class="tag warn">Flat horizon: terrain not available. Results can be wrong.</span></td><td>The elevation data covers the point, but the server cannot read it. The results use a flat horizon.</td></tr>
                 <tr><td><span class="tag provided">Provided</span></td><td>The request included its own horizon mask. This occurs only with the API.</td></tr>
               </tbody>
