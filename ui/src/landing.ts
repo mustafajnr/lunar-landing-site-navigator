@@ -105,7 +105,7 @@ function render(s: Samples, r: WindowRequest, l: Limits) {
   const cur = `${fmtUtc(r.startMs)} UTC`;
   if (w.startValid) {
     show(
-      `✓ This start is in a landing window. The last landing time in this window is ${close}: ${dh((w.closeMs - r.startMs) / 3600000)} after the current start (${cur}). A later landing does not get sunlight for all of the ${l.sunD} d stay.`,
+      `✓ This start is in a landing window. The last landing time in this window is ${close}: ${dh((w.closeMs - r.startMs) / 3600000)} after the current start (${cur}).`,
       { ok: true },
     );
     return;
