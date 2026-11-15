@@ -239,17 +239,28 @@
             <img src="/guide/sky.jpg" width="354" height="318" alt="Sky plot. A yellow Sun track near +1° all around. A blue Earth loop near 140° azimuth goes below the brown terrain horizon." />
             <figcaption>Shackleton–de Gerlache ridge, 2026-12-06. The Sun (yellow) stays above the terrain. Earth (blue, large dot) is below the horizon.</figcaption>
           </figure>
-          <p>The sky plot shows the sky around the selected point over the period.</p>
+          <p>The sky plot shows the sky around the selected point in a time window. The window is 30 days from the start of the period. In 30 days, the Sun goes around the sky about one time.</p>
           <ul>
             <li><strong>Left to right</strong> is the azimuth: the compass direction, from 0° (north) through 90° (east), 180° (south) and 270° (west).</li>
             <li><strong>Bottom to top</strong> is the elevation: the angle above the flat horizon.</li>
-            <li><strong>Small yellow dots</strong> are the Sun at each time step of the period. <strong>Small blue dots</strong> are Earth.</li>
+            <li><strong>Small yellow dots</strong> are the Sun at each time step of the time window. <strong>Small blue dots</strong> are Earth.</li>
             <li><strong>Large dots</strong> show the Sun and Earth at the slider time.</li>
             <li><strong>The dashed line</strong> is the flat horizon at 0°.</li>
             <li><strong>The brown area</strong> is the terrain horizon. A body in the brown area is behind the terrain. You cannot see it from the point.</li>
           </ul>
           <p>At a terrain point, the top edge of the brown area is the horizon, not the dashed line. A dot can be above the dashed line and still be behind the terrain. Then the card says <span class="down">Earth is down</span> or <span class="down">Sun is down</span>. At a point without terrain data, the dashed line is the horizon.</p>
           <p>Click the <span class="ui">i</span> button next to the title to show a short help text.</p>
+
+          <h3 id="sky-window">Time window</h3>
+          <p>When the period is longer than 30 days, a time strip shows below the plot. The strip is the full period. The box on the strip is the time window of the plot. The white line is the clock time.</p>
+          <ul>
+            <li>Drag the box to move the window. On a phone, drag it with your finger.</li>
+            <li>Click the strip to move the box to that time.</li>
+            <li>Use the mouse wheel on the strip, or the <span class="ui">−</span> and <span class="ui">+</span> buttons, to make the window longer or shorter. The window is 1 day to the full period.</li>
+            <li><span class="ui">30 days</span> sets the window length to 30 days. <span class="ui">Full period</span> shows all the time steps of the period.</li>
+            <li>With the keyboard, select the box. The arrow keys move it by 1 day.</li>
+          </ul>
+          <p>When the clock time leaves the window (with the slider or <span class="ui">Play</span>), the window moves by its length to show the clock time. A new start or a new duration sets the window back to 30 days from the start.</p>
 
           <h3 id="zoom">Zoom buttons</h3>
           <ul>

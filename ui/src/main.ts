@@ -21,6 +21,7 @@ import { setupSaved } from './saved';
 import { openCompare } from './compare';
 import { setupMapPanel } from './mappanel';
 import { drawSkyPlot, type AzMode, type ElZoom, type TrackPt } from './skyplot';
+import { SkyWindow } from './skywindow';
 
 // ---------- Scene layout ----------
 // Scene units: 1 = Moon radius. `inertial` group holds the J2000 frame. Its rotation puts
@@ -376,6 +377,7 @@ const durPresets = [...document.querySelectorAll<HTMLButtonElement>('.dur-preset
 const followChk = $<HTMLInputElement>('follow');
 const trueSkyChk = $<HTMLInputElement>('trueSky');
 const skyCanvas = $<HTMLCanvasElement>('sky');
+const skyWin = new SkyWindow($('skyWin'));
 
 const fmtLat = (d: number) => `${Math.abs(d).toFixed(2)}° ${d >= 0 ? 'N' : 'S'}`;
 const fmtLon = (d: number) => `${Math.abs(d).toFixed(2)}° ${d >= 0 ? 'E' : 'W'}`;
@@ -397,6 +399,7 @@ function setPeriod(ms: number, days: number) {
   durationDays = days;
   offsetS = 0;
   setPlaying(false);
+  skyWin.setPeriod(startMs, stopMs());
   dtInput.value = toInputValue(startMs);
   durIn.value = String(+days.toFixed(3));
   durIn.classList.remove('bad');
@@ -510,16 +513,22 @@ offsetInput.addEventListener('input', () => {
 // ---------- Local sky plot (az vs el, over the period) ----------
 let sunTrack: TrackPt[] = [];
 let earthTrack: TrackPt[] = [];
+/** Time of each track point (ms). The sky plot draws only the points in the skyWin window. */
+let trackT: number[] = [];
+let winCache = { key: '', sun: [] as TrackPt[], earth: [] as TrackPt[] };
 
 function computeTracks() {
   sunTrack = [];
   earthTrack = [];
+  trackT = [];
+  winCache.key = '';
   const d = results.data;
   if (d) {
     // API values (observer height included).
     for (let i = 0; i < d.times_utc.length; i++) {
       sunTrack.push([d.series.sun_az[i], d.series.sun_el[i]]);
       earthTrack.push([d.series.earth_az[i], d.series.earth_el[i]]);
+      trackT.push(Date.parse(d.times_utc[i]));
     }
     return;
   }
@@ -531,6 +540,7 @@ function computeTracks() {
     const sky = localSky(selected.latDeg, selected.lonDeg, s);
     sunTrack.push([sky.sunAzDeg, sky.sunElDeg]);
     earthTrack.push([sky.earthAzDeg, sky.earthElDeg]);
+    trackT.push(startMs + t * 1000);
   }
 }
 
@@ -544,9 +554,15 @@ let azMode: AzMode = 'full';
 function drawSky(nowSun: TrackPt | null, nowEarth: TrackPt | null) {
   const earthKm = state?.earthDistanceKm ?? 384400;
   const sunKm = state ? Math.hypot(...state.sunBodyKm) : 0;
+  const [wa, wb] = skyWin.range;
+  const key = `${wa}|${wb}`;
+  if (winCache.key !== key) {
+    const inWin = (_: TrackPt, i: number) => trackT[i] >= wa && trackT[i] <= wb;
+    winCache = { key, sun: sunTrack.filter(inWin), earth: earthTrack.filter(inWin) };
+  }
   drawSkyPlot(skyCanvas, {
-    sunTrack,
-    earthTrack,
+    sunTrack: winCache.sun,
+    earthTrack: winCache.earth,
     sunNow: nowSun,
     earthNow: nowEarth,
     sunRadiusDeg: sunKm > 0 ? THREE.MathUtils.radToDeg(Math.asin(SUN_RADIUS_KM / sunKm)) : SUN_RADIUS_DEG_1AU,
@@ -918,6 +934,7 @@ const tmpQ = new THREE.Quaternion();
 
 function update() {
   const nowMs = startMs + offsetS * 1000;
+  skyWin.follow(nowMs);
   const utc = new Date(nowMs);
   $('utc').textContent = utc.toISOString().replace(/\.\d{3}Z$/, 'Z');
   const days = Math.trunc(offsetS / DAY_S);

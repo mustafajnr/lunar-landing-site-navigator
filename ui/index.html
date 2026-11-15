@@ -192,10 +192,15 @@
         <h2 class="row">Local sky over the period
           <button id="skyHelpBtn" type="button" class="info" aria-expanded="false" aria-controls="skyHelp" title="How to read this plot">i</button></h2>
         <div id="skyHelp" class="help" hidden>
-          <p>Each dot is the position of the Sun or Earth at one time step in the period, as seen
-            from the selected point. Left to right is the compass direction (azimuth). Bottom to
+          <p>Each dot is the position of the Sun or Earth at one time step in the time window, as
+            seen from the selected point. Left to right is the compass direction (azimuth). Bottom to
             top is the angle above the horizon (elevation). The large dots show the time on the
             clock.</p>
+          <p>The time window is 30 days from the start. For a longer period, a time strip shows
+            below the plot. The box on the strip is the time window. Drag the box to move it. Use
+            the mouse wheel on the strip, or the − and + buttons, to change its length. Click
+            the strip to move the box there. "Full period" shows all time steps. When the clock
+            leaves the window, the window moves with the clock.</p>
           <p>At a terrain point, the brown terrain outline is the horizon. A dot above the
             outline is visible. A dot below the outline is hidden by the terrain, also when it
             is above the dashed 0° line. At a point without terrain data, the dashed 0° line is
@@ -208,7 +213,8 @@
             outline. "Around the Sun" and "Around Earth" use the same scale on both axes.</p>
         </div>
         <canvas id="sky" title="Mouse wheel: zoom the elevation axis" role="img"
-          aria-label="Local sky plot: the Sun and Earth tracks for 30 days before and after the selected time. The Now table and the Events list give the same data as text."></canvas>
+          aria-label="Local sky plot: the Sun and Earth tracks in the time window. The Now table and the Events list give the same data as text."></canvas>
+        <div id="skyWin" class="skywin" hidden></div>
         <div class="row small skyzoom">
           <span title="Elevation axis">El.
             <button type="button" data-el="auto" class="active">Auto</button><button type="button" data-el="2">±2°</button><button
