@@ -16,9 +16,9 @@ export interface SearchInputs {
   stopUtc: string;
   stepMinutes: number;
   terrain: 'auto' | 'none';
-  /** "mission": saved from the Mission section. Missing for a normal search. */
+  /** "mission": saved from the old Mission section. Read for old lists only. New searches do not set it. */
   kind?: 'mission';
-  /** Mission duration in days (kind "mission" only). */
+  /** Duration of the period in days. Optional: stopUtc - startUtc gives the same value. */
   durationDays?: number;
 }
 
@@ -128,7 +128,7 @@ function validateItem(x: unknown): { ok: true; s: SavedSearch } | { ok: false; e
     stepMinutes: o.stepMinutes,
     terrain,
     ...(o.kind === 'mission' ? { kind: 'mission' as const } : {}),
-    ...(o.kind === 'mission' && isNum(o.durationDays) ? { durationDays: o.durationDays } : {}),
+    ...(isNum(o.durationDays) ? { durationDays: o.durationDays } : {}),
   };
   return {
     ok: true,
@@ -165,8 +165,8 @@ export function validateList(data: unknown): ListResult {
 export interface SavedUiHooks {
   /** Inputs of the search on screen now. */
   current(): SearchInputs;
-  /** Restore a search in the main view. */
-  load(s: SavedSearch): void;
+  /** Restore a search in the main view. Returns a note for the user, or ''. */
+  load(s: SavedSearch): string;
   /** Open the comparison for 2 to 4 searches. */
   compare(list: SavedSearch[]): void;
 }
@@ -247,15 +247,8 @@ export function setupSaved(hooks: SavedUiHooks): SavedApi {
       lab.append(chk, name);
       const load = button('Load', 'Show this search in the main view');
       load.addEventListener('click', () => {
-        hooks.load(s);
-        const span = Date.parse(s.stopUtc) - Date.parse(s.startUtc);
-        setStatus(
-          s.kind === 'mission'
-            ? `Loaded mission "${s.name}". The Mission section shows the landing date and the duration. The main view shows ±30 days around the mission.`
-            : Math.abs(span - 60 * 86400000) > 60000 || s.stepMinutes !== 60
-            ? `Loaded "${s.name}". The main view always shows ±30 days with a 60 min step. The comparison uses the saved period.`
-            : `Loaded "${s.name}".`,
-        );
+        const note = hooks.load(s);
+        setStatus(`Loaded "${s.name}". The time box shows its start and duration.${note ? ` ${note}` : ''}`);
       });
       const del = button('Delete', 'Delete this saved search');
       del.className = 'danger';
