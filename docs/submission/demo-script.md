@@ -26,16 +26,22 @@ All values come from the live site on 2026-11-15, with observer height 2 m ("Lan
 
 ## Scenes
 
-The structure follows the Space Apps guide: name and team, the challenge, the title and tagline, how it works with NASA data, and what it does for people. The narration has about 67 words, so you can speak at a normal speed (about 2.3 words per second).
+The structure follows the Space Apps guide: name and team, the challenge, the title and tagline, how it works with NASA data, and what it does for people. The narration has about 70 words, about 2.4 words per second.
+
+**Before you record, make 3 saved searches** (duration 6.5 days, height 2 m). Use "Save search" with these names:
+1. Malapert Massif, best point 1, start 2028-01-22 00:00: "Malapert point 1, 22 Jan (after slip)"
+2. The same point, start 2028-02-03 20:30 (or "Use this start"): "Malapert point 1, 3 Feb (next window)"
+3. de Gerlache Rim, best point 1, start 2028-01-22 00:00: "de Gerlache Rim point 1, 22 Jan"
 
 | Time | Part | Screen and actions | Narration |
 |---|---|---|---|
 | 0:00–0:03 | Name and team | Title card: "lunarsite.select", "Lunar Landing Site Navigator challenge", "Mustafa Abdeltawwab, team lunarspot". | "I'm Mustafa Abdeltawwab, team lunarspot." |
-| 0:03–0:09 | The challenge | Click **View south pole** on the globe. Let the Sun and Earth lines show. Optional: the sky plot (Details tab), where the Sun track skims the brown terrain line. | "At the lunar south pole, the Sun and Earth skim the horizon. Terrain can cut a lander's power and its link to Earth." |
-| 0:09–0:12 | Title and tagline | Text over the default view: **"lunarsite.select: solar power and a link to Earth, for any site and date."** | "lunarsite dot select checks any site and date." |
-| 0:12–0:21 | How it works | Malapert Massif, best point **1**, start 2028-01-10: **"Meets 3 of 3"**. Change the start to 2028-01-22: **"Meets 1 of 3"**. Click **Use this start**: **"Meets 3 of 3"**. Caption: "Example landing days. NASA has not chosen a day or a region." | "Malapert works for Artemis IV. After a launch slip, it doesn't. The tool finds the next landing window." |
-| 0:21–0:26 | NASA data | Map → **Sun and Earth** tab (the two NASA PGDA maps). Optional: the Details tab with the "Check this result" links to JPL Horizons. | "NASA ephemeris, terrain and illumination data, checked against JPL Horizons." |
-| 0:26–0:30 | For people | End card: "lunarsite.select". Optional small line: "Built with AI assistance (Claude Code)". | "For mission planners, teachers and the public. Free online." |
+| 0:03–0:08 | The challenge | Click **View south pole** on the globe. | "At the lunar south pole, terrain can hide the Sun and Earth: no power, no link." |
+| 0:08–0:10 | Title and tagline | Text over the default view: **"lunarsite.select: solar power and a link to Earth, for any site and date."** | "lunarsite dot select checks any site and date." |
+| 0:10–0:16 | How it works: the slip | Malapert best point 1, start 2028-01-10: **"Meets 3 of 3"**. Change the start to 2028-01-22: **"Meets 1 of 3"** and the **"Next landing window"** line. Caption: "Example landing days. NASA has not chosen a day or a region." | "Malapert works for Artemis IV. After a launch slip, it fails. The tool finds the next landing window." |
+| 0:16–0:22 | How it works: the comparison | Select the 3 saved searches, click **Compare**. Show the site images and the ★ rows. | "Or compare sites and dates side by side, and pick the best." |
+| 0:22–0:26 | NASA data | Close the comparison. Map → **Sun and Earth** tab (the two NASA PGDA maps). | "NASA ephemeris, terrain and illumination data, checked against JPL Horizons." |
+| 0:26–0:30 | For people | End card: "lunarsite.select". Optional small line: "Built with AI assistance (Claude Code)". | "For mission planners, teachers and the public." |
 
 ## Values to show (check them in the recording)
 
@@ -46,7 +52,8 @@ Duration 6.5 days, observer height 2 m, NASA default requirements.
 | Plan | Malapert Massif, best point 1 (85.98° S, 1.85° W) | 2028-01-10 00:00 | Sun 100 %, Earth 99 %. Meets 3 of 3. |
 | Slip | The same point | 2028-01-22 00:00 | Sun 10 %, the Sun is down at the start, longest darkness at least 5 d 14 h. Meets 1 of 3. |
 | Same point, new date | Malapert Massif, best point 1 | 2028-01-22 00:00, then "Use this start" | Next landing window 2028-02-03 20:30 to 2028-02-08 20:00. After "Use this start": Meets 3 of 3. |
-| Same region, new point | Malapert Massif, best point 4 (85.96° S, 2.32° W) | 2028-01-22 00:00 | Next landing window 2028-02-03 13:00 to 2028-02-16 18:30. "Use this start": Meets 3 of 3. |
+| Same region, new point | Malapert Massif, best point 4 (85.96° S, 2.32° W) | 2028-01-22 00:00 | Next landing window 2028-02-03 13:00 to 2028-02-16 18:30. "Use this start": Meets 3 of 3. (Slides only.) |
+| Comparison | The 3 saved searches above | – | Sun: 9.9 % / ★ 100 % / ★ 100 %. Earth: ★ 100 % / ★ 100 % / 49.4 %. Longest night: 5.6 d / ★ none / ★ none. |
 
 **What not to say:**
 - Do not say that NASA chose Malapert or de Gerlache Rim, or these days.
