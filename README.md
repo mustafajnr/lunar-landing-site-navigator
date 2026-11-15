@@ -93,7 +93,7 @@ The challenge page lists seven objectives. This table tells how the tool meets e
 | Power and communication assessment | Verdict with Solar power, Talk to Earth and Both together. Mission requirements with NASA example limits. Sun elevation, visible part of the Sun's disk, time with the Sun, Earth margin, time with Earth, time with both, and the longest periods and gaps. NASA PGDA long-term average maps. |
 | Multiple visualization approaches | 3D globe (three.js), 2D site map (OpenLayers), and the sky plot. |
 | Temporal dynamics | Time animation, Sun and Earth tracks over the period, the event list, and the comparison timeline. |
-| Accessibility across skill levels | A welcome card, a user guide, plain-language verdicts, help in the sky plot, presets for the observer height, a phone layout, and a public API with an interactive schema for technical users. |
+| Accessibility across skill levels | A welcome card, a user guide, plain-language verdicts, help in the sky plot, presets for the observer height, a basic phone layout, and a public API with an interactive schema for technical users. |
 
 The challenge also names some technical points:
 
