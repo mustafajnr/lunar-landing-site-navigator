@@ -26,7 +26,7 @@ import { defaults as defaultInteractions } from 'ol/interaction/defaults.js';
 import { transform, getPointResolution } from 'ol/proj.js';
 import type { Coordinate } from 'ol/coordinate.js';
 import { LONLAT, SPS, R, siteStereo } from './moonproj';
-import { makeLayer, nominalMpp, tileCacheOn, type TrekLayer } from './layers';
+import { makeLayer, nominalMpp, tileCacheOn, SLOPE_LAYER, type TrekLayer } from './layers';
 import { POLAR_LAT, DEFAULT_START_MPP, RADIUS_VIEW_FACTOR, bestImageAt, hasDataAt, stackFor } from './stack';
 
 export { POLAR_LAT, DEFAULT_START_MPP, RADIUS_VIEW_FACTOR, bestImageAt };
@@ -93,7 +93,7 @@ export class DetailMap {
   private readonly markerSrc = new VectorSource();
   private readonly marker = new Feature(new Point([0, 0]));
   private readonly circle = new Feature<Polygon>();
-  private readonly el: Record<'map' | 'bar' | 'barText' | 'progress' | 'best' | 'showing' | 'cursor' | 'layers', HTMLElement>;
+  private readonly el: Record<'map' | 'bar' | 'barText' | 'progress' | 'best' | 'showing' | 'cursor' | 'layers' | 'legend', HTMLElement>;
   private readonly svg: SVGSVGElement;
   private requested = 0;
   private loaded = 0;
@@ -117,6 +117,7 @@ export class DetailMap {
         <div><span class="k">Showing:</span> <span class="dm-showing">–</span></div>
         <div><span class="k">Cursor:</span> <span class="dm-cursor">–</span></div>
         <details class="dm-layers"><summary>Layers</summary><div class="dm-layer-list"></div></details>
+        <div class="dm-legend" hidden></div>
       </div>`;
     const q = (c: string) => root.querySelector(c) as HTMLElement;
     this.el = {
@@ -128,6 +129,7 @@ export class DetailMap {
       showing: q('.dm-showing'),
       cursor: q('.dm-cursor'),
       layers: q('.dm-layer-list'),
+      legend: q('.dm-legend'),
     };
     this.svg = root.querySelector('.dm-arrows') as SVGSVGElement;
 
@@ -300,6 +302,7 @@ export class DetailMap {
           else this.userOn.delete(d.id);
           this.updateVisibility();
           this.showInfo();
+          this.showLegend();
         };
       } else {
         cb.checked = true;
@@ -311,6 +314,44 @@ export class DetailMap {
       row.append(cb, ` ${d.title}`, s);
       list.append(row);
     }
+    // The slope tiles stop at 80° S. North of it, say where to find slope.
+    const p = this.point;
+    if (tileCacheOn() && p && !defs.includes(SLOPE_LAYER)) {
+      const note = document.createElement('div');
+      note.className = 'dm-note';
+      note.textContent = 'Slope layer: only south of 80° S. For slope at this point, use the QuickMap link.';
+      list.append(note);
+    }
+    this.showLegend();
+  }
+
+  /** Legend of each overlay that is on and has a legend. */
+  private showLegend() {
+    const box = this.el.legend;
+    box.innerHTML = '';
+    for (const d of this.stack) {
+      if (!d.legend || !this.userOn.has(d.id)) continue;
+      const t = document.createElement('div');
+      t.className = 'dm-legend-title';
+      t.textContent = d.title;
+      const sw = document.createElement('div');
+      sw.className = 'dm-legend-classes';
+      for (const c of d.legend) {
+        const item = document.createElement('span');
+        const chip = document.createElement('i');
+        chip.style.background = c.colour;
+        item.append(chip, c.label);
+        sw.append(item);
+      }
+      box.append(t, sw);
+      if (d.legendNote) {
+        const n = document.createElement('div');
+        n.className = 'dm-note';
+        n.textContent = d.legendNote;
+        box.append(n);
+      }
+    }
+    box.hidden = !box.childElementCount;
   }
 
   /** Show each layer only if it is in its zoom range and no opaque layer above covers the view. */
@@ -422,7 +463,7 @@ export class DetailMap {
     const r = view.getResolution();
     if (!c || !r) return;
     const mpp = getPointResolution(view.getProjection(), r, c, 'm');
-    const top = [...this.stack].reverse().find((d) => this.layerOf(d).getVisible() && this.layerOf(d).isVisible(view));
+    const top = [...this.stack].reverse().find((d) => d.kind !== 'data' && this.layerOf(d).getVisible() && this.layerOf(d).isVisible(view));
     this.el.showing.textContent = `${top ? top.title : '–'} (view ${fmtMpp(mpp)})`;
     this.opts.onView?.({ title: top ? top.title : null, mpp });
   }

@@ -10,6 +10,14 @@
 .dm .dm-layers summary { cursor: pointer; color: #8cf; }
 .dm .dm-layers label { display: block; }
 .dm .dm-layers small { color: #aaa; }
+.dm .dm-note { color: #bbb; font-size: 10.5px; margin-top: 2px; }
+.dm .dm-legend { margin-top: 3px; border-top: 1px solid #444; padding-top: 3px; }
+.dm .dm-legend-title { color: #ddd; }
+.dm .dm-legend-classes { display: flex; flex-wrap: wrap; gap: 2px 8px; }
+.dm .dm-legend-classes span { white-space: nowrap; }
+/* Swatch at the tile opacity (150/255) over mid grey, as it looks on the imagery. */
+.dm .dm-legend-classes i { display: inline-block; width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px;
+  border: 1px solid #000; opacity: 0.85; }
 .dm .dm-progress {
   position: absolute; left: 0; right: 0; bottom: 0; height: 16px; z-index: 4;
   background: rgba(0, 0, 0, 0.6); pointer-events: none;
