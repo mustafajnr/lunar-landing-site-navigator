@@ -88,7 +88,7 @@ The short lists below go into the form: one entry for each resource. The full li
 | nginx (BSD-2-Clause) | https://nginx.org/ |
 | certifi (MPL-2.0) | https://github.com/certifi/python-certifi |
 | HTTPX (BSD-3-Clause, API tests) | https://www.python-httpx.org/ |
-| @types/three (MIT, TypeScript types) | https://www.npmjs.com/package/@types/three |
+| @types/three (MIT, TypeScript types) | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/three |
 | uv (package manager) | https://docs.astral.sh/uv/ |
 | pytest | https://docs.pytest.org/ |
 | Playwright (screenshots and browser tests during development) | https://playwright.dev/ |
