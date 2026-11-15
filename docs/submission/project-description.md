@@ -130,7 +130,7 @@ Other NASA data:
 
 ## Space Agency Partner Data and Other References
 
-(About 2,220 characters.)
+(About 2,803 characters.)
 
 Space Agency Partner data:
 
@@ -147,13 +147,15 @@ Other data and references:
 - NASA LaRC (2024). Artemis Human Landing System update: areas with Earth visibility below 25 % or solar visibility below 5 % are excluded. https://ntrs.nasa.gov/api/citations/20240009596/downloads/ArtemisHLSUpdate_2024.pdf
 - NASA (2023). Lunar Site Selection white paper: the first landing site has sunlight for the full surface stay of about 6 to 6.5 days. https://ntrs.nasa.gov/api/citations/20230016267/downloads/Lunar%20Site%20Selection.pdf
 - VIPER mission planning, SpaceOps 2022: a safe haven has 50 hours of darkness or less. https://ntrs.nasa.gov/api/citations/20220008301/downloads/2022-06-02-spaceops-viper-planning.pdf
-- JPL IPN Progress Report 42-176 (2009) and Gläser, P., et al. (2014): illumination and Earth visibility at the lunar south pole.
+- Bryant, S. (2009). Lunar pole illumination and communications maps computed from GSSR elevation data. JPL IPN Progress Report 42-176. https://ipnpr.jpl.nasa.gov/progress_report/42-176/176C.html
+- Gläser, P., et al. (2014). Illumination conditions at the lunar south pole using high resolution Digital Terrain Models from LOLA. Icarus 243, 78–90, doi:10.1016/j.icarus.2014.08.013
 
-Open-source software: three.js (MIT), OpenLayers (BSD-2-Clause), Vite (MIT), TypeScript (Apache 2.0), FastAPI (MIT), uvicorn (BSD-3-Clause), spiceypy (MIT), numpy (BSD-3-Clause), rasterio (BSD-3-Clause), nginx (BSD-2-Clause).
+Open-source software: three.js (MIT), OpenLayers (BSD-2-Clause), Vite (MIT), TypeScript (Apache 2.0), tsx (MIT), FastAPI (MIT), pydantic (MIT), uvicorn (BSD-3-Clause), spiceypy (MIT), NASA NAIF CSPICE (public), numpy (BSD-3-Clause), rasterio (BSD-3-Clause) with GDAL (MIT), nginx (BSD-2-Clause), Python (PSF License), Node.js (MIT).
 
-Tools: Claude Code (Anthropic), Google Cloud Run and Cloud Build, uv, npm, pytest, Playwright (screenshots).
+Fonts (slide deck only): Space Grotesk and Inter (SIL Open Font License), from Google Fonts.
 
-TODO(developer): check that this list is complete. The guide asks for all code, text and images, also open-source ones.
+Tools: Claude Code (Anthropic), Google Cloud Run, Cloud Build and Cloud Storage, uv, npm, pytest, Playwright (tests and screenshots), axe-core (accessibility tests, MPL-2.0), Pillow (screenshot images, HPND License).
+
 
 ---
 
@@ -164,6 +166,5 @@ TODO(developer): check that this list is complete. The guide asks for all code, 
 - Team member: Mustafa Abdeltawwab.
 - Local Event: London (registration confirmed, not waitlisted).
 - TODO(developer): upload the demo video and add its link (see "Link to Project Demo").
-- TODO(developer): check that the reference list is complete (see the references field).
 - TODO(developer): FortiGuard Web Filter classification request for https://lunarsite.select (the developer will do it; recommended, not required).
 - TODO(developer): images for the project page (JPG or PNG, up to 10 MB). Use the files in `screenshots/`. Files 09 to 12 show the Artemis IV example.
