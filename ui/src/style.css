@@ -761,3 +761,13 @@ button.danger {
 .edge-ind.earth {
   color: #7cc0ff;
 }
+/* "User guide" link below the title in the left panel. */
+.guide-link {
+  display: inline-block;
+  font-size: 12px;
+  color: #8cc4ff;
+  margin: -4px 0 8px;
+}
+#skyHelp a {
+  color: #8cc4ff;
+}

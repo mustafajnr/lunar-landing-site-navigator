@@ -516,6 +516,18 @@ const skyAz = $<HTMLSelectElement>('skyAz');
 skyAz.addEventListener('change', () => (azMode = skyAz.value as AzMode));
 
 const skyHelpBtn = $<HTMLButtonElement>('skyHelpBtn');
+{
+  // Link to the sky plot section of the user guide (guide.html).
+  const p = document.createElement('p');
+  const a = Object.assign(document.createElement('a'), {
+    href: 'guide.html#sky-plot',
+    target: '_blank',
+    rel: 'noopener',
+    textContent: 'More about the sky plot in the user guide',
+  });
+  p.append(a, '.');
+  $('skyHelp').append(p);
+}
 skyHelpBtn.addEventListener('click', () => {
   const help = $('skyHelp');
   help.hidden = !help.hidden;
