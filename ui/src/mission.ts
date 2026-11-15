@@ -85,8 +85,6 @@ export function dh(h: number): string {
   return `${mm} min`;
 }
 
-const num = (v: number) => String(Math.round(v * 100) / 100);
-
 export interface Result {
   check: Check;
   text: string;
@@ -94,45 +92,42 @@ export interface Result {
 
 /** (a) Longest continuous darkness compared with the limit in hours. */
 export function checkDark(s: SeriesSummary, limitH: number): Result {
-  const lim = `The limit is ${num(limitH)} h (${SOURCES.viper.short}).`;
   const ns = s.longest_no_sun_period_h;
-  if (ns === undefined) return { check: 'unknown', text: `No darkness data from the API. ${lim}` };
-  if (ns === 0) return { check: 'pass', text: `No darkness in this period. ${lim}` };
+  if (ns === undefined) return { check: 'unknown', text: `No darkness data from the API.` };
+  if (ns === 0) return { check: 'pass', text: `No darkness in this period.` };
   const cut = !!s.longest_no_sun_period_truncated;
-  if (ns > limitH) return { check: 'fail', text: `Longest darkness ${cut ? 'at least ' : ''}${dh(ns)}. ${lim}` };
+  if (ns > limitH) return { check: 'fail', text: `Longest darkness ${cut ? 'at least ' : ''}${dh(ns)}.` };
   if (cut) {
-    return { check: 'unknown', text: `Longest darkness at least ${dh(ns)}. Check a longer period. ${lim}` };
+    return { check: 'unknown', text: `Longest darkness at least ${dh(ns)}. Check a longer period.` };
   }
-  return { check: 'pass', text: `Longest darkness ${dh(ns)}. ${lim}` };
+  return { check: 'pass', text: `Longest darkness ${dh(ns)}.` };
 }
 
 /** (b) Continuous sunlight from the start compared with the limit in days. */
 export function checkSun(s: SeriesSummary, limitD: number): Result {
-  const lim = `The limit is ${num(limitD)} d (${SOURCES.artemisStay.short}).`;
   const limitH = limitD * 24;
   if (s.sun_up_at_start === undefined || s.time_to_first_sunset_h === undefined) {
-    return { check: 'unknown', text: `No sunset data from the API. ${lim}` };
+    return { check: 'unknown', text: `No sunset data from the API.` };
   }
-  if (!s.sun_up_at_start) return { check: 'fail', text: `The Sun is down at the start. ${lim}` };
+  if (!s.sun_up_at_start) return { check: 'fail', text: `The Sun is down at the start.` };
   const t = s.time_to_first_sunset_h;
   if (t === null) {
-    if (s.span_h >= limitH) return { check: 'pass', text: `Sunlight for all of the period (${dh(s.span_h)}). ${lim}` };
+    if (s.span_h >= limitH) return { check: 'pass', text: `Sunlight for all of the period (${dh(s.span_h)}).` };
     return {
       check: 'unknown',
-      text: `Sunlight for all of the period, but the period is only ${dh(s.span_h)}. Check a longer period. ${lim}`,
+      text: `Sunlight for all of the period, but the period is only ${dh(s.span_h)}. Check a longer period.`,
     };
   }
-  if (t >= limitH) return { check: 'pass', text: `Sunlight for ${dh(t)} from the start. ${lim}` };
-  return { check: 'fail', text: `Sunlight for only ${dh(t)} from the start. ${lim}` };
+  if (t >= limitH) return { check: 'pass', text: `Sunlight for ${dh(t)} from the start.` };
+  return { check: 'fail', text: `Sunlight for only ${dh(t)} from the start.` };
 }
 
 /** (c) Earth visibility compared with the limit in percent. */
 export function checkEarth(s: SeriesSummary, limitPct: number): Result {
-  const lim = `The limit is ${num(limitPct)} % (${SOURCES.artemisHls.short}).`;
   const p = s.earth_fraction_of_time * 100;
   const shown = p > 0 && p < 0.5 ? '0.5' : p > 99.5 && p < 100 ? '99.5' : String(Math.round(p));
   const ok = p >= limitPct;
-  return { check: ok ? 'pass' : 'fail', text: `Earth visibility ${shown} %. ${lim}` };
+  return { check: ok ? 'pass' : 'fail', text: `Earth visibility ${shown} %.` };
 }
 
 const SYMBOL: Record<Check, string> = { pass: '✓', fail: '✕', unknown: '?' };
