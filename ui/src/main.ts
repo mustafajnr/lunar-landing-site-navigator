@@ -454,6 +454,7 @@ function showApiError(e: unknown) {
   apiMsg.append(btn);
 }
 
+let batchLoaded = '';
 function requestBatch() {
   const key = `${startMs}|${durationDays}`;
   if (batchFor === key) return;
@@ -467,7 +468,12 @@ function requestBatch() {
     .then((b) => {
       if (ctrl.signal.aborted) return;
       batch = b;
+      batchLoaded = key;
       apiMsg.hidden = true;
+      if (flyAfterBatch) {
+        flyTo(flyAfterBatch);
+        flyAfterBatch = null;
+      }
       computeTracks();
       requestSeries(); // retry after an API outage
       loadSites();
@@ -659,7 +665,10 @@ function selectPoint(ll: LatLon, site: Site | null, fly: boolean, fromMap = fals
   mapPanel.setPoint(selected, site, name || fmtLL(selected), !fromMap);
   requestSeries();
   computeTracks();
-  if (fly) flyTo(selected);
+  if (fly) {
+    flyAfterBatch = null;
+    flyTo(selected);
+  }
 }
 
 function pointName(ll: LatLon, site: Site | null) {
@@ -717,11 +726,16 @@ setupSaved({
     // window around a date) load as a 60 day period from their start.
     const site = (s.siteId && siteList.find((x) => x.id === s.siteId)) || null;
     results.setObserverHeight(s.observerHeightM);
-    selectPoint({ latDeg: s.latDeg, lonDeg: s.lonDeg }, site, true);
     const a = Date.parse(s.startUtc);
     const raw = (Date.parse(s.stopUtc) - a) / (DAY_S * 1000);
     const days = Math.min(MAX_DAYS, Math.max(MIN_DAYS, +raw.toFixed(3)));
+    // The period first: the Moon orientation depends on the time. The camera flight
+    // waits until the Moon states of the new period are loaded, else it aims with the
+    // orientation of the old period and the Moon turns away after the flight.
     setPeriod(Math.round(a / 60000) * 60000, days);
+    selectPoint({ latDeg: s.latDeg, lonDeg: s.lonDeg }, site, false);
+    if (batchLoaded === `${startMs}|${durationDays}`) flyTo(selected);
+    else flyAfterBatch = { ...selected };
     const notes: string[] = [];
     if (days !== +raw.toFixed(3)) notes.push(`The main view shows ${fmtDays(days)}. The saved period is ${fmtDays(raw)}.`);
     const step = missionStepMinutes(days);
@@ -732,13 +746,15 @@ setupSaved({
 });
 
 // Camera flight to a point: the camera ends above the point, looking at the Moon centre.
-let flight: { from: THREE.Vector3; to: THREE.Vector3; fromD: number; toD: number; t0: number } | null = null;
+let flight: { from: THREE.Vector3; ll: LatLon; fromD: number; toD: number; t0: number } | null = null;
 const FLIGHT_MS = 900;
+// A flight that waits for the Moon states of a new period (see requestBatch).
+let flyAfterBatch: LatLon | null = null;
 function flyTo(ll: LatLon) {
   const fromD = camera.position.length();
   flight = {
     from: camera.position.clone().normalize(),
-    to: worldDir(bodyVecOf(ll.latDeg, ll.lonDeg), moonBody),
+    ll: { latDeg: ll.latDeg, lonDeg: ll.lonDeg },
     fromD,
     toD: Math.min(fromD, 1.8),
     t0: performance.now(),
@@ -748,13 +764,20 @@ function stepFlight(now: number) {
   if (!flight) return;
   const f = Math.min(1, (now - flight.t0) / FLIGHT_MS);
   const e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2; // ease in-out
-  const q = new THREE.Quaternion().setFromUnitVectors(flight.from, flight.to);
+  // The target uses the Moon orientation of this frame.
+  moonBody.updateMatrixWorld(true);
+  const to = worldDir(bodyVecOf(flight.ll.latDeg, flight.ll.lonDeg), moonBody);
+  const q = new THREE.Quaternion().setFromUnitVectors(flight.from, to);
   const dir = flight.from.clone().applyQuaternion(new THREE.Quaternion().slerp(q, e));
   camera.position.copy(dir.multiplyScalar(flight.fromD + (flight.toD - flight.fromD) * e));
   controls.target.set(0, 0, 0);
   if (f >= 1) flight = null;
 }
-controls.addEventListener('start', () => (flight = null)); // user drag stops the flight
+controls.addEventListener('start', () => {
+  // A user drag stops the flight, and a flight that waits.
+  flight = null;
+  flyAfterBatch = null;
+});
 
 // ---------- Camera presets ----------
 function worldDir(v: Vec3, parent: THREE.Object3D) {
