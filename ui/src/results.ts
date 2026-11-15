@@ -8,6 +8,8 @@ import { ApiError, fetchSeries, type HorizonMask, type SeriesEvent, type SeriesO
 import type { LatLon } from './ephemeris';
 import { CheckPanel } from './check';
 import { fillRatingNote, renderVerdict, setupResultTabs } from './verdict';
+import { dh, onLimits } from './mission';
+import { limitsChanged, requestWindow } from './landing';
 
 const HOUR_MS = 3600000;
 
@@ -135,6 +137,29 @@ function lerpAngle(a: number, b: number, f: number) {
   return (a + d * f + 360) % 360;
 }
 
+/** A rise and a set of the same body closer than this: a short gap or a short pass. */
+const SHORT_PAIR_H = 6;
+const EVENT_SYM: Record<string, string> = { sunrise: '▲', sunset: '▼', earthrise: '▲', earthset: '▼' };
+type EvFilter = 'all' | 'sun' | 'earth';
+
+/** One row of the event list. */
+interface EvRow {
+  type: SeriesEvent['type'];
+  ms: number;
+  after: boolean;
+  tr: HTMLTableRowElement;
+  rel: HTMLTableCellElement;
+  /** Note row under the second event of a short pair. */
+  note?: HTMLTableRowElement;
+}
+
+/** "in 3 d 4 h", "2 d ago" or "now". */
+function relText(ms: number, nowMs: number) {
+  const h = (ms - nowMs) / HOUR_MS;
+  if (Math.abs(h) < 1 / 60) return 'now';
+  return h > 0 ? `in ${dh(h)}` : `${dh(-h)} ago`;
+}
+
 const EVENT_LABEL: Record<string, string> = {
   sunrise: 'Sunrise',
   sunset: 'Sunset',
@@ -147,12 +172,11 @@ export class ResultsPanel {
   horizon: HorizonInfo | null = null;
   private nextAfter: Partial<Record<SeriesEvent['type'], number | null>> | null = null;
   private times: number[] = [];
-  private events: { type: SeriesEvent['type']; ms: number; row?: HTMLTableRowElement }[] = [];
+  private events: { type: SeriesEvent['type']; ms: number }[] = [];
   private key: SeriesRequestKey | null = null;
   private heightM = 2;
   private ctrl: AbortController | null = null;
   private timer = 0;
-  private lastNowText = '';
   private readonly onData: () => void;
   private applyHeight: (v: number) => void = () => {};
   /** "Check this result" section (check.ts). */
@@ -164,9 +188,24 @@ export class ResultsPanel {
   private statusText = '';
   private statusError = false;
   private lastVNow = '';
+  private evRows: EvRow[] = [];
+  private evFilter: EvFilter = 'all';
+  private evMinute = -1;
+  private evNext: EvRow | null = null;
 
   constructor(onData: () => void) {
     this.onData = onData;
+    onLimits(limitsChanged);
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-evf]')) {
+      b.addEventListener('click', () => {
+        this.evFilter = b.dataset.evf as EvFilter;
+        for (const o of document.querySelectorAll<HTMLButtonElement>('[data-evf]')) {
+          o.classList.toggle('active', o === b);
+          o.setAttribute('aria-pressed', String(o === b));
+        }
+        this.applyEvFilter();
+      });
+    }
     // Two height fields (Details and Verdict tabs) show the same value: this.heightM.
     const fields: [HTMLInputElement, HTMLParagraphElement][] = [
       [$<HTMLInputElement>('heightIn'), $<HTMLParagraphElement>('heightErr')],
@@ -190,6 +229,7 @@ export class ResultsPanel {
         // The old result is for the old height: the Verdict must not show it.
         this.loading = true;
         this.renderVerdict();
+        requestWindow(null);
       }
       this.schedule(250);
     };
@@ -253,6 +293,7 @@ export class ResultsPanel {
       this.loading = true;
       this.render();
       this.onData();
+      requestWindow(null);
     }
     this.schedule(0);
   }
@@ -309,6 +350,7 @@ export class ResultsPanel {
         this.setStatus('', false);
         this.render();
         this.onData();
+        requestWindow({ point: k.point, heightM, startMs: k.startMs });
       })
       .catch((e) => {
         if ((e as Error).name === 'AbortError') return;
@@ -390,6 +432,10 @@ export class ResultsPanel {
     const sum = $('summary');
     const list = $<HTMLTableSectionElement>('eventRows');
     list.innerHTML = '';
+    this.evRows = [];
+    this.evNext = null;
+    this.evMinute = -1;
+    $('evCount').textContent = '';
     const req = this.dataReq;
     this.check.set(
       d && req ? { data: d, point: req.point, observerHeightM: req.heightM, horizonLabel: this.horizon?.label ?? '–' } : null,
@@ -412,26 +458,115 @@ export class ResultsPanel {
     $('sumLongBoth').textContent = fmtHours(s.longest_both_period_h);
     this.renderLines(lines, d);
 
-    if (!this.events.length) {
+    this.renderEvents(list);
+  }
+
+  /** Event list: all events in the period, then the next events after the period. */
+  private renderEvents(list: HTMLTableSectionElement) {
+    const rows: EvRow[] = [];
+    const mk = (type: SeriesEvent['type'], ms: number, after: boolean) => {
+      const tr = document.createElement('tr');
+      tr.className = `ev ev-${type}`;
+      const a = document.createElement('td');
+      a.textContent = `${fmtUtc(ms)}`;
+      const b = document.createElement('td');
+      b.className = 'ev-type';
+      b.textContent = `${EVENT_LABEL[type] ?? type} ${EVENT_SYM[type] ?? ''}`;
+      const rel = document.createElement('td');
+      rel.className = 'ev-rel';
+      tr.append(a, b, rel);
+      const r: EvRow = { type, ms, after, tr, rel };
+      rows.push(r);
+      return r;
+    };
+    const inPeriod = [...this.events].sort((x, y) => x.ms - y.ms).map((e) => mk(e.type, e.ms, false));
+    // Short pairs: a set and the next rise of the same body (or a rise and the next set) within 6 h.
+    for (const body of ['sun', 'earth']) {
+      const seq = inPeriod.filter((r) => r.type.startsWith(body));
+      for (let i = 0; i + 1 < seq.length; i++) {
+        const p = seq[i];
+        const q = seq[i + 1];
+        if (p.type === q.type || q.ms - p.ms > SHORT_PAIR_H * HOUR_MS) continue;
+        if (p.tr.classList.contains('pair-a') || p.tr.classList.contains('pair-b')) continue;
+        p.tr.classList.add('pair-a');
+        q.tr.classList.add('pair-b');
+        const note = document.createElement('tr');
+        note.className = 'ev-note-row';
+        const td = document.createElement('td');
+        td.colSpan = 3;
+        td.className = 'ev-note';
+        td.textContent = `↑ ${EVENT_LABEL[p.type]} and ${EVENT_LABEL[q.type].toLowerCase()} ${fmtDH((q.ms - p.ms) / HOUR_MS)} apart (short, ${body === 'sun' ? 'the Sun' : 'Earth'} skims the terrain).`;
+        note.append(td);
+        q.note = note;
+        i++;
+      }
+    }
+    if (!inPeriod.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 2;
+      td.colSpan = 3;
       td.textContent = 'No sunrise, sunset, Earthrise or Earthset in this period.';
       tr.append(td);
       list.append(tr);
     }
-    for (const e of this.events) {
+    list.append(...inPeriod.flatMap((r) => (r.note ? [r.tr, r.note] : [r.tr])));
+    const na = this.nextAfter;
+    const after = na
+      ? (Object.entries(na) as [SeriesEvent['type'], number | null][])
+          .filter((x): x is [SeriesEvent['type'], number] => x[1] != null)
+          .sort((x, y) => x[1] - y[1])
+          .map(([type, ms]) => mk(type, ms, true))
+      : [];
+    if (after.length) {
       const tr = document.createElement('tr');
-      tr.className = `ev ev-${e.type}`;
-      const a = document.createElement('td');
-      a.textContent = EVENT_LABEL[e.type] ?? e.type;
-      const b = document.createElement('td');
-      b.textContent = `${new Date(e.ms).toISOString().replace('.000Z', 'Z').replace('T', ' ')}`;
-      tr.append(a, b);
-      list.append(tr);
-      e.row = tr;
+      tr.className = 'ev-after-head';
+      const td = document.createElement('td');
+      td.colSpan = 3;
+      td.textContent = 'After the period';
+      tr.append(td);
+      list.append(tr, ...after.map((r) => r.tr));
+      for (const r of after) r.tr.classList.add('ev-after');
     }
-    this.lastNowText = '';
+    this.evRows = rows;
+    const nSun = inPeriod.filter((r) => r.type.startsWith('sun')).length;
+    $('evCount').textContent =
+      `${inPeriod.length} events in the period (Sun ${nSun}, Earth ${inPeriod.length - nSun}).` +
+      (after.length ? ` ${after.length} more after the period.` : '');
+    this.applyEvFilter();
+  }
+
+  private applyEvFilter() {
+    const f = this.evFilter;
+    for (const r of this.evRows) {
+      r.tr.hidden = f !== 'all' && !r.type.startsWith(f);
+      if (r.note) r.note.hidden = r.tr.hidden;
+    }
+    const head = document.querySelector<HTMLTableRowElement>('#eventRows .ev-after-head');
+    if (head) head.hidden = !this.evRows.some((r) => r.after && !r.tr.hidden);
+    this.evMinute = -1;
+    this.evNext = null;
+  }
+
+  /** Relative times, past rows and the next row. Runs when the clock minute changes. */
+  private tickEvents(nowMs: number) {
+    const minute = Math.floor(nowMs / 60000);
+    if (minute === this.evMinute || !this.evRows.length) return;
+    this.evMinute = minute;
+    let next: EvRow | null = null;
+    for (const r of this.evRows) {
+      const past = r.ms <= nowMs;
+      const t = relText(r.ms, nowMs);
+      if (r.rel.textContent !== t) r.rel.textContent = t;
+      r.tr.classList.toggle('past', past);
+      if (!past && !next && !r.tr.hidden) next = r;
+    }
+    for (const r of this.evRows) r.tr.classList.toggle('next', r === next);
+    if (next && next !== this.evNext) {
+      // Scroll the box only (not the page), so that the next event is in view.
+      const box = $('evBox');
+      if (box.scrollHeight > box.clientHeight) box.scrollTop = Math.max(0, next.tr.offsetTop - box.clientHeight / 3);
+    }
+    this.evNext = next;
   }
 
   /** Mission lines: the worst gaps, the state at the start and the first sunset. */
@@ -507,6 +642,7 @@ export class ResultsPanel {
   /** Live parts: current values and countdowns. Call every frame. */
   tick(nowMs: number) {
     this.check.tick(nowMs);
+    this.tickEvents(nowMs);
     const now = this.at(nowMs);
     const set = (id: string, text: string) => {
       const el = $(id);
@@ -571,23 +707,6 @@ export class ResultsPanel {
         `Right now (${fmtUtc(nowMs)} UTC): ${st(ups.sun, 'Sun')} ${st(ups.earth, 'Earth')} ` +
           (fn ? `Next change: ${EVENT_LABEL[fn.type]} in ${fmtDuration(fn.ms - nowMs)}.` : 'No change before the end of the period.'),
       );
-    }
-
-    // Mark past events and the next one of each kind.
-    const key = String(this.events.findIndex((e) => e.ms > nowMs));
-    if (key !== this.lastNowText) {
-      this.lastNowText = key;
-      let nextSun = false;
-      let nextEarth = false;
-      for (const e of this.events) {
-        if (!e.row) continue;
-        const past = e.ms <= nowMs;
-        let next = false;
-        if (!past && e.type.startsWith('sun') && !nextSun) next = nextSun = true;
-        if (!past && e.type.startsWith('earth') && !nextEarth) next = nextEarth = true;
-        e.row.classList.toggle('past', past);
-        e.row.classList.toggle('next', next);
-      }
     }
   }
 }

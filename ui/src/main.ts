@@ -17,6 +17,7 @@ import { createGrid, gridLight, updateGridLabels } from './grid';
 import { createEdgeIndicators } from './edgeind';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { featureAt, featureName } from './gazetteer';
+import { setUseStartHook } from './landing';
 import { missionStepMinutes, ResultsPanel } from './results';
 import { setupSaved } from './saved';
 import { openCompare } from './compare';
@@ -419,6 +420,8 @@ function setPeriod(ms: number, days: number) {
 
 // ---------- API: series for the selected point (results panel) ----------
 const results = new ResultsPanel(() => computeTracks());
+// "Use this start" in the landing window box: set the start and the stay as the period.
+setUseStartHook((ms, days) => setPeriod(ms, Math.min(MAX_DAYS, Math.max(MIN_DAYS, days))));
 function requestSeries() {
   results.setRequest({ point: selected, startMs, stopMs: stopMs(), stepMinutes: missionStepMinutes(durationDays) });
 }

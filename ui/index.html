@@ -201,6 +201,12 @@
               </li>
             </ul>
             <button id="mrReset" type="button" class="mr-reset">NASA defaults</button>
+            <div class="mr-win" role="group" aria-labelledby="mrWinTitle">
+              <h4 id="mrWinTitle">Next landing window</h4>
+              <p class="small mr-win-rule">Rule: from the landing time, the Sun is visible for all of the stay (sunlight limit above), and Earth is visible for the minimum Earth visibility or more. Search: 60 days from the start. Times to 30 min.</p>
+              <p id="mrWinRes" class="mr-win-res" aria-live="polite">–</p>
+              <button id="mrWinUse" type="button" class="mr-win-use" hidden>Use this start</button>
+            </div>
             <p class="small mr-note">NASA uses pass/fail requirements for each mission. These are examples from NASA documents. Change them for your mission.</p>
           </div>
           <p id="vNow" class="v-now"></p>
@@ -341,7 +347,13 @@
 
       <section>
         <h2>Events (UTC)</h2>
-        <div class="events">
+        <div class="ev-filter" role="group" aria-label="Show events">
+          <button type="button" data-evf="all" class="active" aria-pressed="true">All</button>
+          <button type="button" data-evf="sun" aria-pressed="false">Sun</button>
+          <button type="button" data-evf="earth" aria-pressed="false">Earth</button>
+        </div>
+        <p id="evCount" class="small ev-count"></p>
+        <div id="evBox" class="events">
           <table class="mono"><tbody id="eventRows"></tbody></table>
         </div>
       </section>

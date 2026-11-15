@@ -207,6 +207,15 @@
             <li><strong>Continuous sunlight needed from the start.</strong> Default 6.5 days. Source: NASA Lunar Site Selection white paper (2023). The first Artemis landing site must have sunlight for the full surface stay of about 6 to 6.5 days. The Sun must be up at the start, and the first sunset must come at least this long after the start. If the Sun does not set in the period and the period is shorter than the limit, the result is <strong>?</strong>.</li>
             <li><strong>Minimum Earth visibility.</strong> Default 25 %. Source: Artemis Human Landing System update (NASA LaRC, 2024). NASA excludes areas with Earth visibility below 25 %.</li>
           </ul>
+          <h4 id="landing-window">Next landing window</h4>
+          <p>This part is at the bottom of the <span class="ui">Mission requirements</span> box. It finds the next time when a landing meets all three limits. The rule: from the landing time, the Sun is visible for all of the stay, and Earth is visible for the minimum Earth visibility or more. The stay is the "Continuous sunlight" limit, for example 6.5 days. Then the darkness limit also passes, because there is no darkness.</p>
+          <ul>
+            <li>The tool searches the 60 days after the start of the period, with a step of 30 minutes. The times are correct to 30 minutes.</li>
+            <li>If the start is in a landing window, the box says so and gives the time when the window closes. This is the last landing time that is valid.</li>
+            <li>If the start is not in a window, the box gives the next window, for example "Next landing window: 2028-02-03 13:00 to 2028-02-16 18:30 UTC". Click <span class="ui">Use this start</span> to set the start to the window open time and the duration to the stay. The Verdict then shows the result for this landing.</li>
+            <li>If there is no window, the box says "No landing window in the 60 days after the start."</li>
+            <li>The search uses the same point and observer height. It runs again when you change the point, the start, the height or a limit. Where the tool has no terrain data, the search uses a flat horizon.</li>
+          </ul>
           <p>You can change each limit. Type a number only. Click <span class="ui">NASA defaults</span> to go back to the defaults. The browser keeps your limits for your next visit. Each source name in the box is a link to the NASA document.</p>
           <p>"At least" means that the gap touches the start or the end of the period. The real gap can be longer. Such a gap does not count as a short gap. Make the period longer to find its full length.</p>
           <p>The tab also has the observer height (see <a href="#height">Observer height</a>) and <span class="ui">Save search</span>. The observer height is the same in both tabs. The tool keeps the last open tab for your next visit.</p>
@@ -269,7 +278,15 @@
           <p>A line in red is a risk: a gap of 24 hours or more, or the Sun or Earth down at the start. If a gap touches the start or the end of the period, the line says "from the start of the period" or "until the end of the period". The real gap can then be longer. Make the period longer to find its full length.</p>
 
           <h3 id="events">Events</h3>
-          <p>The event list gives all sunrises, sunsets, Earthrises and Earthsets in the period, in UTC. Past events are grey. The next Sun event and the next Earth event are bold.</p>
+          <p>The event list gives all sunrises, sunsets, Earthrises and Earthsets in the period, in time order and in UTC. ▲ is a rise. ▼ is a set. The line above the list gives the number of events.</p>
+          <ul>
+            <li>The right column gives the time from the slider time, for example "in 3 d 4 h" or "2 d ago".</li>
+            <li>Past events are grey. The next event is bold.</li>
+            <li>Click <span class="ui">All</span>, <span class="ui">Sun</span> or <span class="ui">Earth</span> to show only some events.</li>
+            <li>A yellow bar marks a short pair: a set and a rise of the same body less than 6 hours apart. The Sun or Earth then skims the terrain. The line below the pair gives the time between the two events.</li>
+            <li>For a long period, the list scrolls. The list scrolls to the next event.</li>
+            <li>Below "After the period", the list gives the next events after the end of the period. The server finds them up to 400 days after the end.</li>
+          </ul>
 
           <h3 id="south-pole">Why the south pole is special</h3>
           <p>At the poles, the Sun and Earth do not rise high. They move around the horizon and stay a few degrees above or below it. Thus a small hill can hide them for days. A high ridge can have the Sun for weeks or months. A deep crater can have no Sun at all.</p>

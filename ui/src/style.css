@@ -1691,3 +1691,95 @@ tr.ev.past td:first-child {
     font-size: 14px;
   }
 }
+
+/* ---------- Landing window (landing.ts) and event list (results.ts) ---------- */
+.mr-win {
+  margin: 8px 0 4px;
+  padding-top: 6px;
+  border-top: 1px solid #445;
+}
+.mr-win h4 {
+  font-size: 13px;
+  margin: 0 0 2px;
+  color: #ddd;
+}
+.mr-win-rule {
+  margin: 0 0 4px;
+}
+.mr-win-res {
+  margin: 2px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+.mr-win-res.busy {
+  font-weight: 400;
+  color: #b8bec6;
+}
+.mr-win-res[data-check='pass'] {
+  color: #8fe388;
+}
+.mr-win-use {
+  font-size: 13px;
+  padding: 3px 10px;
+}
+.ev-filter {
+  display: flex;
+  gap: 4px;
+  margin: 2px 0 4px;
+}
+.ev-filter button.active {
+  background: #2f5f9e;
+  color: #fff;
+}
+.ev-count {
+  margin: 0 0 4px;
+}
+.events,
+#evBox {
+  position: relative;
+  max-height: 300px;
+  overflow-y: auto;
+}
+#eventRows td {
+  padding: 1px 6px 1px 2px;
+  white-space: nowrap;
+}
+#eventRows td.ev-rel {
+  color: #b8bec6;
+  text-align: right;
+}
+#eventRows td.ev-note {
+  white-space: normal;
+  padding: 0 2px 3px 10px;
+  font-size: 11px;
+  color: #f0c36b;
+  box-shadow: inset 3px 0 0 #f0c36b;
+}
+#eventRows tr.ev.next td {
+  font-weight: 700;
+  color: #fff;
+}
+#eventRows tr.ev.past td.ev-rel {
+  color: #9aa0a8;
+}
+#eventRows tr.pair-a td:first-child,
+#eventRows tr.pair-b td:first-child {
+  box-shadow: inset 3px 0 0 #f0c36b;
+}
+#eventRows tr.ev-after-head td {
+  padding-top: 6px;
+  font-weight: 600;
+  color: #ddd;
+  border-top: 1px solid #445;
+}
+@media (max-width: 760px) {
+  .ev-filter button,
+  .mr-win-use {
+    font-size: 16px;
+    min-height: 36px;
+  }
+  #eventRows td {
+    padding-right: 4px;
+  }
+}

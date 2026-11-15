@@ -144,6 +144,16 @@ const FIELDS: { key: keyof Limits; input: string; err: string; name: string; uni
 let limits: Limits = loadLimits();
 let last: SeriesSummary | null = null;
 let ready = false;
+const listeners: (() => void)[] = [];
+
+/** The limits in use now. */
+export const getLimits = (): Limits => ({ ...limits });
+
+/** Call `fn` after each change of the limits. */
+export function onLimits(fn: () => void) {
+  listeners.push(fn);
+}
+const changed = () => listeners.forEach((f) => f());
 
 function setLine(id: string, r: Result | null) {
   const li = $(id);
@@ -218,6 +228,7 @@ export function setupMission() {
       limits = { ...limits, [f.key]: v };
       saveLimits(limits);
       render();
+      changed();
     });
   }
   $('mrReset').addEventListener('click', () => {
@@ -225,6 +236,7 @@ export function setupMission() {
     saveLimits(limits);
     fillInputs();
     render();
+    changed();
   });
   render();
 }
