@@ -199,7 +199,7 @@ export const ILLUM_LEGEND = [
 ];
 /** 75° S in the SP projection (the half-width of the 120 m PGDA maps). */
 export const ILLUM_RHO_MAX = 457440;
-const PGDA_CREDIT = 'Average illumination: NASA PGDA, Mazarico et al. 2011 (LOLA)';
+const PGDA_CREDIT = 'Average illumination: NASA Planetary Geodesy Data Archive, Lunar Polar Illumination maps (LOLA)';
 const illumLayer = (id: string, title: string, what: string): TrekLayer => ({
   id,
   title,

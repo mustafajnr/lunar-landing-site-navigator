@@ -283,7 +283,7 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
         credit.className = 'pair-credit small';
         credit.textContent =
           'Percent of time that a part of the Sun or the Earth is visible, averaged over 18.6 years. ' +
-          'Data: NASA PGDA, Mazarico et al. 2011. Imagery: NASA Moon Trek.';
+          'Data: NASA Planetary Geodesy Data Archive, Lunar Polar Illumination maps. Imagery: NASA Moon Trek.';
         pairGrid.append(credit);
         feedPair(true);
         // Start at the same view as the site map. Phone layout: the site map can be made

@@ -171,7 +171,7 @@ export function setupPointUi(
     src.href = 'https://pgda.gsfc.nasa.gov/products/69';
     src.target = '_blank';
     src.rel = 'noopener';
-    src.textContent = 'Source: NASA PGDA, Mazarico et al. (2011)';
+    src.textContent = 'Source: NASA Planetary Geodesy Data Archive, Lunar Polar Illumination maps';
     d.append(sum, ol, rule, note, src);
     return d;
   }
