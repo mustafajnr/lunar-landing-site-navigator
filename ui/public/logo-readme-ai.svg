@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>lunarsite.select logo (AI-generated image): the Moon in front of Earth, Earth in front of the Sun</title>
+  <!-- Hand-written SVG, AI-generated (Claude Code). This version has a visible "AI-generated" mark. Clean version: logo.svg.
+       Each body is drawn with radius 100 around 0,0 and placed with a transform. -->
+  <defs>
+    <!-- Sun: a few sunspots -->
+    <radialGradient id="sunFill" cx="0.42" cy="0.4" r="0.62">
+      <stop offset="0" stop-color="#fff3b0"/>
+      <stop offset="0.55" stop-color="#ffd54a"/>
+      <stop offset="1" stop-color="#f5a623"/>
+    </radialGradient>
+    <g id="sun">
+      <circle r="100" fill="url(#sunFill)"/>
+      <g fill="#c77a12" opacity="0.55">
+        <ellipse cx="30" cy="-34" rx="15" ry="11"/>
+        <ellipse cx="52" cy="10" rx="10" ry="8"/>
+      </g>
+      <g fill="#6b3a06">
+        <ellipse cx="30" cy="-34" rx="7" ry="5"/>
+        <circle cx="52" cy="10" r="4.5"/>
+        <circle cx="12" cy="-55" r="3.5"/>
+      </g>
+      <circle r="97" fill="none" stroke="#d98a00" stroke-width="6"/>
+    </g>
+
+    <!-- Earth: Europe, Africa and Arabia, a north ice cap and clouds -->
+    <clipPath id="earthClip"><circle r="100"/></clipPath>
+    <g id="earth">
+      <circle r="100" fill="#2f86e0"/>
+      <g clip-path="url(#earthClip)">
+        <g fill="#5fb85a">
+          <path d="M-14,-62 C-4,-70 14,-72 30,-64 C40,-58 34,-50 24,-48 C30,-40 22,-34 10,-36 C2,-30 -10,-34 -14,-42 C-22,-46 -22,-56 -14,-62 Z"/>
+          <path d="M-22,-26 C-8,-32 16,-30 34,-24 C46,-18 52,-6 46,6 C40,16 34,22 34,34 C34,48 24,62 12,70 C4,74 -2,66 -2,56 C-2,44 -8,34 -16,26 C-26,18 -36,10 -36,-2 C-36,-14 -32,-22 -22,-26 Z"/>
+          <path d="M48,-22 C58,-20 68,-12 66,-2 C62,4 54,2 50,-6 C46,-12 44,-18 48,-22 Z"/>
+        </g>
+        <path fill="#d8c27a" d="M-30,-14 C-14,-24 22,-24 40,-16 C44,-10 40,-4 30,-4 C10,-6 -12,-2 -30,-4 Z"/>
+        <ellipse cx="0" cy="-104" rx="70" ry="22" fill="#ffffff"/>
+        <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="7" opacity="0.92">
+          <path d="M-78,16 C-64,4 -48,6 -42,16"/>
+          <path d="M56,34 C68,28 80,32 86,42"/>
+          <path d="M-60,52 C-48,46 -36,50 -32,58"/>
+        </g>
+      </g>
+      <circle r="97" fill="none" stroke="#1a5fb0" stroke-width="6"/>
+    </g>
+
+    <!-- Moon: simplified near-side maria (north up), Tycho with rays, Copernicus -->
+    <clipPath id="moonClip"><circle r="100"/></clipPath>
+    <g id="moon">
+      <circle r="100" fill="#c9ccd2"/>
+      <g clip-path="url(#moonClip)">
+        <g fill="#7d838e">
+          <!-- Oceanus Procellarum -->
+          <path d="M-74,-30 C-62,-44 -46,-42 -40,-26 C-46,-12 -40,6 -32,20 C-26,34 -36,48 -50,46 C-64,44 -76,30 -80,10 C-84,-8 -82,-20 -74,-30 Z"/>
+          <!-- Imbrium, Serenitatis -->
+          <circle cx="-22" cy="-44" r="22"/>
+          <circle cx="14" cy="-38" r="15"/>
+          <!-- Tranquillitatis -->
+          <path d="M8,-22 C22,-28 40,-22 44,-8 C48,6 36,14 22,12 C8,10 -2,2 0,-10 C1,-16 4,-20 8,-22 Z"/>
+          <!-- Crisium -->
+          <ellipse cx="66" cy="-26" rx="12" ry="10"/>
+          <!-- Fecunditatis -->
+          <path d="M44,8 C54,4 62,12 60,24 C58,34 48,38 42,30 C38,22 38,12 44,8 Z"/>
+          <!-- Nubium, Humorum -->
+          <ellipse cx="-12" cy="34" rx="18" ry="12"/>
+          <circle cx="-44" cy="44" r="9"/>
+        </g>
+        <g stroke="#eef0f3" stroke-linecap="round" stroke-width="2.4" opacity="0.75">
+          <path d="M-8,64 L-34,20"/>
+          <path d="M-8,64 L22,22"/>
+          <path d="M-8,64 L-58,58"/>
+          <path d="M-8,64 L44,60"/>
+        </g>
+        <circle cx="-8" cy="64" r="8" fill="#eef0f3"/>
+        <circle cx="-8" cy="64" r="4" fill="#9ca1aa"/>
+        <circle cx="-36" cy="-8" r="5.5" fill="#eef0f3"/>
+        <circle cx="-36" cy="-8" r="2.6" fill="#9ca1aa"/>
+        <circle cx="30" cy="66" r="7" fill="#b3b7be"/>
+        <circle cx="54" cy="52" r="4.5" fill="#b3b7be"/>
+      </g>
+      <circle r="97" fill="none" stroke="#868c96" stroke-width="6"/>
+    </g>
+
+    <!-- The dark ring around a front body shows only where it covers a body behind it. -->
+    <clipPath id="behindEarth"><circle cx="330" cy="190" r="180"/></clipPath>
+    <clipPath id="behindMoon"><circle cx="330" cy="190" r="180"/><circle cx="160" cy="230" r="150"/></clipPath>
+  </defs>
+
+  <!-- Sizes: Moon (front) < Earth < Sun. Earth and the Sun sit mostly behind the Moon. -->
+  <g transform="translate(27 11) scale(0.88)">
+    <use href="#sun" transform="translate(330 190) scale(1.8)"/>
+    <circle cx="160" cy="230" r="160" fill="#0b0f17" clip-path="url(#behindEarth)"/>
+    <use href="#earth" transform="translate(160 230) scale(1.5)"/>
+    <circle cx="256" cy="330" r="138" fill="#0b0f17" clip-path="url(#behindMoon)"/>
+    <use href="#moon" transform="translate(256 330) scale(1.28)"/>
+  </g>
+
+  <!-- Visible AI mark -->
+  <rect x="336" y="406" width="140" height="26" rx="13" fill="#0b0f17" stroke="#6b7380" stroke-width="1.5"/>
+  <text x="406" y="424" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="15" fill="#ffffff" textLength="122" lengthAdjust="spacingAndGlyphs">AI-generated image</text>
+</svg>

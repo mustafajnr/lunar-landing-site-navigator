@@ -1,4 +1,4 @@
-<img src="ui/public/logo-ai.svg" alt="Logo: the Moon in front of Earth, Earth in front of the Sun (AI-generated)" width="96" height="96" />
+<img src="ui/public/logo-readme-ai.svg" alt="Logo: the Moon in front of Earth, Earth in front of the Sun. Marked as an AI-generated image." width="400" height="400" />
 
 # Lunar Landing Site Navigator
 
@@ -252,7 +252,7 @@ If a download stops with a certificate error, read "Troubleshooting" in `core/RE
 
 The developer built this project with Claude Code (Anthropic). Several Claude Code agents worked in parallel on the UI, core, terrain, API and documentation workstreams. The developer directed and reviewed the work. Each commit has a `Co-Authored-By: Claude` line in its metadata. This README and the files in `docs/submission/` were also written with Claude Code.
 
-The web app shows the same note in its left panel and in its HTML metadata (`<meta name="generator">`). The package metadata (`ui/package.json`, `core/`, `data/` and `api/` `pyproject.toml`) also has it. The data and images in the tool come from NASA sources. They are not AI-generated. The exception is the project logo (`ui/public/logo*.svg`, `favicon.svg` and the PNG icons): Claude Code made it. The logo files with `-ai` in the name have a visible "AI-generated" mark, and the app and this README use them. The favicon is too small for a legible mark.
+The web app shows the same note in its left panel and in its HTML metadata (`<meta name="generator">`). The package metadata (`ui/package.json`, `core/`, `data/` and `api/` `pyproject.toml`) also has it. The data and images in the tool come from NASA sources. They are not AI-generated. The exception is the project logo (`ui/public/logo*.svg`, `favicon.svg` and the PNG icons): Claude Code made it. The logo files with `-ai` in the name have a visible "AI-generated" mark. The app uses `logo-ai.svg` and `logo-small-ai.svg`. This README uses `logo-readme-ai.svg`, a larger version with the mark "AI-generated image". The favicon is too small for a legible mark.
 
 ## License
 
