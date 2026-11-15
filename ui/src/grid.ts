@@ -1,7 +1,8 @@
 // Latitude/longitude grid on the Moon, in the Moon body frame (MOON_ME).
 // Lines every 10°. Extra latitude rings at 85° and 88° S and N (80° is on the 10° grid,
 // but drawn in the polar colour too). Text labels are sprites. updateGridLabels() limits
-// their size on the screen when the camera is near the surface.
+// their size on the screen when the camera is near the surface, and shows fewer labels
+// when the globe is small on the screen.
 
 import * as THREE from 'three';
 import { bodyVecOf } from './ephemeris';
@@ -31,7 +32,17 @@ function meridian(lon: number, latMax: number, mat: THREE.LineBasicMaterial) {
   return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
 }
 
-function label(text: string, color: string, height: number, minPx = 0) {
+type LabelKind = 'lat' | 'latPolar' | 'lon' | 'lonPolar';
+interface LabelInfo {
+  height: number;
+  aspect: number;
+  minPx: number;
+  kind: LabelKind;
+  /** Latitude or longitude of the label, degrees. */
+  deg: number;
+}
+
+function label(text: string, color: string, height: number, kind: LabelKind, deg: number, minPx = 0) {
   const c = document.createElement('canvas');
   const ctx = c.getContext('2d')!;
   const font = 'bold 40px system-ui, sans-serif';
@@ -57,7 +68,8 @@ function label(text: string, color: string, height: number, minPx = 0) {
   );
   sprite.renderOrder = 1;
   sprite.scale.set((height * w) / 56, height, 1);
-  sprite.userData.gridLabel = { height, aspect: w / 56, minPx };
+  const info: LabelInfo = { height, aspect: w / 56, minPx, kind, deg };
+  sprite.userData.gridLabel = info;
   return sprite;
 }
 
@@ -71,14 +83,67 @@ function label(text: string, color: string, height: number, minPx = 0) {
 const LABEL_MAX_PX = 24;
 const LABEL_MIN_PX = 15;
 const tmpPos = new THREE.Vector3();
+/** A label is hidden when the gap to a neighbour label is less than MIN_GAP label heights. */
+const MIN_GAP = 1.5;
+/** Longitude labels are wide: the gap must be at least LON_MIN_GAP label widths. */
+const LON_MIN_GAP = 1.2;
+/** Polar labels smaller than this (CSS px) are hidden. */
+const POLAR_MIN_PX = 8;
 
-/** Call once per frame, before the render. viewHeightPx is the canvas height in CSS px. */
+interface Placed {
+  info: LabelInfo;
+  obj: THREE.Object3D;
+  /** Screen position, CSS px. */
+  x: number;
+  y: number;
+  /** Label height on the screen, CSS px. */
+  hPx: number;
+}
+
+/**
+ * Screen distance (px) from `a` to the nearest main label at deg ± step. A neighbour on the
+ * far side has no screen position: for it, use the gap at the disk centre (globe radius x
+ * step in radians). Latitude neighbours outside ±LAT_LABEL_MAX do not exist.
+ */
+const LAT_LABEL_MAX = 70;
+function gapTo(a: Placed, step: number, map: Map<number, Placed>, wrap: boolean, globeRadiusPx: number) {
+  let g = Infinity;
+  for (const s of [-step, step]) {
+    let d = a.info.deg + s;
+    if (wrap && d > 180) d -= 360;
+    if (wrap && d <= -180) d += 360;
+    if (!wrap && Math.abs(d) > LAT_LABEL_MAX) continue;
+    const b = map.get(d);
+    g = Math.min(g, b ? Math.hypot(b.x - a.x, b.y - a.y) : globeRadiusPx * THREE.MathUtils.degToRad(step));
+  }
+  return g;
+}
+
+/**
+ * Call once per frame, before the render. viewHeightPx is the canvas height in CSS px.
+ *
+ * Label density depends on the gap between neighbour labels on the screen:
+ * - Latitude: a label stays if the gap to the labels 10° away is at least MIN_GAP label
+ *   heights. If not, it stays only if it is on the 20° grid (±20°, ±40°, ±60°) and the gap
+ *   to the labels 20° away is large enough. ±60° stays while the globe radius is at least
+ *   3 label heights. (The 0° latitude has no own label: the 0° longitude label marks it.)
+ * - Longitude (equator): every 30° if the gap is large enough, else every 90°, else none.
+ * - Polar ring and polar longitude labels: hidden when smaller than POLAR_MIN_PX.
+ */
 export function updateGridLabels(grid: THREE.Group, camera: THREE.PerspectiveCamera, viewHeightPx: number) {
   if (!grid.visible) return;
   // Pixels per world unit at distance 1 from the camera.
   const pxPerUnit = viewHeightPx / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.zoom);
+  const dc = Math.max(1.0001, camera.position.length());
+  const globeRadiusPx = pxPerUnit / Math.sqrt(dc * dc - 1);
+  const halfH = viewHeightPx / 2;
+  const halfW = halfH * camera.aspect;
+  const lat = new Map<number, Placed>();
+  const lon = new Map<number, Placed>();
+  camera.updateMatrixWorld();
+  // Pass 1: horizon test, size, screen position.
   for (const obj of grid.children) {
-    const info = obj.userData.gridLabel as { height: number; aspect: number; minPx: number } | undefined;
+    const info = obj.userData.gridLabel as LabelInfo | undefined;
     if (!info) continue;
     // The Moon centre is at the world origin. A label is visible if it is on the near side
     // of the horizon seen from the camera: p . (camera - p) > 0.
@@ -88,6 +153,34 @@ export function updateGridLabels(grid: THREE.Group, camera: THREE.PerspectiveCam
     const unitsPerPx = camera.position.distanceTo(tmpPos) / pxPerUnit;
     const hgt = Math.min(Math.max(info.height, info.minPx * unitsPerPx), LABEL_MAX_PX * unitsPerPx);
     obj.scale.set(hgt * info.aspect, hgt, 1);
+    const hPx = hgt / unitsPerPx;
+    if (info.kind === 'latPolar' || info.kind === 'lonPolar') {
+      obj.visible = hPx >= POLAR_MIN_PX;
+      continue;
+    }
+    tmpPos.project(camera);
+    const p: Placed = { info, obj, x: tmpPos.x * halfW, y: tmpPos.y * halfH, hPx };
+    (info.kind === 'lat' ? lat : lon).set(info.deg, p);
+  }
+  // The 0° longitude label at the equator is also the neighbour of the ±10° latitude labels.
+  const lon0 = lon.get(0);
+  if (lon0) lat.set(0, lon0);
+  // Pass 2: density. The gaps use the positions of all near-side labels of the 10° (30°) grid.
+  for (const p of lat.values()) {
+    if (p.info.kind !== 'lat') continue;
+    const need = MIN_GAP * p.hPx;
+    const d = p.info.deg;
+    p.obj.visible =
+      globeRadiusPx >= 3 * p.hPx &&
+      (gapTo(p, 10, lat, false, globeRadiusPx) >= need ||
+        (d % 20 === 0 && gapTo(p, 20, lat, false, globeRadiusPx) >= need) ||
+        Math.abs(d) === 60);
+  }
+  for (const p of lon.values()) {
+    const need = LON_MIN_GAP * p.hPx * p.info.aspect;
+    p.obj.visible =
+      globeRadiusPx >= need &&
+      (gapTo(p, 30, lon, true, globeRadiusPx) >= need || (p.info.deg % 90 === 0 && gapTo(p, 90, lon, true, globeRadiusPx) >= need));
   }
 }
 
@@ -114,9 +207,9 @@ export function createGrid(): THREE.Group {
   }
 
   // Latitude labels along the 0° meridian (and 180° for the polar rings, which are small).
-  for (let lat = -70; lat <= 70; lat += 10) {
+  for (let lat = -LAT_LABEL_MAX; lat <= LAT_LABEL_MAX; lat += 10) {
     if (lat === 0) continue; // the 0° longitude label marks the equator crossing
-    const s = label(latText(lat), '#ffffff', 0.035, LABEL_MIN_PX);
+    const s = label(latText(lat), '#ffffff', 0.035, 'lat', lat, LABEL_MIN_PX);
     s.position.copy(pt(lat + 1.2, 2.5, R_LABEL));
     g.add(s);
   }
@@ -124,7 +217,7 @@ export function createGrid(): THREE.Group {
     const h = a === 88 ? 0.008 : a === 85 ? 0.012 : 0.016;
     for (const sign of [-1, 1]) {
       for (const lon of [0, 180]) {
-        const s = label(latText(sign * a), '#ffc878', h);
+        const s = label(latText(sign * a), '#ffc878', h, 'latPolar', sign * a);
         s.position.copy(pt(sign * a, lon, R_LABEL));
         g.add(s);
       }
@@ -132,11 +225,11 @@ export function createGrid(): THREE.Group {
   }
   // Longitude labels every 30°: near the equator and near both poles (between 80° and 85°).
   for (let lon = -150; lon <= 180; lon += 30) {
-    const eq = label(lonText(lon), '#ffffff', 0.035, LABEL_MIN_PX);
+    const eq = label(lonText(lon), '#ffffff', 0.035, 'lon', lon, LABEL_MIN_PX);
     eq.position.copy(pt(-2, lon + 2.5, R_LABEL));
     g.add(eq);
     for (const sign of [-1, 1]) {
-      const s = label(lonText(lon), '#ffffff', 0.014);
+      const s = label(lonText(lon), '#ffffff', 0.014, 'lonPolar', lon);
       s.position.copy(pt(sign * 82.5, lon, R_LABEL));
       g.add(s);
     }

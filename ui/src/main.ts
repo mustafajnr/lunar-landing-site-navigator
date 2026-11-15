@@ -213,7 +213,11 @@ function marker(color: number, r = 0.022) {
 const subSunMarker = marker(0xffd54a);
 const subEarthMarker = marker(0x4aa3ff);
 const selMarker = marker(0xff4a4a, 0.012);
-// Selected point: a red dot plus a ring that keeps a fixed size on screen.
+// Selected point: a red dot plus a ring. The ring has a fixed size on the screen
+// (RING_MAX_PX), but its diameter is never more than RING_MAX_GLOBE of the globe diameter
+// on the screen, so it stays small when the camera is far.
+const RING_MAX_PX = 17; // outer radius, CSS px
+const RING_MAX_GLOBE = 0.03;
 const selRing = new THREE.Mesh(
   new THREE.RingGeometry(0.8, 1, 48),
   new THREE.MeshBasicMaterial({ color: 0xff4a4a, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthTest: false }),
@@ -658,6 +662,87 @@ function viewEarth() {
   viewFrom(state ? worldDir(state.earthDirInertial, inertial) : new THREE.Vector3(0, 0, 1), Math.max(3, fitDist()));
 }
 $('viewEarth').addEventListener('click', viewEarth);
+
+/**
+ * Default view: the Moon, the Earth and the Sun direction together. The camera looks at the
+ * Moon centre from the side and from below the equator (the south pole is visible). The
+ * function tries camera directions around the Moon and keeps the one that needs the
+ * shortest distance to fit the Moon and the Earth in the free screen area, with these rules:
+ * - the Earth line and the Sun line are at least 30° from the view direction (not end-on),
+ * - the Earth disk does not touch the Moon disk on the screen.
+ * A camera on the sunlit side gets a small bonus. Without a Moon state it uses the fixed fallback.
+ */
+const DEFAULT_MIN_LINE_ANGLE = THREE.MathUtils.degToRad(30);
+function defaultView() {
+  flight = null;
+  if (!state) {
+    viewFrom(new THREE.Vector3(0, -0.5, 1).normalize(), Math.max(3, fitDist()));
+    return;
+  }
+  const e = worldDir(state.earthDirInertial, inertial);
+  const s = worldDir(state.sunDirInertial, inertial);
+  const pole = worldDir([0, 0, 1], moonBody);
+  // Basis around the pole.
+  const h1 = e.clone().projectOnPlane(pole);
+  if (h1.lengthSq() < 1e-6) h1.set(1, 0, 0).projectOnPlane(pole);
+  h1.normalize();
+  const h2 = pole.clone().cross(h1);
+  const earthPos = e.clone().multiplyScalar(EARTH_DIST);
+  const f = freeArea();
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.88;
+  const tH = (t * f.w) / window.innerHeight;
+  const tV = (t * f.h) / window.innerHeight;
+  const up = camera.up;
+  const maxCos = Math.cos(DEFAULT_MIN_LINE_ANGLE);
+  let best: { d: THREE.Vector3; dist: number; score: number } | null = null;
+  const d = new THREE.Vector3();
+  const r = new THREE.Vector3();
+  const u = new THREE.Vector3();
+  for (let elDeg = -20; elDeg >= -55; elDeg -= 5) {
+    const el = THREE.MathUtils.degToRad(elDeg);
+    for (let azDeg = 0; azDeg < 360; azDeg += 5) {
+      const az = THREE.MathUtils.degToRad(azDeg);
+      d.copy(h1).multiplyScalar(Math.cos(el) * Math.cos(az))
+        .addScaledVector(h2, Math.cos(el) * Math.sin(az))
+        .addScaledVector(pole, Math.sin(el))
+        .normalize();
+      if (Math.abs(d.dot(e)) > maxCos || Math.abs(d.dot(s)) > maxCos) continue;
+      // Camera axes: right and up on the screen (the camera looks along -d).
+      r.copy(up).cross(d);
+      if (r.lengthSq() < 1e-6) continue;
+      r.normalize();
+      u.copy(d).cross(r);
+      let dist = fitDist();
+      if (!trueEarth) {
+        const ex = Math.abs(earthPos.dot(r)) + EARTH_RADIUS;
+        const ey = Math.abs(earthPos.dot(u)) + EARTH_RADIUS;
+        const ed = earthPos.dot(d);
+        dist = Math.max(dist, ed + ex / tH, ed + ey / tV);
+        // Earth disk and Moon disk must not touch on the screen.
+        const camE = d.clone().multiplyScalar(dist);
+        const toE = earthPos.clone().sub(camE);
+        const sep = toE.angleTo(camE.clone().negate());
+        const need = Math.asin(1 / dist) + Math.asin(Math.min(1, EARTH_RADIUS / toE.length())) + 0.02;
+        if (sep < need) continue;
+      }
+      // The Sun line must leave the Moon disk on the screen: its far end is in front of
+      // the camera and well outside the Moon disk.
+      const cam = d.clone().multiplyScalar(dist);
+      const toS = s.clone().multiplyScalar(SUN_DIST).sub(cam);
+      if (-toS.dot(d) < 0.3 * dist) continue;
+      if (toS.angleTo(cam.clone().negate()) < 2 * Math.asin(1 / dist)) continue;
+      if (dist > controls.maxDistance) continue;
+      const score = dist * (1 + 0.3 * (1 - d.dot(s)));
+      if (!best || score < best.score) best = { d: d.clone(), dist, score };
+    }
+  }
+  if (!best) {
+    viewEarth();
+    return;
+  }
+  viewFrom(best.d, best.dist);
+}
+$('viewDefault').addEventListener('click', defaultView);
 // From below the south pole. The camera is 0.5° off the axis toward lon 0, so lon 0 is
 // at the top of the screen.
 $('viewSouth').addEventListener('click', () => viewFrom(worldDir(bodyVecOf(-89.5, 0), moonBody), Math.max(2.5, fitDist() * 0.8)));
@@ -670,7 +755,7 @@ function setTrueEarth(on: boolean) {
   camera.far = on ? 2000 : 200;
   camera.updateProjectionMatrix();
   controls.maxDistance = on ? 900 : 60;
-  if (!on && camera.position.distanceTo(controls.target) > 60) viewEarth();
+  if (!on && camera.position.distanceTo(controls.target) > 60) defaultView();
   $('scaleNote').textContent = on
     ? 'Earth: true distance and size. Not to scale: the Sun distance and size are reduced (true distance about 86,000 Moon radii).'
     : 'Not to scale: Earth and Sun distances and sizes are reduced.';
@@ -720,7 +805,14 @@ function update() {
   const selWorld = selMarker.getWorldPosition(new THREE.Vector3());
   selRing.position.copy(selWorld);
   selRing.lookAt(camera.position);
-  selRing.scale.setScalar(camera.position.distanceTo(selWorld) * 0.012);
+  {
+    // Pixels per world unit at distance 1 from the camera, and the globe radius in pixels.
+    const pxPerUnit = window.innerHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.zoom);
+    const dc = Math.max(1.0001, camera.position.length());
+    const globeRadiusPx = pxPerUnit / Math.sqrt(dc * dc - 1);
+    const ringPx = Math.min(RING_MAX_PX, RING_MAX_GLOBE * globeRadiusPx);
+    selRing.scale.setScalar((camera.position.distanceTo(selWorld) * ringPx) / pxPerUnit);
+  }
   // Markers keep about the same size on screen when the camera zooms in.
   const k = Math.max(0.01, Math.min(1, (camera.position.length() - 1) / 3.5));
   for (const m of [selMarker, subSunMarker, subEarthMarker, ...siteGroup.children]) m.scale.setScalar(k);
@@ -787,7 +879,7 @@ function update() {
     earthEl: sky.earthElDeg,
     earthUp: api ? api.earthVisible : sky.earthElDeg > 0,
   });
-  if (first) viewEarth();
+  if (first) defaultView();
 }
 
 // The globe centre is the centre of the free screen area: between the side panels and
@@ -856,7 +948,7 @@ resize();
 dtInput.value = toInputValue(baseMs);
 requestBatch();
 selectPoint(selected, null, false);
-viewEarth();
+defaultView();
 requestAnimationFrame(frame);
 
 // Dev builds only: handles for debugging in the browser console.
