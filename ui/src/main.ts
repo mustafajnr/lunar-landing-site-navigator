@@ -15,9 +15,8 @@ import {
 import { createGrid, gridLight, updateGridLabels } from './grid';
 import { createEdgeIndicators } from './edgeind';
 import { setupPointUi, STATUS_COLOR } from './point';
-import { ResultsPanel, SERIES_STEP_MIN } from './results';
+import { missionStepMinutes, ResultsPanel } from './results';
 import { setupSaved } from './saved';
-import { setupMission, type MissionApi } from './mission';
 import { openCompare } from './compare';
 import { setupMapPanel } from './mappanel';
 import { drawSkyPlot, type AzMode, type ElZoom, type TrackPt } from './skyplot';
@@ -34,7 +33,10 @@ const MOON_R_KM = 1737.4;
 const EARTH_TRUE_RADIUS = 6371 / MOON_R_KM;
 const SUN_DIST = 14;
 const DAY_S = 86400;
-const WINDOW_S = 30 * DAY_S;
+// The period: [startMs, startMs + durationDays]. The time box sets both.
+const DEFAULT_DAYS = 30;
+const MIN_DAYS = 1;
+const MAX_DAYS = 400;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -339,7 +341,9 @@ const onSurface = (lat: number, lon: number, r = 1.004) => v3(bodyVecOf(lat, lon
 sunMarker.visible = earthMesh.visible = sunLine.visible = earthLine.visible = false;
 
 // ---------- State ----------
-let baseMs = Math.round(Date.now() / 60000) * 60000;
+let startMs = Math.round(Date.now() / 60000) * 60000;
+let durationDays = DEFAULT_DAYS;
+/** Time from the start of the period, 0 to the duration. */
 let offsetS = 0;
 let playing = false;
 // Default point (CONTRACTS.md example): on the ridge between Shackleton and de Gerlache,
@@ -351,7 +355,7 @@ let siteList: Site[] = [];
 let state: MoonState | null = null;
 let batch: MoonStateBatch | null = null;
 let batchReq: AbortController | null = null;
-let batchFor = NaN; // baseMs of the batch being loaded or loaded
+let batchFor = ''; // period of the batch being loaded or loaded
 const prevMoonQuat = new THREE.Quaternion();
 let havePrevQuat = false;
 
@@ -360,6 +364,9 @@ const dtInput = $<HTMLInputElement>('dt');
 const playBtn = $<HTMLButtonElement>('play');
 const speedSel = $<HTMLSelectElement>('speed');
 const offsetInput = $<HTMLInputElement>('offset');
+const durIn = $<HTMLInputElement>('durDays');
+const durErr = $<HTMLParagraphElement>('durErr');
+const durPresets = [...document.querySelectorAll<HTMLButtonElement>('.dur-presets [data-days]')];
 const followChk = $<HTMLInputElement>('follow');
 const trueSkyChk = $<HTMLInputElement>('trueSky');
 const skyCanvas = $<HTMLCanvasElement>('sky');
@@ -373,11 +380,29 @@ function toInputValue(ms: number) {
   return new Date(ms).toISOString().slice(0, 16);
 }
 
-function setBase(ms: number) {
-  baseMs = ms;
+const periodS = () => durationDays * DAY_S;
+const stopMs = () => startMs + periodS() * 1000;
+const fmtUtcMin = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ');
+const fmtDays = (d: number) => `${+d.toFixed(2)} d`;
+
+/** Set the period. The time goes back to the start. */
+function setPeriod(ms: number, days: number) {
+  startMs = ms;
+  durationDays = days;
   offsetS = 0;
+  setPlaying(false);
+  dtInput.value = toInputValue(startMs);
+  durIn.value = String(+days.toFixed(3));
+  durIn.classList.remove('bad');
+  durErr.hidden = true;
+  for (const b of durPresets) b.classList.toggle('active', Number(b.dataset.days) === days);
+  offsetInput.max = String(Math.round(periodS() / 60));
   offsetInput.value = '0';
-  dtInput.value = toInputValue(baseMs);
+  $('offsetEnd').textContent = `+${fmtDays(days)}`;
+  const step = missionStepMinutes(days);
+  const n = Math.floor((days * 1440) / step) + 1;
+  $('periodInfo').textContent =
+    `Period: ${fmtUtcMin(startMs)} to ${fmtUtcMin(stopMs())} UTC. Step: ${step} min (${n.toLocaleString('en-US')} steps).`;
   requestBatch();
   requestSeries();
 }
@@ -385,11 +410,12 @@ function setBase(ms: number) {
 // ---------- API: series for the selected point (results panel) ----------
 const results = new ResultsPanel(() => computeTracks());
 function requestSeries() {
-  results.setRequest({ point: selected, startMs: baseMs - WINDOW_S * 1000, stopMs: baseMs + WINDOW_S * 1000 });
+  results.setRequest({ point: selected, startMs, stopMs: stopMs(), stepMinutes: missionStepMinutes(durationDays) });
 }
 
-// ---------- API: Moon-state batch for the time window ----------
-const BATCH_STEP_MIN = 60;
+// ---------- API: Moon-state batch for the period ----------
+/** A coarser step for a long period keeps the request small (1 year at 60 min is about 8 MB). */
+const batchStepMin = (days: number) => (days <= 31 ? 60 : days <= 100 ? 120 : 180);
 const apiMsg = $<HTMLDivElement>('apiMsg');
 
 function showApiError(e: unknown) {
@@ -413,20 +439,22 @@ function showApiError(e: unknown) {
   btn.type = 'button';
   btn.textContent = 'Try again';
   btn.addEventListener('click', () => {
-    batchFor = NaN;
+    batchFor = '';
     requestBatch();
   });
   apiMsg.append(btn);
 }
 
 function requestBatch() {
-  if (batchFor === baseMs) return;
-  batchFor = baseMs;
+  const key = `${startMs}|${durationDays}`;
+  if (batchFor === key) return;
+  batchFor = key;
   batchReq?.abort();
   const ctrl = new AbortController();
   batchReq = ctrl;
-  const pad = 3600 * 1000;
-  loadMoonStates(baseMs - WINDOW_S * 1000 - pad, baseMs + WINDOW_S * 1000 + pad, BATCH_STEP_MIN, ctrl.signal)
+  const step = batchStepMin(durationDays);
+  const pad = step * 60000;
+  loadMoonStates(startMs - pad, stopMs() + pad, step, ctrl.signal)
     .then((b) => {
       if (ctrl.signal.aborted) return;
       batch = b;
@@ -437,7 +465,7 @@ function requestBatch() {
     })
     .catch((e) => {
       if ((e as Error).name === 'AbortError') return;
-      batchFor = NaN;
+      batchFor = '';
       console.error(e);
       showApiError(e);
     });
@@ -445,18 +473,35 @@ function requestBatch() {
 
 dtInput.addEventListener('change', () => {
   const ms = Date.parse(`${dtInput.value}:00Z`);
-  if (Number.isFinite(ms)) setBase(ms);
+  if (Number.isFinite(ms)) setPeriod(ms, durationDays);
 });
-$('now').addEventListener('click', () => setBase(Math.round(Date.now() / 60000) * 60000));
+$('now').addEventListener('click', () => setPeriod(Math.round(Date.now() / 60000) * 60000, durationDays));
+for (const b of durPresets) b.addEventListener('click', () => setPeriod(startMs, Number(b.dataset.days)));
+durIn.addEventListener('change', () => {
+  const t = durIn.value.trim().replace(',', '.');
+  const days = Number(t);
+  if (!t || !Number.isFinite(days) || days < MIN_DAYS || days > MAX_DAYS) {
+    durErr.textContent = `The duration must be a number of days from ${MIN_DAYS} to ${MAX_DAYS}.`;
+    durErr.hidden = false;
+    durIn.classList.add('bad');
+    return;
+  }
+  setPeriod(startMs, days);
+});
+function setPlaying(on: boolean) {
+  playing = on;
+  playBtn.textContent = on ? 'Pause' : 'Play';
+}
 playBtn.addEventListener('click', () => {
-  playing = !playing;
-  playBtn.textContent = playing ? 'Pause' : 'Play';
+  // At the end of the period, Play starts again from the start.
+  if (!playing && offsetS >= periodS()) offsetS = 0;
+  setPlaying(!playing);
 });
 offsetInput.addEventListener('input', () => {
-  offsetS = Number(offsetInput.value) * 60;
+  offsetS = Math.min(periodS(), Number(offsetInput.value) * 60);
 });
 
-// ---------- Local sky plot (az vs el, ±30 days) ----------
+// ---------- Local sky plot (az vs el, over the period) ----------
 let sunTrack: TrackPt[] = [];
 let earthTrack: TrackPt[] = [];
 
@@ -474,9 +519,9 @@ function computeTracks() {
   }
   // Preview from the Moon-state batch until /v1/series arrives.
   if (!batch) return;
-  const step = 2 * 3600;
-  for (let t = -WINDOW_S; t <= WINDOW_S; t += step) {
-    const s = batch.at(baseMs + t * 1000);
+  const step = Math.max(2 * 3600, Math.ceil(periodS() / 4000 / 3600) * 3600);
+  for (let t = 0; t <= periodS(); t += step) {
+    const s = batch.at(startMs + t * 1000);
     const sky = localSky(selected.latDeg, selected.lonDeg, s);
     sunTrack.push([sky.sunAzDeg, sky.sunElDeg]);
     earthTrack.push([sky.earthAzDeg, sky.earthElDeg]);
@@ -636,33 +681,32 @@ const currentPoint = () => ({
   radiusM: selectedSite?.radius_m ?? null,
   observerHeightM: results.observerHeightM,
 });
-let mission: MissionApi | null = null;
-const saved = setupSaved({
+setupSaved({
   current: () => ({
     ...currentPoint(),
-    startUtc: new Date(baseMs - WINDOW_S * 1000).toISOString(),
-    stopUtc: new Date(baseMs + WINDOW_S * 1000).toISOString(),
-    stepMinutes: SERIES_STEP_MIN,
+    startUtc: new Date(startMs).toISOString(),
+    stopUtc: new Date(stopMs()).toISOString(),
+    stepMinutes: missionStepMinutes(durationDays),
     terrain: 'auto',
+    durationDays,
   }),
   load: (s) => {
-    // The main view always uses a ±30 day window with terrain "auto": restore the
-    // point, the height and the window centre.
+    // Restore the point, the height, the start and the duration. Old searches (a ±30 day
+    // window around a date) load as a 60 day period from their start.
     const site = (s.siteId && siteList.find((x) => x.id === s.siteId)) || null;
     results.setObserverHeight(s.observerHeightM);
     selectPoint({ latDeg: s.latDeg, lonDeg: s.lonDeg }, site, true);
-    const mid = (Date.parse(s.startUtc) + Date.parse(s.stopUtc)) / 2;
-    setBase(Math.round(mid / 60000) * 60000);
-    if (s.kind === 'mission') mission?.fill(s);
+    const a = Date.parse(s.startUtc);
+    const raw = (Date.parse(s.stopUtc) - a) / (DAY_S * 1000);
+    const days = Math.min(MAX_DAYS, Math.max(MIN_DAYS, +raw.toFixed(3)));
+    setPeriod(Math.round(a / 60000) * 60000, days);
+    const notes: string[] = [];
+    if (days !== +raw.toFixed(3)) notes.push(`The main view shows ${fmtDays(days)}. The saved period is ${fmtDays(raw)}.`);
+    const step = missionStepMinutes(days);
+    if (step !== s.stepMinutes) notes.push(`The main view uses a ${step} min step. The comparison uses the saved step (${s.stepMinutes} min).`);
+    return notes.join(' ');
   },
   compare: (list) => openCompare(list),
-});
-
-// ---------- Mission (mission.ts) ----------
-mission = setupMission({
-  point: currentPoint,
-  nowMs: () => baseMs,
-  save: (inputs, name) => saved.add(inputs, name),
 });
 
 // Camera flight to a point: the camera ends above the point, looking at the Moon centre.
@@ -863,12 +907,13 @@ const m4 = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
 
 function update() {
-  const nowMs = baseMs + offsetS * 1000;
+  const nowMs = startMs + offsetS * 1000;
   const utc = new Date(nowMs);
   $('utc').textContent = utc.toISOString().replace(/\.\d{3}Z$/, 'Z');
   const days = Math.trunc(offsetS / DAY_S);
-  const hours = Math.trunc(Math.abs(offsetS % DAY_S) / 3600);
-  $('offsetLabel').textContent = `${offsetS < 0 ? '-' : '+'}${Math.abs(days)} d ${String(hours).padStart(2, '0')} h`;
+  const hours = Math.trunc((offsetS % DAY_S) / 3600);
+  const label = `+${days} d ${String(hours).padStart(2, '0')} h`;
+  if ($('offsetLabel').textContent !== label) $('offsetLabel').textContent = label;
   $('selLatLon').textContent = fmtLL(selected);
   selMarker.position.copy(onSurface(selected.latDeg, selected.lonDeg));
   moonBody.updateMatrixWorld(true);
@@ -997,16 +1042,10 @@ function frame(now: number) {
   last = now;
   if (playing) {
     offsetS += dt * Number(speedSel.value);
-    if (offsetS > WINDOW_S / 2) {
-      // Time leaves the middle of the window: move the window forward and load a new
-      // batch. The old batch still covers 15 more days, so it stays in use until the
-      // new one arrives.
-      const nowMs = baseMs + offsetS * 1000;
-      baseMs = Math.round(nowMs / 60000) * 60000;
-      offsetS = (nowMs - baseMs) / 1000;
-      dtInput.value = toInputValue(baseMs);
-      requestBatch();
-      requestSeries();
+    if (offsetS >= periodS()) {
+      // The end of the period: stop there.
+      offsetS = periodS();
+      setPlaying(false);
     }
     offsetInput.value = String(Math.round(offsetS / 60));
   }
@@ -1022,8 +1061,7 @@ function frame(now: number) {
 
 // ---------- Start ----------
 resize();
-dtInput.value = toInputValue(baseMs);
-requestBatch();
+setPeriod(startMs, durationDays);
 selectPoint(selected, null, false);
 defaultView();
 requestAnimationFrame(frame);

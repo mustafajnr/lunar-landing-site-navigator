@@ -183,7 +183,7 @@ export class CheckPanel {
     if (i === this.shownIndex) return;
     this.shownIndex = i;
     if (!inp || i < 0) {
-      this.status.textContent = inp ? 'The time slider is outside the loaded window.' : '';
+      this.status.textContent = inp ? 'The time slider is outside the period.' : '';
       this.now.replaceChildren();
       this.setLinks(null);
       return;

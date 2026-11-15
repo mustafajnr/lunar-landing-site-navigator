@@ -793,43 +793,30 @@ button.danger {
 .edge-ind.earth {
   color: #7cc0ff;
 }
-/* ---------- Mission (mission.ts) ---------- */
-.mis-presets {
+/* ---------- Period: duration presets (left panel) and period lines (results) ---------- */
+.dur-presets {
   justify-content: flex-start;
   flex-wrap: wrap;
 }
-.mis-presets button {
+.dur-presets button {
   font-size: 12px;
   padding: 1px 6px;
 }
-#misDays {
+#durDays {
   width: 60px;
 }
-.mis-card {
-  border: 1px solid #3a4250;
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin: 6px 0;
-  background: rgba(255, 255, 255, 0.03);
-}
-.mis-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-}
-.mis-lines {
+.period-lines {
   margin: 4px 0;
   padding-left: 16px;
   font-size: 12px;
 }
-.mis-lines li {
+.period-lines li {
   margin: 3px 0;
 }
-.mis-lines li.bad {
+.period-lines li.bad {
   color: #ffb3a7;
 }
-.mis-lines li.warn {
+.period-lines li.warn {
   color: #c90;
 }
 /* "User guide" link below the title in the left panel. */

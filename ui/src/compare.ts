@@ -13,7 +13,7 @@ const HOUR_MS = 3600000;
 /** Results by search inputs. Kept for the page session. */
 const cache = new Map<string, SeriesOut>();
 
-/** Put a result in the cache (for example a mission result), so a comparison does not load it again. */
+/** Put a result in the cache, so a comparison does not load it again. */
 export function cacheSeries(key: string, d: SeriesOut) {
   cache.set(key, d);
 }

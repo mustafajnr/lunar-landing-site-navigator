@@ -1,6 +1,6 @@
-// Site results panel: /v1/series for the selected point over the time window.
-// Shows live Sun/Earth values, the time to the next sunset/Earthset, the summary and
-// the event list. The API uses the terrain horizon where it has terrain data
+// Site results panel: /v1/series for the selected point over the period (start and
+// duration from the time box). Shows live Sun/Earth values, the time to the next
+// sunset/Earthset, the period result (summary and mission lines) and the event list. The API uses the terrain horizon where it has terrain data
 // (`terrain: "auto"`), else a flat horizon. Older APIs send no `horizon` block: then the
 // horizon is flat, as before.
 
@@ -8,7 +8,28 @@ import { ApiError, fetchSeries, type HorizonMask, type SeriesEvent, type SeriesO
 import type { LatLon } from './ephemeris';
 import { CheckPanel } from './check';
 
-export const SERIES_STEP_MIN = 60;
+const HOUR_MS = 3600000;
+
+/** Series step for a period of `days`. Keeps the steps at 20,000 or less and still shows short gaps. */
+export function missionStepMinutes(days: number): number {
+  if (days <= 31) return 10;
+  if (days <= 100) return 30;
+  return 60;
+}
+
+/** "4 d 12 h", "5 h 20 min" or "12 min". */
+export function fmtDH(h: number): string {
+  const min = Math.round(h * 60);
+  const d = Math.floor(min / 1440);
+  const hh = Math.floor((min % 1440) / 60);
+  const mm = min % 60;
+  if (d > 0) return `${d} d ${hh} h`;
+  if (hh > 0) return `${hh} h ${mm} min`;
+  return `${mm} min`;
+}
+
+/** "7 d" or "1.5 d". */
+const fmtDays = (days: number) => `${+days.toFixed(2)} d`;
 
 export interface SkyNow {
   sunAz: number;
@@ -82,6 +103,7 @@ export interface SeriesRequestKey {
   point: LatLon;
   startMs: number;
   stopMs: number;
+  stepMinutes: number;
 }
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -192,7 +214,8 @@ export class ResultsPanel {
       o.point.latDeg === k.point.latDeg &&
       o.point.lonDeg === k.point.lonDeg &&
       o.startMs === k.startMs &&
-      o.stopMs === k.stopMs
+      o.stopMs === k.stopMs &&
+      o.stepMinutes === k.stepMinutes
     )
       return;
     const pointChanged = !o || o.point.latDeg !== k.point.latDeg || o.point.lonDeg !== k.point.lonDeg;
@@ -234,7 +257,7 @@ export class ResultsPanel {
             observerHeightM: heightM,
             startMs: k.startMs,
             stopMs: k.stopMs,
-            stepMinutes: SERIES_STEP_MIN,
+            stepMinutes: k.stepMinutes,
             mask: mock,
             terrain: 'auto',
           },
@@ -324,6 +347,8 @@ export class ResultsPanel {
     this.check.set(
       d && req ? { data: d, point: req.point, observerHeightM: req.heightM, horizonLabel: this.horizon?.label ?? '–' } : null,
     );
+    const lines = $<HTMLUListElement>('sumLines');
+    lines.replaceChildren();
     if (!d) {
       sum.querySelectorAll('td[id]').forEach((td) => (td.textContent = '–'));
       return;
@@ -338,12 +363,13 @@ export class ResultsPanel {
     $('sumLongSun').textContent = fmtHours(s.longest_sun_period_h);
     $('sumLongEarth').textContent = fmtHours(s.longest_earth_period_h);
     $('sumLongBoth').textContent = fmtHours(s.longest_both_period_h);
+    this.renderLines(lines, d);
 
     if (!this.events.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
       td.colSpan = 2;
-      td.textContent = 'No sunrise, sunset, Earthrise or Earthset in this window.';
+      td.textContent = 'No sunrise, sunset, Earthrise or Earthset in this period.';
       tr.append(td);
       list.append(tr);
     }
@@ -361,6 +387,70 @@ export class ResultsPanel {
     this.lastNowText = '';
   }
 
+  /** Mission lines: the worst gaps, the state at the start and the first sunset. */
+  private renderLines(list: HTMLUListElement, d: SeriesOut) {
+    const s = d.summary;
+    const t = this.times;
+    const t0 = t[0];
+    const tEnd = t[t.length - 1];
+    const line = (text: string, cls = '') => {
+      const li = document.createElement('li');
+      li.textContent = text;
+      if (cls) li.className = cls;
+      list.append(li);
+    };
+    const sunOn = (i: number) => d.series.sun_visible_fraction[i] > 0;
+    const earthOn = (i: number) => d.series.earth_visible[i];
+    /** End of the sentence for a gap. A cut gap touches an edge of the period. */
+    const edge = (h: number, cut: boolean | undefined, on: (i: number) => boolean) => {
+      if (!cut) return '.';
+      // Length of the gap at the end of the period, from the samples.
+      let i = t.length - 1;
+      while (i >= 0 && !on(i)) i--;
+      const tail = i === t.length - 1 ? 0 : (tEnd - t[Math.max(0, i)]) / HOUR_MS;
+      const stepH = (t.length > 1 ? t[1] - t[0] : 0) / HOUR_MS;
+      const where = tail > 0 && Math.abs(tail - h) <= 1.5 * stepH + 1e-9 ? 'until the end of the period' : 'from the start of the period';
+      return `, ${where}. The real time can be longer.`;
+    };
+    if (s.longest_no_sun_period_h === undefined) {
+      line('This API version does not give the gaps. Use a newer API for the longest night and the longest Earth outage.', 'warn');
+    } else {
+      const ns = s.longest_no_sun_period_h;
+      line(
+        ns === 0
+          ? 'Longest night: none. The Sun is visible all the time.'
+          : `Longest night: ${fmtDH(ns)}${edge(ns, s.longest_no_sun_period_truncated, sunOn)} The lander must survive this without sunlight.`,
+        ns >= 24 ? 'bad' : '',
+      );
+      const ne = s.longest_no_earth_period_h!;
+      line(
+        ne === 0
+          ? 'Longest Earth outage: none. Earth is visible all the time.'
+          : `Longest Earth outage: ${fmtDH(ne)}${edge(ne, s.longest_no_earth_period_truncated, earthOn)} No direct radio link to Earth for this time.`,
+        ne >= 24 ? 'bad' : '',
+      );
+      const nb = s.longest_no_both_period_h!;
+      line(
+        nb === 0
+          ? 'Longest time without Sun and Earth together: none.'
+          : `Longest time without Sun and Earth together: ${fmtDH(nb)}${edge(nb, s.longest_no_both_period_truncated, (i) => sunOn(i) && earthOn(i))}`,
+      );
+    }
+    const sunUp = s.sun_up_at_start ?? sunOn(0);
+    const earthUp = s.earth_up_at_start ?? earthOn(0);
+    line(`At the start: the Sun is ${sunUp ? 'up' : 'down'}. Earth is ${earthUp ? 'up' : 'down'}.`, sunUp && earthUp ? '' : 'bad');
+    let first: number | null | undefined = s.time_to_first_sunset_h;
+    if (first === undefined) {
+      const ev = this.events.find((e) => e.type === 'sunset');
+      first = ev ? (ev.ms - t0) / HOUR_MS : null;
+    }
+    line(
+      first === null
+        ? `First sunset: none in the period (${fmtDays((tEnd - t0) / 86400000)}).`
+        : `First sunset: ${fmtDH(first)} after the start (${fmtUtc(t0 + first * HOUR_MS)} UTC).`,
+    );
+  }
+
   /** Live parts: current values and countdowns. Call every frame. */
   tick(nowMs: number) {
     this.check.tick(nowMs);
@@ -371,7 +461,7 @@ export class ResultsPanel {
     };
     if (!now) {
       for (const id of ['curSunEl', 'curSunFrac', 'curEarthEl', 'curEarthMargin']) set(id, '–');
-      for (const id of ['cdSun', 'cdEarth']) set(id, this.data ? 'Time is outside the loaded window.' : '–');
+      for (const id of ['cdSun', 'cdEarth']) set(id, this.data ? 'The time is outside the period.' : '–');
       set('cdSunSub', '');
       set('cdEarthSub', '');
       set('cdSunState', '');
@@ -395,20 +485,17 @@ export class ResultsPanel {
       stateEl.className = `state ${up ? 'up' : 'down'}`;
       if (!next) {
         const what = up ? (body === 'sun' ? 'sunset' : 'Earthset') : body === 'sun' ? 'sunrise' : 'Earthrise';
-        // Use the API's first event after the window, if it sent one.
+        const big = `No ${what} before the end of the period (${fmtDays((stop - this.times[0]) / 86400000)})`;
+        // The API gives the first event after the period (it searches up to 400 days).
         const type = (up ? (body === 'sun' ? 'sunset' : 'earthset') : body === 'sun' ? 'sunrise' : 'earthrise') as SeriesEvent['type'];
         const after = this.nextAfter?.[type];
         if (after != null && after > nowMs) {
-          return [`${EVENT_LABEL[type]} in ${fmtDuration(after - nowMs)}`, `at ${fmtUtc(after)} UTC (after the loaded window)`];
+          return [big, `Next ${what}: ${fmtUtc(after)} UTC, ${fmtDuration(after - stop)} after the end.`];
         }
         if (this.nextAfter && after === null) {
-          const end = stop + 400 * 86400000;
-          return [`No ${what} for more than ${fmtDuration(end - nowMs)}`, `None before ${fmtUtc(end)} UTC (API search: 400 days after the window).`];
+          return [big, `No ${what} in the 400 days after the end (${fmtUtc(stop + 400 * 86400000)} UTC).`];
         }
-        return [
-          `No ${what} for more than ${fmtDuration(stop - nowMs)}`,
-          `None before the end of the loaded window (${fmtUtc(stop)} UTC).`,
-        ];
+        return [big, `The period ends at ${fmtUtc(stop)} UTC.`];
       }
       return [`${EVENT_LABEL[next.type]} in ${fmtDuration(next.ms - nowMs)}`, `at ${fmtUtc(next.ms)} UTC`];
     };

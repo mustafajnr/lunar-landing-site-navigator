@@ -23,7 +23,7 @@
           <li><a href="#quick-start">Quick start</a></li>
           <li><a href="#screen">The screen</a></li>
           <li><a href="#site">Select a site</a></li>
-          <li><a href="#time">Time</a></li>
+          <li><a href="#time">Time and period</a></li>
           <li><a href="#results">Read the results</a></li>
           <li><a href="#sky-plot">The sky plot</a></li>
           <li><a href="#height">Observer height</a></li>
@@ -79,18 +79,18 @@
             <figcaption>Shackleton–de Gerlache ridge on 2026-11-22 at 00:00 UTC. The numbers refer to the list below.</figcaption>
           </figure>
           <ol class="legend">
-            <li><span class="marker">1</span><strong>Time (left panel).</strong> The date field, the slider and <span class="ui">Play</span>. See <a href="#time">Time</a>.</li>
+            <li><span class="marker">1</span><strong>Time and period (left panel).</strong> The start, the duration, the slider and <span class="ui">Play</span>. See <a href="#time">Time and period</a>.</li>
             <li><span class="marker">2</span><strong>Point (left panel).</strong> The site list and the latitude and longitude fields. See <a href="#site">Select a site</a>.</li>
             <li><span class="marker">3</span><strong>Saved searches (left panel).</strong> See <a href="#compare">Save and compare</a>.</li>
             <li><span class="marker">4</span><strong>View (left panel).</strong> The camera buttons for the globe. See <a href="#globe">The globe views</a>.</li>
             <li><span class="marker">5</span><strong>Globe.</strong> The Moon with the lit half, the grid and the sites. Drag to turn it. Use the mouse wheel to zoom.</li>
             <li><span class="marker">6</span><strong>Results panel (right).</strong> The selected point, the horizon tag and the two countdowns. See <a href="#results">Read the results</a>.</li>
             <li><span class="marker">7</span><strong>Observer height.</strong> See <a href="#height">Observer height</a>.</li>
-            <li><span class="marker">8</span><strong>Sky plot.</strong> The local sky over ±30 days. See <a href="#sky-plot">The sky plot</a>.</li>
+            <li><span class="marker">8</span><strong>Sky plot.</strong> The local sky over the period. See <a href="#sky-plot">The sky plot</a>.</li>
             <li><span class="marker">9</span><strong>Site map.</strong> NASA images of the site, with Sun and Earth arrows. See <a href="#map">The site map</a>.</li>
             <li><span class="marker">10</span><strong>Edge arrows.</strong> "To the Sun" and "To the Earth" point to a body that is off the screen.</li>
           </ol>
-          <p>Below the sky plot, the results panel also has the summary, the event list and <span class="ui">Check this result</span>. Scroll the results panel to see them.</p>
+          <p>Below the sky plot, the results panel also has the result for the period, the event list and <span class="ui">Check this result</span>. Scroll the results panel to see them.</p>
           <p>Use a screen that is 1280 pixels wide or more. On a smaller screen, the panels cover a large part of the globe. Scroll each panel to see all of it.</p>
         </section>
 
@@ -131,21 +131,25 @@
 
         <!-- 5 -->
         <section id="time">
-          <h2>5. Time <a class="anchor" href="#time" aria-label="Link to this section">#</a></h2>
+          <h2>5. Time and period <a class="anchor" href="#time" aria-label="Link to this section">#</a></h2>
           <p>All times in the tool are in UTC (see the <a href="#glossary">Glossary</a>).</p>
-          <h3>Date field</h3>
-          <p>Set a date and a time in the date field. Or click <span class="ui">Now</span> to use the current time. The tool then loads a new <strong>window</strong>. The window is the 60 days from 30 days before to 30 days after the date.</p>
+          <p>The time box sets the <strong>period</strong>. The period starts at the start time and continues for the duration. For a mission, the start is the landing time and the duration is the mission length. All results use this period.</p>
+          <h3 id="start">Start</h3>
+          <p>Set a date and a time in <span class="ui">Start (UTC)</span>. Or click <span class="ui">Now</span> to start the period at the current time.</p>
+          <h3 id="duration">Duration</h3>
+          <p>Click a duration: <span class="ui">1 week</span>, <span class="ui">1 month</span> (30 days), <span class="ui">3 months</span> (91 days) or <span class="ui">1 year</span> (365 days). Or type a number of days from 1 to 400 in <span class="ui">Custom duration</span>. The default duration is 30 days.</p>
+          <p>The line below the slider gives the period in UTC and the time step. A long period uses a larger step, so the tool stays fast: 10 min up to 31 days, 30 min up to 100 days, and 60 min for a longer period.</p>
           <h3>Slider</h3>
-          <p>Move the slider to change the time in the window. The label above the slider shows the offset from the date, for example "+2 d 06 h". The line below the slider shows the full UTC time. The countdowns, the values and the sky plot follow the slider. The slider does not load new data, so it is fast.</p>
+          <p>The slider goes from the start (left) to the end of the period (right). The label above the slider shows the time from the start, for example "+2 d 06 h". The line below the slider shows the full UTC time. The countdowns, the values and the sky plot follow the slider. The slider does not load new data, so it is fast.</p>
           <h3>Play</h3>
           <ol class="steps">
-            <li>Select a speed: 1 min / s, 1 hour / s, 6 hours / s or 1 day / s.</li>
-            <li>Click <span class="ui">Play</span>. The time moves forward.</li>
-            <li>Click the button again to stop.</li>
+            <li>Select a speed: 1 min / s, 1 hour / s, 6 hours / s, 1 day / s or 1 week / s. At 1 week / s, a 1-year period plays in about 1 minute.</li>
+            <li>Click <span class="ui">Play</span>. The time moves forward from the slider time.</li>
+            <li>Click <span class="ui">Pause</span> to stop.</li>
           </ol>
-          <p>When the time is 15 days after the date, the tool loads a new window around the new time. Thus <span class="ui">Play</span> can run for more than 30 days.</p>
-          <h3>The ±30-day window</h3>
-          <p>The summary, the event list and the sky plot tracks use the full window. A new date gives a new window and new values in the summary.</p>
+          <p><span class="ui">Play</span> stops at the end of the period. Click <span class="ui">Play</span> again to start again from the start.</p>
+          <h3>Results for the period</h3>
+          <p>The result for the period, the event list and the sky plot tracks use the full period. A new start or a new duration gives new results. See <a href="#summary">Result for the period</a>.</p>
         </section>
 
         <!-- 6 -->
@@ -170,8 +174,8 @@
           <h3 id="countdowns">Countdowns</h3>
           <p>Each countdown gives the time from the slider time to the next change. For example, "Earthrise in 9 d 15 h 10 min". The line below gives the UTC time of the event.</p>
           <ul>
-            <li>If the event is after the loaded window, the line says "(after the loaded window)". The server finds the event up to 400 days after the window.</li>
-            <li>If there is no event in that time, the panel says "No sunset for more than …". This can occur near the pole.</li>
+            <li>If the event is after the end of the period, the panel says, for example, "No sunset before the end of the period (7 d)". The line below gives the time of the next sunset after the end. The server finds the event up to 400 days after the end.</li>
+            <li>If there is no event in those 400 days, the line below says so. This can occur near the pole.</li>
           </ul>
 
           <h3 id="now-values">The values in "Now"</h3>
@@ -188,16 +192,25 @@
             </table>
           </div>
 
-          <h3 id="summary">Summary for the window</h3>
-          <p>The summary is for the full 60-day window.</p>
+          <h3 id="summary">Result for the period</h3>
+          <p>The result is for the full period, from the start to the end. Use it as the mission result.</p>
           <ul>
-            <li><span class="ui">Time with Sun</span>, <span class="ui">Time with Earth</span> and <span class="ui">Time with both</span>: the percent of the window with the Sun up, with Earth up, and with both up.</li>
-            <li><span class="ui">Mean Sun disk visible</span>: the mean of "Sun disk visible" over the window. It is a better guide to solar power than "Time with Sun".</li>
+            <li><span class="ui">Time with Sun</span>, <span class="ui">Time with Earth</span> and <span class="ui">Time with both</span>: the percent of the period with the Sun up, with Earth up, and with both up.</li>
+            <li><span class="ui">Mean Sun disk visible</span>: the mean of "Sun disk visible" over the period. It is a better guide to solar power than "Time with Sun".</li>
             <li><span class="ui">Longest Sun period</span>, <span class="ui">Longest Earth period</span> and <span class="ui">Longest period with both</span>: the longest time without a change. Use them to find the longest time that a lander can work without a break.</li>
           </ul>
+          <p>Below the table, the mission lines give the worst cases for the period:</p>
+          <ul>
+            <li><strong>Longest night.</strong> The longest time without the Sun. The lander must survive this time without sunlight.</li>
+            <li><strong>Longest Earth outage.</strong> The longest time without Earth. There is no direct radio link to Earth for this time.</li>
+            <li><strong>Longest time without Sun and Earth together.</strong></li>
+            <li><strong>At the start.</strong> The Sun and Earth at the start of the period (for a mission: at landing).</li>
+            <li><strong>First sunset.</strong> The time from the start to the first sunset.</li>
+          </ul>
+          <p>A line in red is a risk: a gap of 24 hours or more, or the Sun or Earth down at the start. If a gap touches the start or the end of the period, the line says "from the start of the period" or "until the end of the period". The real gap can then be longer. Make the period longer to find its full length.</p>
 
           <h3 id="events">Events</h3>
-          <p>The event list gives all sunrises, sunsets, Earthrises and Earthsets in the window, in UTC. Past events are grey. The next Sun event and the next Earth event are bold.</p>
+          <p>The event list gives all sunrises, sunsets, Earthrises and Earthsets in the period, in UTC. Past events are grey. The next Sun event and the next Earth event are bold.</p>
 
           <h3 id="south-pole">Why the south pole is special</h3>
           <p>At the poles, the Sun and Earth do not rise high. They move around the horizon and stay a few degrees above or below it. Thus a small hill can hide them for days. A high ridge can have the Sun for weeks or months. A deep crater can have no Sun at all.</p>
@@ -212,11 +225,11 @@
             <img src="/guide/sky.jpg" width="354" height="318" alt="Sky plot. A yellow Sun track near +1° all around. A blue Earth loop near 140° azimuth goes below the brown terrain horizon." />
             <figcaption>Shackleton–de Gerlache ridge, 2026-12-06. The Sun (yellow) stays above the terrain. Earth (blue, large dot) is below the horizon.</figcaption>
           </figure>
-          <p>The sky plot shows the sky around the selected point over the ±30-day window.</p>
+          <p>The sky plot shows the sky around the selected point over the period.</p>
           <ul>
             <li><strong>Left to right</strong> is the azimuth: the compass direction, from 0° (north) through 90° (east), 180° (south) and 270° (west).</li>
             <li><strong>Bottom to top</strong> is the elevation: the angle above the flat horizon.</li>
-            <li><strong>Small yellow dots</strong> are the Sun at each hour of the window. <strong>Small blue dots</strong> are Earth.</li>
+            <li><strong>Small yellow dots</strong> are the Sun at each time step of the period. <strong>Small blue dots</strong> are Earth.</li>
             <li><strong>Large dots</strong> show the Sun and Earth at the slider time.</li>
             <li><strong>The dashed line</strong> is the flat horizon at 0°.</li>
             <li><strong>The brown area</strong> is the terrain horizon. A body in the brown area is behind the terrain. You cannot see it from the point.</li>
@@ -329,9 +342,9 @@
         <section id="compare">
           <h2>12. Save and compare <a class="anchor" href="#compare" aria-label="Link to this section">#</a></h2>
           <h3 id="save">Save a search</h3>
-          <p>A saved search keeps the point, the observer height and the 60-day window.</p>
+          <p>A saved search keeps the point, the observer height, the start and the duration. Click <span class="ui">Load</span> to show it again. The time box then shows its start and duration.</p>
           <ol class="steps">
-            <li>Select a point, a time and an observer height.</li>
+            <li>Select a point, a start, a duration and an observer height.</li>
             <li>In the results panel, click <span class="ui">Save search</span>.</li>
             <li>Type a name, or keep the name that the tool gives.</li>
             <li>Click <span class="ui">Save</span>.</li>
@@ -360,13 +373,13 @@
           <p>A mission plans to land at the Shackleton–de Gerlache ridge on 2026-11-22. Then the launch slips by 2 weeks, to 2026-12-06. The observer height is 2 m.</p>
           <ol class="steps">
             <li>Type −89.45 in <span class="ui">Lat (°)</span> and −137.31 in <span class="ui">Lon (°)</span>. Click <span class="ui">Go</span>.</li>
-            <li>Set the date field to 22 November 2026, 00:00.</li>
+            <li>Set <span class="ui">Start (UTC)</span> to 22 November 2026, 00:00. Click <span class="ui">1 month</span>.</li>
             <li>Click <span class="ui">Save search</span>. Type the name "Ridge, landing 2026-11-22". Click <span class="ui">Save</span>.</li>
-            <li>Set the date field to 6 December 2026, 00:00.</li>
+            <li>Set <span class="ui">Start (UTC)</span> to 6 December 2026, 00:00.</li>
             <li>Click <span class="ui">Save search</span>. Type the name "Ridge, landing 2026-12-06 (slip)". Click <span class="ui">Save</span>.</li>
             <li>Select <span class="ui">Malapert Massif</span> in the site list. Save it as "Malapert Massif, landing 2026-12-06".</li>
             <li>Select the three check boxes. Click <span class="ui">Compare</span>.</li>
-            <li>Click <span class="ui">Days from start</span>. In each search, the landing date is at day 30.</li>
+            <li>Click <span class="ui">Days from start</span>. In each search, the landing date is at day 0.</li>
           </ol>
           <p>The results panel shows these values at 00:00 UTC on each date (API values of 2026-11-15):</p>
           <div class="table-wrap">
@@ -379,14 +392,14 @@
               </tbody>
             </table>
           </div>
-          <p>The comparison table gives these values for the 60-day windows:</p>
+          <p>The comparison table gives these values for the 1-month periods (30 days from each landing date):</p>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Search</th><th>Sun, % of time</th><th>Earth, % of time</th><th>Sun and Earth, % of time</th><th>Next Earthset</th></tr></thead>
+              <thead><tr><th>Search</th><th>Sun, % of time</th><th>Earth, % of time</th><th>Sun and Earth, % of time</th><th>Longest Earth outage</th><th>Next Earthset</th></tr></thead>
               <tbody>
-                <tr><td>Ridge, 2026-11-22</td><td>100.0 %</td><td>45.3 %</td><td>45.3 %</td><td>10.1 d after the start</td></tr>
-                <tr><td>Ridge, 2026-12-06</td><td>100.0 %</td><td>35.9 %</td><td>35.9 %</td><td>Earth is down at the start.</td></tr>
-                <tr><td>Malapert Massif, 2026-12-06</td><td>78.0 %</td><td>44.5 %</td><td>36.4 %</td><td>Earth is down at the start.</td></tr>
+                <tr><td>Ridge, 2026-11-22</td><td>100.0 %</td><td>45.3 %</td><td>45.3 %</td><td>16.4 d</td><td>7.2 d after the start</td></tr>
+                <tr><td>Ridge, 2026-12-06</td><td>100.0 %</td><td>36.1 %</td><td>36.1 %</td><td>9.6 d, from the start</td><td>Earth is down at the start.</td></tr>
+                <tr><td>Malapert Massif, 2026-12-06</td><td>76.7 %</td><td>44.7 %</td><td>32.2 %</td><td>8.3 d, from the start</td><td>Earth is down at the start.</td></tr>
               </tbody>
             </table>
           </div>
@@ -395,7 +408,7 @@
             <li>On 2026-11-22, the ridge has the Sun and Earth. Earth sets after about 7 days.</li>
             <li>After the slip, the ridge still has the Sun. But Earth is below the horizon for the first 9 days. Thus direct communication with Earth is not possible without a relay satellite.</li>
             <li>At Malapert Massif, Earth is also down. The Sun sets after about 7 days.</li>
-            <li>In the timeline with <span class="ui">Days from start</span>, the Earth strip of the slipped searches is empty around day 30.</li>
+            <li>In the timeline with <span class="ui">Days from start</span>, the Earth strip of the slipped searches is empty at the start.</li>
           </ul>
           <p>Next, the planner can save the ridge on 2026-12-16 and compare again. On that date, the Sun and Earth are both up at the ridge.</p>
           <figure>
