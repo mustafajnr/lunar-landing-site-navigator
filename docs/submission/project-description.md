@@ -16,17 +16,13 @@ lunarsite.select
 
 ## High-Level Project Summary
 
-(About 1,424 characters.)
+(163 words. The form asks for 50 to 200 words.)
 
-Lunar Landing Site Navigator is a web tool that compares lunar landing sites over a mission period. For a point on the Moon, it shows when the Sun and Earth are above the local terrain horizon. Thus a planner can estimate solar power and direct-to-Earth communication.
+lunarsite.select is a free web tool that tells mission planners, teachers and the public if a lunar landing site will have solar power and a direct radio link to Earth. You pick a site, a landing date and a mission duration. The tool calculates where the Sun and Earth are relative to the local terrain horizon, with NASA SPICE (JPL DE440) and LRO LOLA terrain data. It then gives a plain-language verdict and checks NASA mission requirements.
 
-You select a site, a start and a duration (up to 400 days). The Verdict tab gives a plain-language result and checks three NASA mission requirements: the VIPER darkness limit of 50 hours, 6.5 days of sunlight for Artemis, and 25 % Earth visibility. A site map shows NASA Moon Trek images, slope and NASA PGDA average sunlight, and lists the best points in a site. You can compare up to 4 saved searches side by side.
+At the lunar south pole, the Sun and Earth stay near the horizon, so a small change in date or place can remove power or communication. When a launch slips, the tool finds the next landing window, ranks the best points in a site from NASA illumination maps, and compares sites and dates side by side.
 
-The tool uses NASA SPICE with the JPL DE440 ephemeris, and LOLA elevation data for the terrain horizon at the south pole. At six test instants, its Sun and Earth directions agree with JPL Horizons to better than 0.000001°.
-
-Example: NASA plans Artemis IV, the first crewed landing, for early 2028 at the south pole, with a stay of about 6.5 days. At a Malapert Massif best point, an example landing on 2028-01-10 meets 3 of 3 requirements. If the launch slips 12 days, the Sun is down at the landing and the point meets 1 of 3. The tool then finds the next landing window, or a point at de Gerlache Rim that meets 3 of 3.
-
-The tool is for mission planners, educators and the public. It runs in a web browser at https://lunarsite.select.
+Example: in our assumed Artemis IV plan, a 12-day slip makes a Malapert Massif point fail. The tool finds a new date and a new site in a few clicks.
 
 ---
 
