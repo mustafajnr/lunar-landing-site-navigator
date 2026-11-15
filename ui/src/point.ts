@@ -36,7 +36,7 @@ export function validateLatLon(latText: string, lonText: string): Validation {
 
 const STATUS_ORDER: Site['status'][] = ['candidate', 'planned', 'past'];
 const STATUS_LABEL: Record<string, string> = {
-  candidate: 'Candidate sites',
+  candidate: 'Candidate regions',
   planned: 'Planned missions',
   past: 'Past landings',
 };
@@ -54,7 +54,20 @@ export interface PointUi {
   setSitesError(msg: string): void;
 }
 
-export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void): PointUi {
+/** Value of the site list option for the default point (it is not a site in the API list). */
+const DEFAULT_VALUE = '__default';
+
+/** Group label: "Artemis III candidate regions" when all sites in the group have one mission. */
+function groupLabel(status: string, group: Site[]) {
+  const label = STATUS_LABEL[status] ?? status;
+  const missions = new Set(group.map((s) => s.mission));
+  return status === 'candidate' && missions.size === 1 ? `${group[0].mission} candidate regions` : label;
+}
+
+export function setupPointUi(
+  onSelect: (ll: LatLon, site: Site | null) => void,
+  defaultPoint?: LatLon & { name: string },
+): PointUi {
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
   const form = $<HTMLFormElement>('pointForm');
   const latIn = $<HTMLInputElement>('latIn');
@@ -63,6 +76,7 @@ export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void):
   const siteSel = $<HTMLSelectElement>('siteSel');
   const siteInfo = $<HTMLDivElement>('siteInfo');
   let sites: Site[] = [];
+  let shown: LatLon | null = null;
 
   const clearErr = () => {
     err.hidden = true;
@@ -85,7 +99,15 @@ export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void):
     onSelect(v.ll, null);
   });
 
+  const isDefault = (ll: LatLon) =>
+    !!defaultPoint && Math.abs(ll.latDeg - defaultPoint.latDeg) < 1e-6 && Math.abs(ll.lonDeg - defaultPoint.lonDeg) < 1e-6;
+
   siteSel.addEventListener('change', () => {
+    if (defaultPoint && siteSel.value === DEFAULT_VALUE) {
+      clearErr();
+      onSelect({ latDeg: defaultPoint.latDeg, lonDeg: defaultPoint.lonDeg }, null);
+      return;
+    }
     const s = sites.find((x) => x.id === siteSel.value);
     if (s) {
       clearErr();
@@ -129,9 +151,10 @@ export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void):
 
   return {
     show(ll, site) {
+      shown = ll;
       latIn.value = ll.latDeg.toFixed(4);
       lonIn.value = ll.lonDeg.toFixed(4);
-      siteSel.value = site ? site.id : '';
+      siteSel.value = site ? site.id : isDefault(ll) && siteSel.querySelector(`option[value="${DEFAULT_VALUE}"]`) ? DEFAULT_VALUE : '';
       showSiteInfo(ll, site);
     },
     setSites(list) {
@@ -142,12 +165,18 @@ export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void):
       none.value = '';
       none.textContent = '— Custom point —';
       siteSel.append(none);
+      if (defaultPoint) {
+        const d = document.createElement('option');
+        d.value = DEFAULT_VALUE;
+        d.textContent = `${defaultPoint.name} (default, ${defaultPoint.latDeg.toFixed(2)}°, ${defaultPoint.lonDeg.toFixed(2)}°)`;
+        siteSel.append(d);
+      }
       const statuses = [...STATUS_ORDER, ...new Set(list.map((s) => s.status).filter((x) => !STATUS_ORDER.includes(x)))];
       for (const status of statuses) {
         const group = list.filter((s) => s.status === status);
         if (!group.length) continue;
         const og = document.createElement('optgroup');
-        og.label = STATUS_LABEL[status] ?? status;
+        og.label = groupLabel(status, group);
         for (const s of group) {
           const o = document.createElement('option');
           o.value = s.id;
@@ -156,7 +185,7 @@ export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void):
         }
         siteSel.append(og);
       }
-      siteSel.value = keep;
+      siteSel.value = keep || (shown && isDefault(shown) ? DEFAULT_VALUE : '');
     },
     setSitesError(msg) {
       siteSel.innerHTML = '';

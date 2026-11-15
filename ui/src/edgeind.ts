@@ -56,12 +56,13 @@ export function createEdgeIndicators(canvas: HTMLCanvasElement) {
   canvas.after(layer);
   const sun = make(layer, 'sun', 'Sun', 'To the Sun');
   const earth = make(layer, 'earth', 'Earth', 'To the Earth');
+  const moon = make(layer, 'moon', 'Moon', 'To the Moon');
   const tmp = new THREE.Vector3();
 
   /** Screen position (CSS px) of a view-space point. */
   function toPx(v: THREE.Vector3, camera: THREE.PerspectiveCamera) {
     tmp.copy(v).applyMatrix4(camera.projectionMatrix);
-    return { x: ((tmp.x + 1) / 2) * window.innerWidth, y: ((1 - tmp.y) / 2) * window.innerHeight };
+    return { x: ((tmp.x + 1) / 2) * canvas.clientWidth, y: ((1 - tmp.y) / 2) * canvas.clientHeight };
   }
 
   function place(ind: Indicator, body: Body | null, camera: THREE.PerspectiveCamera, box: ScreenBox, avoid: DOMRect | null) {
@@ -92,7 +93,7 @@ export function createEdgeIndicators(canvas: HTMLCanvasElement) {
     const y1 = box.bottom - MARGIN;
     el.hidden = false;
     // Body disk radius on the screen, CSS px (0 if the body is behind the camera).
-    const rPx = pv.z < nearZ ? (body.radius / -pv.z) * (window.innerHeight / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) : 0;
+    const rPx = pv.z < nearZ ? (body.radius / -pv.z) * (canvas.clientHeight / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) : 0;
     // A part of the disk is in the free area: "on the screen".
     const m = Math.min(rPx, 40) * 0.7;
     if (pv.z < nearZ && b.x + m > x0 && b.x - m < x1 && b.y + m > y0 && b.y - m < y1) {
@@ -142,20 +143,41 @@ export function createEdgeIndicators(canvas: HTMLCanvasElement) {
     const pv = body.pos.clone().applyMatrix4(camera.matrixWorldInverse);
     if (pv.z > -camera.near) return null;
     const c = toPx(pv, camera);
-    const rPx = (body.radius / -pv.z) * (window.innerHeight / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const rPx = (body.radius / -pv.z) * (canvas.clientHeight / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     return new DOMRect(c.x - rPx, c.y - rPx, 2 * rPx, 2 * rPx);
   }
 
   return {
     /** Call once per frame, after the camera update. A null body hides its indicator. */
-    update(camera: THREE.PerspectiveCamera, box: ScreenBox, sunBody: Body | null, earthBody: Body | null) {
+    update(
+      camera: THREE.PerspectiveCamera,
+      box: ScreenBox,
+      sunBody: Body | null,
+      earthBody: Body | null,
+      /** Moon label: only for the true scale view, where the Moon is small. Null hides it. */
+      moonBody: Body | null = null,
+      /** Text next to the Sun marker when it is on the screen. */
+      sunOnText = 'Sun',
+    ) {
+      sun.onText = sunOnText;
       camera.updateMatrixWorld();
+      // Phone layout: the canvas is in the page flow, so the layer follows its box.
+      if (getComputedStyle(canvas).position !== 'fixed') {
+        layer.style.top = `${canvas.offsetTop}px`;
+        layer.style.left = `${canvas.offsetLeft}px`;
+        layer.style.width = `${canvas.clientWidth}px`;
+        layer.style.height = `${canvas.clientHeight}px`;
+      } else if (layer.style.top) {
+        layer.style.top = layer.style.left = layer.style.width = layer.style.height = '';
+      }
       place(earth, earthBody, camera, box, null);
+      place(moon, moonBody, camera, box, earthBody ? diskRect(earthBody, camera) : null);
       // The Sun indicator keeps off the Earth disk and off the Earth indicator.
       let avoid = earthBody ? diskRect(earthBody, camera) : null;
       place(sun, sunBody, camera, box, avoid);
-      if (!earth.el.hidden && !sun.el.hidden) {
-        avoid = earth.el.getBoundingClientRect();
+      for (const other of [earth, moon]) {
+        if (other.el.hidden || sun.el.hidden) continue;
+        avoid = other.el.getBoundingClientRect();
         const r = sun.el.getBoundingClientRect();
         if (r.left < avoid.right && avoid.left < r.right && r.top < avoid.bottom && avoid.top < r.bottom) {
           sun.el.style.transform += ` translateY(${Math.round(avoid.top - r.bottom - 4)}px)`;

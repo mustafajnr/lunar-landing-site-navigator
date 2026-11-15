@@ -69,6 +69,7 @@
             <li>Read the countdown below each line. It tells you the time to the next change, for example "Sunset in 7 d 06 h 55 min".</li>
           </ol>
           <p>The tool needs a few seconds to load the results. The status line says "Loading…" until the results are ready.</p>
+          <p>At your first visit, a <strong>welcome card</strong> shows below the title. It gives the 3 main steps and a link to this guide. Click <span class="ui">✕</span> to close it. Your browser keeps this setting, so the card does not show again. If your browser does not keep data, the card shows at each visit.</p>
         </section>
 
         <!-- 3 -->
@@ -91,7 +92,19 @@
             <li><span class="marker">10</span><strong>Edge arrows.</strong> "To the Sun" and "To the Earth" point to a body that is off the screen.</li>
           </ol>
           <p>Below the sky plot, the results panel also has the result for the period, the event list and <span class="ui">Check this result</span>. Scroll the results panel to see them.</p>
-          <p>Use a screen that is 1280 pixels wide or more. On a smaller screen, the panels cover a large part of the globe. Scroll each panel to see all of it.</p>
+          <p>On a computer, use a screen that is 1280 pixels wide or more. On a smaller screen, the panels cover a large part of the globe. Scroll each panel to see all of it.</p>
+          <h3 id="phone">On a phone</h3>
+          <p>On a phone or a narrow window (760 pixels or less), the tool shows all parts in one column. Scroll down to see them in this sequence:</p>
+          <ol>
+            <li>The title, the guide link and the welcome card.</li>
+            <li>The results: <span class="up">Sun is up</span> or <span class="down">Sun is down</span>, and the same for Earth, with the countdowns.</li>
+            <li>The point and the time controls.</li>
+            <li>The globe. Drag on the globe to turn it. Use two fingers to zoom. To scroll the page, touch the page above or below the globe.</li>
+            <li>The sky plot.</li>
+            <li>The site map. It is folded at the start. Tap <span class="ui">▸ Site map</span> to open it.</li>
+            <li>The other sections: Now, the result for the period, the events, saved searches and the view controls.</li>
+          </ol>
+          <p>The comparison fills the screen. Scroll the table to the side to see all columns.</p>
         </section>
 
         <!-- 4 -->
@@ -105,6 +118,7 @@
             <li>15 past landings: Apollo 11, 12, 14, 15, 16 and 17, Chang'e 3, 4, 5 and 6, Chandrayaan-3, SLIM, IM-1, IM-2 and Blue Ghost Mission 1.</li>
             <li>7 Artemis III candidate regions near the south pole.</li>
           </ul>
+          <p>The list shows the sites in two groups: <span class="ui">Artemis III candidate regions</span> and <span class="ui">Past landings</span>. The list also has the default point, <span class="ui">Shackleton–de Gerlache ridge (default)</span>. The tool opens at this point. <span class="ui">— Custom point —</span> shows when you typed coordinates or clicked a point.</p>
           <p>Select a site. The globe turns to the site, and the results panel loads new results. The text below the fields gives the source of the site position.</p>
           <p>On the globe, a green dot is a candidate site. A grey dot is a past landing. A red dot is the selected point.</p>
 
@@ -234,6 +248,7 @@
             <li><strong>The dashed line</strong> is the flat horizon at 0°.</li>
             <li><strong>The brown area</strong> is the terrain horizon. A body in the brown area is behind the terrain. You cannot see it from the point.</li>
           </ul>
+          <p>At a terrain point, the top edge of the brown area is the horizon, not the dashed line. A dot can be above the dashed line and still be behind the terrain. Then the card says <span class="down">Earth is down</span> or <span class="down">Sun is down</span>. At a point without terrain data, the dashed line is the horizon.</p>
           <p>Click the <span class="ui">i</span> button next to the title to show a short help text.</p>
 
           <h3 id="zoom">Zoom buttons</h3>
@@ -316,6 +331,7 @@
           </figure>
           <h3 id="edge-arrows">Edge arrows</h3>
           <p>When the Sun or Earth is on the screen, a small label shows next to it. When it is off the screen, an arrow at the edge of the globe area points to it. The arrow label says "To the Sun" or "To the Earth".</p>
+          <p>In <span class="ui">Earth and Moon, true scale</span>, the Moon is small, so it gets the label "Moon". The Sun marker stays near the Moon, because the Sun distance is not to scale. Its label is "Sun direction".</p>
           <h3>Moon geometry</h3>
           <p>The <span class="ui">Moon geometry</span> table in the left panel gives the sub-solar point, the sub-Earth point and the Earth distance (see the <a href="#glossary">Glossary</a>).</p>
         </section>
@@ -335,6 +351,28 @@
             <li><strong>Full screen.</strong> Click <span class="ui">Full screen</span> to make the map fill the window. Click <span class="ui">Exit full screen</span> to go back.</li>
             <li><strong>Fold.</strong> Click <span class="ui">▾ Site map</span> to hide the map and see more of the globe.</li>
             <li><strong>Select a point.</strong> Click on the map to select that point.</li>
+          </ul>
+          <p>On a phone, the site map is in the page, below the sky plot. It is folded at the start.</p>
+
+          <h3 id="quickmap">LROC QuickMap link</h3>
+          <p>The link <span class="ui">Open in LROC QuickMap (slope in degrees)</span> is in the site map header and below the point fields. It opens LROC QuickMap (NASA LRO) in a new tab. The map is centred on the selected point. The TerrainSlope layer is on, with a legend in degrees.</p>
+          <ul>
+            <li>South of 75° S, QuickMap uses a south polar view with the NAC south pole mosaic.</li>
+            <li>For a site with a radius, the zoom shows all of the site circle.</li>
+          </ul>
+          <p>Use QuickMap to measure slope at a point that is north of 80° S. The slope layer of this tool does not cover it.</p>
+
+          <h3 id="slope">Slope layer</h3>
+          <p>The site map has a slope layer for the south pole region.</p>
+          <ol class="steps">
+            <li>Click <span class="ui">Layers</span> in the box at the lower right of the site map.</li>
+            <li>Select <span class="ui">Slope (LOLA 20 m, degrees)</span>.</li>
+          </ol>
+          <ul>
+            <li><strong>Classes.</strong> The colours show 6 classes: &lt;5°, 5–10°, 10–15°, 15–20°, 20–30° and ≥30°. A legend shows the colours.</li>
+            <li><strong>Area.</strong> The layer is only south of 80° S. North of 80° S, a note tells you to use the QuickMap link.</li>
+            <li><strong>Steepest slope.</strong> Each pixel shows the steepest slope inside it. Thus, a coarse view does not hide a steep spot.</li>
+            <li><strong>Source.</strong> The slope comes from the LOLA 20 m elevation data (LDEM_80S_20MPP_ADJ). Rocks and small craters that are smaller than 20 m are not in it.</li>
           </ul>
         </section>
 

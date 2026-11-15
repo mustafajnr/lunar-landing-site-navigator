@@ -16,6 +16,8 @@ export interface MapPanel {
 }
 
 const FOLD_KEY = 'lunarnav.mapFolded';
+/** Same width as the phone layout in style.css. */
+const PHONE = '(max-width: 760px)';
 
 export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void): MapPanel {
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -37,21 +39,27 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
     foldBtn.setAttribute('aria-expanded', String(!f));
     foldBtn.textContent = f ? '▸ Site map' : '▾ Site map';
     try {
-      localStorage.setItem(FOLD_KEY, f ? '1' : '0');
+      // The phone layout always starts folded. Keep the desktop setting.
+      if (!matchMedia(PHONE).matches) localStorage.setItem(FOLD_KEY, f ? '1' : '0');
     } catch {
       /* storage not available */
     }
     dm?.updateSize();
     onLayout();
   };
-  let folded = false;
+  let folded = matchMedia(PHONE).matches;
   try {
-    folded = localStorage.getItem(FOLD_KEY) === '1';
+    if (!folded) folded = localStorage.getItem(FOLD_KEY) === '1';
   } catch {
     /* storage not available */
   }
   setFolded(folded);
-  foldBtn.addEventListener('click', () => setFolded(!panel.classList.contains('folded')));
+  foldBtn.addEventListener('click', () => {
+    const open = panel.classList.contains('folded');
+    setFolded(!open);
+    // Phone layout: scroll anchoring can move the opened map up. Show it from its header.
+    if (open && matchMedia(PHONE).matches) panel.scrollIntoView({ block: 'start' });
+  });
 
   // Full screen: the browser Fullscreen API, or a window-sized panel if it is not available.
   const isFull = () => document.fullscreenElement === panel || panel.classList.contains('max');
@@ -126,6 +134,8 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
     },
     coveredHeight() {
       if (panel.classList.contains('folded') || isFull()) return 0;
+      // Phone layout: the panel is in the page flow and covers nothing.
+      if (getComputedStyle(panel).position !== 'fixed') return 0;
       const r = panel.getBoundingClientRect();
       return Math.max(0, window.innerHeight - r.top);
     },

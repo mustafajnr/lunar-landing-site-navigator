@@ -793,6 +793,9 @@ button.danger {
 .edge-ind.earth {
   color: #7cc0ff;
 }
+.edge-ind.moon {
+  color: #e6e6e6;
+}
 /* ---------- Period: duration presets (left panel) and period lines (results) ---------- */
 .dur-presets {
   justify-content: flex-start;
@@ -828,4 +831,306 @@ button.danger {
 }
 #skyHelp a {
   color: #8cc4ff;
+}
+
+/* ---------- Phone layout (up to 760 px wide) ----------
+   One column, in the page flow. The side panels use display: contents, so their
+   sections become items of the body flex column. The order values set the sequence:
+   title and welcome, results, point and time, globe, sky plot, site map, then the
+   other sections. A new section without a rule gets order 85 (near the end). */
+@media (max-width: 760px) {
+  html,
+  body {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px 24px;
+  }
+  body > *,
+  #panel > *,
+  #results > * {
+    order: 85;
+  }
+  .panel {
+    display: contents;
+  }
+  #panel > h1 { order: 1; margin-top: 12px; }
+  #panel > .guide-link { order: 2; }
+  #panel > .welcome { order: 3; }
+  #results > section.first { order: 10; border-top: none; }
+  #panel > section:has(#siteSel) { order: 20; }
+  #panel > section:has(#dt) { order: 21; }
+  #scaleNote { order: 29; }
+  #globe { order: 30; }
+  #results > section:has(#sky) { order: 40; }
+  #mapPanel { order: 50; }
+  #results > section:has(#curSunEl) { order: 60; }
+  #results > #summary { order: 70; }
+  #results > section:has(#eventRows) { order: 71; }
+  #results > #checkResult { order: 72; }
+  #panel > #savedSec { order: 80; }
+  #panel > section:has(#viewDefault) { order: 82; }
+  #panel > section:has(#subSun) { order: 83; }
+  #panel > .note { order: 90; }
+
+  #globe {
+    position: relative;
+    inset: auto;
+    width: auto;
+    height: 60vh;
+    margin: 8px -16px;
+  }
+  .edge-layer,
+  #globeLoading {
+    position: absolute;
+  }
+  #globeLoading {
+    z-index: 1;
+  }
+  #scaleNote {
+    position: static;
+    width: auto;
+    margin: 8px 0 0;
+    background: none;
+    padding: 0;
+  }
+  section {
+    padding-bottom: 6px;
+  }
+  /* Touch targets: at least 44 px. */
+  button,
+  select,
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  #mapPanel header a,
+  .guide-link,
+  #siteInfo a,
+  .check-link {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+  button {
+    min-width: 44px;
+  }
+  input,
+  select,
+  button {
+    font-size: 16px;
+  }
+  input[type='range'] {
+    height: 44px;
+  }
+  input[type='checkbox'] {
+    width: 22px;
+    height: 22px;
+    margin: 0 6px 0 0;
+    vertical-align: middle;
+  }
+  label.small:has(input[type='checkbox']) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .guide-link,
+  #siteInfo a,
+  .check-link,
+  #mapPanel header a {
+    display: inline-flex;
+    align-items: center;
+  }
+  button.info {
+    width: 44px;
+    height: 44px;
+    line-height: 42px;
+  }
+  .row {
+    flex-wrap: wrap;
+  }
+  .field select,
+  #dt {
+    width: 100%;
+  }
+  .row:has(> #dt) > #dt {
+    flex: 1 1 200px;
+  }
+  #pointForm input {
+    width: 120px;
+  }
+  .skyzoom button {
+    font-size: 14px;
+    padding: 2px 8px;
+  }
+  .skyzoom select {
+    font-size: 16px;
+  }
+  .saved-item button {
+    font-size: 14px;
+  }
+  .events {
+    max-height: none;
+  }
+  #savedList {
+    max-height: none;
+  }
+  /* Site map: in the flow. Folded, only the header shows. */
+  #mapPanel {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    height: 70vh;
+    margin: 8px 0;
+    z-index: auto;
+    transition: none;
+  }
+  #mapPanel.folded {
+    height: auto;
+    transform: none;
+  }
+  #mapPanel.folded #mapBody {
+    display: none;
+  }
+  #mapPanel header {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    padding: 4px 6px;
+  }
+  #mapPanel header .small {
+    flex: 1 1 100%;
+    order: 3;
+    white-space: normal;
+  }
+  #mapPanel header #mapQuickmap {
+    flex: 1 1 100%;
+    order: 4;
+    white-space: normal;
+    overflow: visible;
+  }
+  #mapFull {
+    margin-left: auto;
+  }
+  #mapPanel:fullscreen,
+  #mapPanel.max {
+    position: fixed;
+    inset: 0;
+    height: auto;
+    margin: 0;
+    z-index: 20;
+  }
+  /* Comparison: full screen. The table scrolls inside its box. */
+  #comparePanel {
+    inset: 0;
+    left: 0;
+    border-radius: 0;
+  }
+  #comparePanel > header {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    padding: 6px 8px;
+  }
+  #comparePanel > header .small {
+    flex: 1 1 100%;
+    order: 3;
+  }
+  .cmp-body {
+    padding: 8px;
+  }
+  .cmp-table thead th:first-child,
+  .cmp-table tbody th {
+    width: 110px;
+  }
+  .cmp-tl {
+    overflow-x: auto;
+  }
+  #apiMsg {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    transform: none;
+  }
+}
+
+/* ---------- Welcome card (welcome.ts), in the left panel ---------- */
+.welcome {
+  position: relative;
+  margin: 0 0 8px;
+  padding: 2px 10px 4px;
+  background: rgba(74, 163, 255, 0.08);
+  border: 1px solid #2c4a6e;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #ccc;
+}
+.welcome[hidden] {
+  display: none;
+}
+.welcome h2 {
+  margin: 6px 0 2px;
+}
+.welcome p {
+  margin: 4px 28px 4px 0;
+}
+.welcome ol {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+.welcome li {
+  margin: 2px 0;
+}
+.welcome a {
+  color: #8cc4ff;
+}
+.welcome-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  line-height: 1;
+}
+@media (max-width: 760px) {
+  .welcome {
+    font-size: 14px;
+  }
+  .welcome h2 {
+    margin: 0;
+    line-height: 44px;
+  }
+  .welcome p {
+    margin-right: 0;
+  }
+  .welcome-close {
+    width: 44px;
+    height: 44px;
+    top: 0;
+    right: 0;
+  }
+  .welcome a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+/* ---------- Usability quick fixes ---------- */
+/* Past events: grey text with a contrast of at least 4.5:1, not opacity. */
+tr.ev.past {
+  opacity: 1;
+}
+tr.ev.past td,
+tr.ev.past td:first-child {
+  color: #9aa0a8;
+}
+/* Up and down: a shape, so colour is not the only cue. */
+.state.up::before {
+  content: '▲ ';
+}
+.state.down::before {
+  content: '▼ ';
 }

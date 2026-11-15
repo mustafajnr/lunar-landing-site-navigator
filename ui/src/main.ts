@@ -1,4 +1,5 @@
 import './style.css';
+import { setupWelcome } from './welcome';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ApiError, API_URL, fetchSites, type Site } from './api';
@@ -41,6 +42,11 @@ const MAX_DAYS = 400;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const canvas = $<HTMLCanvasElement>('globe');
+// Size of the globe canvas, CSS px. On a desktop, the canvas fills the window. In the
+// phone layout (style.css), it is a block in the page with a fixed height.
+const viewW = () => canvas.clientWidth || window.innerWidth;
+const viewH = () => canvas.clientHeight || window.innerHeight;
+setupWelcome();
 // The globe is hidden (opacity 0) until the first default view is set, then it fades
 // in (style.css). Without this, the start camera shows first and then jumps.
 const globeLoading = $<HTMLDivElement>('globeLoading');
@@ -620,7 +626,7 @@ canvas.addEventListener('pointerup', (e) => {
 });
 
 // ---------- Selected point: inputs, site picker, globe click ----------
-const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true));
+const pointUi = setupPointUi((ll, site) => selectPoint(ll, site, true), DEFAULT_POINT);
 // Site-detail map panel. A click on the map selects the point; the globe follows.
 let layoutDirty = true;
 const mapPanel = setupMapPanel(
@@ -791,8 +797,8 @@ function defaultView() {
   const upv = pole.clone().projectOnPlane(e).normalize();
   const f = freeArea();
   const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const tH = (t * f.w) / window.innerHeight;
-  const tV = (t * f.h) / window.innerHeight;
+  const tH = (t * f.w) / viewH();
+  const tV = (t * f.h) / viewH();
   const moonTan = DEFAULT_MOON_FRAC * tV;
   const L = THREE.MathUtils.clamp(Math.sqrt(1 + 1 / (moonTan * moonTan)), EARTH_DIST + DEFAULT_K_MIN, EARTH_DIST + DEFAULT_K_MAX);
   const earthPos = e.clone().multiplyScalar(EARTH_DIST);
@@ -873,7 +879,7 @@ $('viewTrueScale').addEventListener('click', () => {
   // Fit the Earth-Moon line in the free screen width (between the panels).
   const f = freeArea();
   const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const dist = half / (t * Math.min(f.w / window.innerHeight, f.h / window.innerHeight * 2) * 0.9);
+  const dist = half / (t * Math.min(f.w / viewH(), f.h / viewH() * 2) * 0.9);
   controls.target.copy(mid);
   camera.position.copy(mid).addScaledVector(side, dist);
   controls.update();
@@ -899,6 +905,10 @@ function updateEdgeIndicators() {
     box,
     { pos: sunMarker.getWorldPosition(new THREE.Vector3()), radius: SUN_RADIUS },
     { pos: earthMesh.getWorldPosition(new THREE.Vector3()), radius: trueEarth ? EARTH_TRUE_RADIUS : EARTH_RADIUS },
+    // True scale: the Moon is small, so it gets a label. The Sun marker stays at its reduced
+    // distance near the Moon, so its label says that it shows only the direction.
+    trueEarth ? { pos: new THREE.Vector3(0, 0, 0), radius: 1 } : null,
+    trueEarth ? 'Sun direction' : 'Sun',
   );
 }
 
@@ -922,7 +932,7 @@ function update() {
   selRing.lookAt(camera.position);
   {
     // Pixels per world unit at distance 1 from the camera, and the globe radius in pixels.
-    const pxPerUnit = window.innerHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.zoom);
+    const pxPerUnit = viewH() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.zoom);
     const dc = Math.max(1.0001, camera.position.length());
     const globeRadiusPx = pxPerUnit / Math.sqrt(dc * dc - 1);
     const ringPx = Math.min(RING_MAX_PX, RING_MAX_GLOBE * globeRadiusPx);
@@ -1004,8 +1014,8 @@ function update() {
 // The globe centre is the centre of the free screen area: between the side panels and
 // above the map panel.
 function freeArea() {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const w = viewW();
+  const h = viewH();
   const l = $('panel').getBoundingClientRect();
   const r = $('results').getBoundingClientRect();
   const left = l.width && l.right < w / 2 ? l.right : 0;
@@ -1015,24 +1025,26 @@ function freeArea() {
 }
 function resize() {
   layoutDirty = false;
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const w = viewW();
+  const h = viewH();
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   const f = freeArea();
   camera.setViewOffset(w, h, w / 2 - f.cx, h / 2 - f.cy, w, h);
   camera.updateProjectionMatrix();
-  globeLoading.style.left = `${f.cx}px`;
-  globeLoading.style.top = `${f.cy}px`;
+  // In the phone layout, the canvas is in the page flow (not fixed).
+  const inPage = getComputedStyle(canvas).position !== 'fixed';
+  globeLoading.style.left = `${f.cx + (inPage ? canvas.offsetLeft : 0)}px`;
+  globeLoading.style.top = `${f.cy + (inPage ? canvas.offsetTop : 0)}px`;
 }
 window.addEventListener('resize', () => (layoutDirty = true));
 /** Camera distance at which the Moon fills about 85 % of the free area. */
 function fitDist() {
   const f = freeArea();
-  const frac = Math.max(0.2, Math.min(f.w / window.innerWidth, f.h / window.innerHeight));
+  const frac = Math.max(0.2, Math.min(f.w / viewW(), f.h / viewH()));
   const half = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * frac * 0.85);
   // The view across the free area may be narrower than its height.
-  const halfW = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * (f.w / window.innerHeight) * 0.85);
+  const halfW = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * (f.w / viewH()) * 0.85);
   return 1 / Math.sin(Math.min(half, halfW));
 }
 
@@ -1053,7 +1065,7 @@ function frame(now: number) {
   stepFlight(now);
   update();
   controls.update();
-  updateGridLabels(grid, camera, window.innerHeight);
+  updateGridLabels(grid, camera, viewH());
   renderer.render(scene, camera);
   updateEdgeIndicators();
   requestAnimationFrame(frame);
