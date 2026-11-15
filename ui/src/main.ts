@@ -213,7 +213,11 @@ function marker(color: number, r = 0.022) {
 const subSunMarker = marker(0xffd54a);
 const subEarthMarker = marker(0x4aa3ff);
 const selMarker = marker(0xff4a4a, 0.012);
-// Selected point: a red dot plus a ring that keeps a fixed size on screen.
+// Selected point: a red dot plus a ring. The ring has a fixed size on the screen
+// (RING_MAX_PX), but its diameter is never more than RING_MAX_GLOBE of the globe diameter
+// on the screen, so it stays small when the camera is far.
+const RING_MAX_PX = 17; // outer radius, CSS px
+const RING_MAX_GLOBE = 0.03;
 const selRing = new THREE.Mesh(
   new THREE.RingGeometry(0.8, 1, 48),
   new THREE.MeshBasicMaterial({ color: 0xff4a4a, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthTest: false }),
@@ -801,7 +805,14 @@ function update() {
   const selWorld = selMarker.getWorldPosition(new THREE.Vector3());
   selRing.position.copy(selWorld);
   selRing.lookAt(camera.position);
-  selRing.scale.setScalar(camera.position.distanceTo(selWorld) * 0.012);
+  {
+    // Pixels per world unit at distance 1 from the camera, and the globe radius in pixels.
+    const pxPerUnit = window.innerHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.zoom);
+    const dc = Math.max(1.0001, camera.position.length());
+    const globeRadiusPx = pxPerUnit / Math.sqrt(dc * dc - 1);
+    const ringPx = Math.min(RING_MAX_PX, RING_MAX_GLOBE * globeRadiusPx);
+    selRing.scale.setScalar((camera.position.distanceTo(selWorld) * ringPx) / pxPerUnit);
+  }
   // Markers keep about the same size on screen when the camera zooms in.
   const k = Math.max(0.01, Math.min(1, (camera.position.length() - 1) / 3.5));
   for (const m of [selMarker, subSunMarker, subEarthMarker, ...siteGroup.children]) m.scale.setScalar(k);
