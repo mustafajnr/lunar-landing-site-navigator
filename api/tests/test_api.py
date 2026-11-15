@@ -143,3 +143,25 @@ def test_series_accepts_offset_times(client):
                                         "stop_utc": "2026-11-13T22:00:00-08:00"}).json()
     assert a["times_utc"] == b["times_utc"]
     assert a["series"] == b["series"]
+
+
+def test_series_mission_gaps(client):
+    r = client.post("/v1/series", json={**APOLLO, **SPAN, "terrain": "none"})
+    assert r.status_code == 200, r.text
+    s = r.json()["summary"]
+    assert s["sun_up_at_start"] is False and s["earth_up_at_start"] is True
+    assert 14.5 * 24 < s["longest_no_sun_period_h"] < 15.1 * 24  # one full lunar night
+    assert s["longest_no_sun_period_truncated"] is False
+    assert s["longest_no_earth_period_h"] == 0.0
+    assert s["longest_no_both_period_h"] == pytest.approx(s["longest_no_sun_period_h"])
+    assert s["time_to_first_sunset_h"] > 0
+    assert s["time_to_next_sunset_h"] is None
+
+
+def test_series_mission_gaps_far_side(client):
+    r = client.post("/v1/series", json={"lat_deg": 0.0, "lon_deg": 180.0, **SPAN, "terrain": "none"})
+    assert r.status_code == 200, r.text
+    s = r.json()["summary"]
+    assert s["longest_no_earth_period_h"] == pytest.approx(s["span_h"])
+    assert s["longest_no_earth_period_truncated"] is True
+    assert s["earth_up_at_start"] is False

@@ -92,6 +92,21 @@ export interface SeriesSummary {
   longest_sun_period_h: number;
   longest_earth_period_h: number;
   longest_both_period_h: number;
+  // Mission fields (CONTRACTS.md section 4). Missing in older API versions.
+  /** Longest period with no part of the Sun disk visible (longest night), hours. */
+  longest_no_sun_period_h?: number;
+  /** Longest period with Earth not visible, hours. */
+  longest_no_earth_period_h?: number;
+  /** Longest period when the Sun and Earth are not both visible, hours. */
+  longest_no_both_period_h?: number;
+  /** The longest gap touches the start or the end of the span. The real gap can be longer. */
+  longest_no_sun_period_truncated?: boolean;
+  longest_no_earth_period_truncated?: boolean;
+  longest_no_both_period_truncated?: boolean;
+  /** Hours from the start to the first sunset in the span (the Sun can be down at the start). */
+  time_to_first_sunset_h?: number | null;
+  sun_up_at_start?: boolean;
+  earth_up_at_start?: boolean;
 }
 
 export interface SeriesOut {

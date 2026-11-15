@@ -114,6 +114,17 @@ class Summary(BaseModel):
     longest_sun_period_h: float
     longest_earth_period_h: float
     longest_both_period_h: float
+    # Gaps (CONTRACTS.md section 4). A gap that touches start_utc or stop_utc is cut
+    # at that edge. *_truncated: the longest gap touches an edge.
+    longest_no_sun_period_h: float
+    longest_no_earth_period_h: float
+    longest_no_both_period_h: float
+    longest_no_sun_period_truncated: bool
+    longest_no_earth_period_truncated: bool
+    longest_no_both_period_truncated: bool
+    time_to_first_sunset_h: float | None
+    sun_up_at_start: bool
+    earth_up_at_start: bool
 
 
 class SeriesArrays(BaseModel):
