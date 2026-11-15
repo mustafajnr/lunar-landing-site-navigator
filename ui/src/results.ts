@@ -6,6 +6,7 @@
 
 import { ApiError, fetchSeries, type HorizonMask, type SeriesEvent, type SeriesOut } from './api';
 import type { LatLon } from './ephemeris';
+import { CheckPanel } from './check';
 
 export const SERIES_STEP_MIN = 60;
 
@@ -131,6 +132,10 @@ export class ResultsPanel {
   private lastNowText = '';
   private readonly onData: () => void;
   private applyHeight: (v: number) => void = () => {};
+  /** "Check this result" section (check.ts). */
+  private readonly check = new CheckPanel($('results'));
+  /** The point and observer height of the loaded data. */
+  private dataReq: { point: LatLon; heightM: number } | null = null;
 
   constructor(onData: () => void) {
     this.onData = onData;
@@ -239,6 +244,7 @@ export class ResultsPanel {
       .then((d) => {
         if (ctrl.signal.aborted) return;
         this.data = d;
+        this.dataReq = { point: k.point, heightM };
         this.horizon = horizonOf(d, sent);
         const ne = d.next_events;
         this.nextAfter = ne
@@ -314,6 +320,10 @@ export class ResultsPanel {
     const sum = $('summary');
     const list = $<HTMLTableSectionElement>('eventRows');
     list.innerHTML = '';
+    const req = this.dataReq;
+    this.check.set(
+      d && req ? { data: d, point: req.point, observerHeightM: req.heightM, horizonLabel: this.horizon?.label ?? '–' } : null,
+    );
     if (!d) {
       sum.querySelectorAll('td[id]').forEach((td) => (td.textContent = '–'));
       return;
@@ -353,6 +363,7 @@ export class ResultsPanel {
 
   /** Live parts: current values and countdowns. Call every frame. */
   tick(nowMs: number) {
+    this.check.tick(nowMs);
     const now = this.at(nowMs);
     const set = (id: string, text: string) => {
       const el = $(id);
