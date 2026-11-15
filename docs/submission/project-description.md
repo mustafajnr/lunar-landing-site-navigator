@@ -127,6 +127,10 @@ Other data and references:
 - Park, R. S., et al. (2021). The JPL planetary and lunar ephemerides DE440 and DE441.
 - Annex, A. M., et al. (2020). SpiceyPy: a Pythonic wrapper for the SPICE toolkit.
 - Mazarico, E., et al. (2011). Illumination conditions of the lunar polar regions using LOLA topography.
+- NASA LaRC (2024). Artemis Human Landing System update: areas with Earth visibility below 25 % or solar visibility below 5 % are excluded. https://ntrs.nasa.gov/api/citations/20240009596/downloads/ArtemisHLSUpdate_2024.pdf
+- NASA (2023). Lunar Site Selection white paper: the first landing site has sunlight for the full surface stay of about 6 to 6.5 days. https://ntrs.nasa.gov/api/citations/20230016267/downloads/Lunar%20Site%20Selection.pdf
+- VIPER mission planning, SpaceOps 2022: a safe haven has 50 hours of darkness or less. https://ntrs.nasa.gov/api/citations/20220008301/downloads/2022-06-02-spaceops-viper-planning.pdf
+- JPL IPN Progress Report 42-176 (2009) and Gläser, P., et al. (2014): illumination and Earth visibility at the lunar south pole.
 
 Open-source software: three.js (MIT), OpenLayers (BSD-2-Clause), Vite (MIT), TypeScript (Apache 2.0), FastAPI (MIT), uvicorn (BSD-3-Clause), spiceypy (MIT), numpy (BSD-3-Clause), rasterio (BSD-3-Clause), nginx (BSD-2-Clause).
 

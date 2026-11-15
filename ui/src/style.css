@@ -1404,3 +1404,94 @@ tr.ev.past td:first-child {
     font-size: 15px;
   }
 }
+
+/* ---------- Verdict: mission requirements (mission.ts) ---------- */
+.v-ours {
+  margin: -4px 0 6px;
+}
+.v-mission {
+  margin: 8px 0;
+  padding: 6px 8px;
+  border: 1px solid #445;
+  border-radius: 4px;
+  background: rgba(74, 163, 255, 0.06);
+}
+.v-mission h3 {
+  font-size: 13px;
+  margin: 0 0 2px;
+  color: #ddd;
+}
+.mr-summary {
+  margin: 2px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+.mr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mr-item {
+  margin: 0 0 8px;
+}
+.mr-item label {
+  display: block;
+  font-size: 12px;
+  color: #ccc;
+}
+.mr-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: 12px;
+}
+.mr-in input {
+  width: 6em;
+}
+.mr-in .small {
+  margin: 0;
+}
+.mr-in a {
+  color: #8cc4ff;
+}
+.mr-res {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #ddd;
+}
+.mr-sym {
+  display: inline-block;
+  min-width: 1.1em;
+  font-weight: 700;
+}
+.mr-res[data-check='pass'] .mr-sym {
+  color: #7ee08f;
+}
+.mr-res[data-check='fail'] .mr-sym {
+  color: #ff8a7a;
+}
+.mr-res[data-check='unknown'] .mr-sym {
+  color: #ffd54a;
+}
+.mr-note {
+  margin: 4px 0 0;
+}
+@media (max-width: 760px) {
+  .mr-in input,
+  .mr-reset {
+    min-height: 44px;
+  }
+  .mr-in input {
+    font-size: 16px;
+  }
+  .mr-in a {
+    display: inline-block;
+    padding: 12px 0;
+  }
+  .mr-item label,
+  .mr-res {
+    font-size: 15px;
+  }
+}

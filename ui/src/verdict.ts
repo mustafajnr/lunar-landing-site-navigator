@@ -5,6 +5,7 @@
 
 import type { SeriesOut } from './api';
 import type { HorizonInfo } from './results';
+import { dh, renderMission, setupMission } from './mission';
 
 export type Rating = 'good' | 'limited' | 'poor';
 
@@ -14,12 +15,21 @@ export const RATING = {
   goodGapH: 24,
   limitedFraction: 0.5,
   limitedGapH: 7 * 24,
+  /** NASA exclusion floors (Artemis HLS update, NASA LaRC 2024). Below the floor: Poor. */
+  sunFloor: 0.05,
+  earthFloor: 0.25,
 } as const;
+
+/** South of this latitude, the Talk to Earth block tells about the two weeks without Earth. */
+const POLE_LAT = -80;
+const POLE_EARTH = 'Near the south pole, Earth is below the horizon about 2 weeks of each month, even at the best sites.';
 
 export const RATING_TEXT = [
   `Good: up for ${RATING.goodFraction * 100} % of the period or more, and the longest gap is shorter than 1 day.`,
   `Limited: not good, but up for ${RATING.limitedFraction * 100} % of the period or more, or it is up for some time and the longest gap is shorter than 7 days.`,
   'Poor: all other cases.',
+  `Poor also when the Sun is up less than ${RATING.sunFloor * 100} % of the period, or Earth is up less than ${RATING.earthFloor * 100} % of the period. NASA excludes such areas (Artemis Human Landing System update, NASA LaRC 2024).`,
+  POLE_EARTH,
   'A gap that touches the start or the end of the period can be longer than the tool sees. Such a gap does not count as a short gap.',
   'The headline uses the lowest rating of the three blocks.',
 ];
@@ -28,7 +38,8 @@ export const RATING_TEXT = [
  * Rating for one body. `gapH` undefined = an older API without gap data: then only the
  * fraction counts. A truncated gap is a lower limit, so it never counts as short.
  */
-export function rate(fraction: number, gapH: number | undefined, truncated: boolean | undefined): Rating {
+export function rate(fraction: number, gapH: number | undefined, truncated: boolean | undefined, floor = 0): Rating {
+  if (fraction < floor) return 'poor';
   const gapKnown = gapH !== undefined && !truncated;
   const shortGap = (limit: number) => (gapH === undefined ? true : gapKnown && gapH < limit);
   if (fraction >= RATING.goodFraction && shortGap(RATING.goodGapH)) return 'good';
@@ -45,16 +56,6 @@ const SYMBOL: Record<Rating, string> = { good: '✓', limited: '◐', poor: '✕
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-/** "4 d 12 h", "5 h 20 min" or "12 min". */
-function dh(h: number): string {
-  const min = Math.round(h * 60);
-  const d = Math.floor(min / 1440);
-  const hh = Math.floor((min % 1440) / 60);
-  const mm = min % 60;
-  if (d > 0) return hh ? `${d} d ${hh} h` : `${d} d`;
-  if (hh > 0) return mm ? `${hh} h ${mm} min` : `${hh} h`;
-  return `${mm} min`;
-}
 const pct = (f: number) => {
   const p = f * 100;
   // Do not show "100 %" for 99.96 % or "0 %" for 0.04 %.
@@ -75,6 +76,8 @@ export interface VerdictInput {
   siteName: string;
   startMs: number;
   stopMs: number;
+  /** Latitude of the point, degrees. Null: no point. */
+  latDeg: number | null;
 }
 
 interface Block {
@@ -87,14 +90,14 @@ function gapPart(h: number, cut: boolean | undefined) {
   return `${cut ? 'at least ' : ''}${dh(h)}`;
 }
 
-function blocks(d: SeriesOut) {
+function blocks(d: SeriesOut, latDeg: number | null) {
   const s = d.summary;
   const ns = s.longest_no_sun_period_h;
   const ne = s.longest_no_earth_period_h;
   const nb = s.longest_no_both_period_h;
   const noGaps = ns === undefined;
   const sun: Block = {
-    rating: rate(s.sun_fraction_of_time, ns, s.longest_no_sun_period_truncated),
+    rating: rate(s.sun_fraction_of_time, ns, s.longest_no_sun_period_truncated, RATING.sunFloor),
     plain:
       noGaps
         ? `The Sun is up ${pct(s.sun_fraction_of_time)} of the time.`
@@ -104,11 +107,11 @@ function blocks(d: SeriesOut) {
             ? `No sunlight in this period. The battery must last ${gapPart(ns, s.longest_no_sun_period_truncated)}.`
             : `The Sun is up ${pct(s.sun_fraction_of_time)} of the time. The battery must last ${gapPart(ns, s.longest_no_sun_period_truncated)}.`,
     planner:
-      `Sun up ${pct1(s.sun_fraction_of_time)} | mean disk visible ${pct1(s.mean_sun_visible_fraction)}` +
-      (noGaps ? '' : ` | longest night ${gapPart(ns, s.longest_no_sun_period_truncated)}`),
+      `Average illumination ${pct1(s.sun_fraction_of_time)} | mean disk visible ${pct1(s.mean_sun_visible_fraction)}` +
+      (noGaps ? '' : ` | longest continuous darkness ${gapPart(ns, s.longest_no_sun_period_truncated)}`),
   };
   const earth: Block = {
-    rating: rate(s.earth_fraction_of_time, ne, s.longest_no_earth_period_truncated),
+    rating: rate(s.earth_fraction_of_time, ne, s.longest_no_earth_period_truncated, RATING.earthFloor),
     plain:
       ne === undefined
         ? `Earth is up ${pct(s.earth_fraction_of_time)} of the time.`
@@ -120,7 +123,7 @@ function blocks(d: SeriesOut) {
               return `${first} No direct link for ${g}. Use a relay satellite or plan for ${g} without contact.`;
             })(),
     planner:
-      `Earth up ${pct1(s.earth_fraction_of_time)}` +
+      `Earth visibility ${pct1(s.earth_fraction_of_time)}` +
       (ne === undefined ? '' : ` | longest outage ${gapPart(ne, s.longest_no_earth_period_truncated)}`) +
       ` | longest link ${dh(s.longest_earth_period_h)}`,
   };
@@ -139,6 +142,7 @@ function blocks(d: SeriesOut) {
       (nb === undefined ? '' : ` | longest without both ${gapPart(nb, s.longest_no_both_period_truncated)}`) +
       ` | longest with both ${dh(s.longest_both_period_h)}`,
   };
+  if (latDeg !== null && latDeg < POLE_LAT && s.earth_fraction_of_time < 0.9995) earth.plain += ` ${POLE_EARTH}`;
   return { sun, earth, both };
 }
 
@@ -206,16 +210,18 @@ export function renderVerdict(v: VerdictInput) {
     head.classList.toggle('error', v.error);
     for (const id of ['vSun', 'vEarth', 'vBoth']) setBlock(id, null, v.error ? '' : v.status ? '…' : '–');
     caveat.textContent = '';
+    renderMission(null);
     return;
   }
   head.classList.remove('error');
-  const b = blocks(d);
+  const b = blocks(d, v.latDeg);
   const h = headline(d, b);
   head.textContent = `${SYMBOL[h.rating]} ${h.text}`;
   head.dataset.rating = h.rating;
   setBlock('vSun', b.sun, '');
   setBlock('vEarth', b.earth, '');
   setBlock('vBoth', b.both, '');
+  renderMission(d.summary);
   const k = v.horizon?.kind;
   const base = 'Earth up uses Earth\'s centre only. The result is for one point, not the whole site area.';
   if (k === 'terrain') caveat.textContent = `${base} Based on NASA SPICE ephemeris and LOLA terrain.`;
@@ -226,6 +232,7 @@ export function renderVerdict(v: VerdictInput) {
 
 /** Fill the "How we rate" note from RATING_TEXT. */
 export function fillRatingNote() {
+  setupMission();
   const ul = $('vRules');
   ul.replaceChildren(
     ...RATING_TEXT.map((t) => {

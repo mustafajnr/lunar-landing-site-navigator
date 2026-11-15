@@ -184,8 +184,21 @@
             <li><strong>Good:</strong> up for 90 % of the period or more, and the longest gap is shorter than 1 day.</li>
             <li><strong>Limited:</strong> not good, but up for 50 % of the period or more. Or up for some time, and the longest gap is shorter than 7 days.</li>
             <li><strong>Poor:</strong> all other cases.</li>
+            <li><strong>Poor also:</strong> the Sun is up less than 5 % of the period, or Earth is up less than 25 % of the period. NASA excludes such areas for Artemis landers (Artemis Human Landing System update, NASA LaRC 2024).</li>
           </ul>
           <p>The headline uses the lowest rating. Click <span class="ui">How we rate</span> in the tab to see the rules.</p>
+          <p><strong>Our rating, not a NASA standard.</strong> NASA has no Good, Limited or Poor scale. NASA uses requirements for each mission. Use <span class="ui">Mission requirements</span> below for a pass or fail answer.</p>
+          <p>Near the south pole, Earth is below the horizon about 2 weeks of each month, even at the best sites. The best known sites have sunlight about 92 to 96 % of the time, but Earth only about 50 % of the time (JPL IPN Progress Report 42-176, 2009. Gläser et al., 2014). The <span class="ui">Talk to Earth</span> block shows this sentence for points south of 80° S.</p>
+          <p>The planner lines use NASA metric names: <strong>average illumination</strong> (part of the period with the Sun up), <strong>longest continuous darkness</strong> (the longest night) and <strong>Earth visibility</strong> (part of the period with Earth up).</p>
+
+          <h4 id="mission-requirements">Mission requirements</h4>
+          <p>This box is below the three blocks. It compares the period with three limits. Each line shows <strong>✓</strong> (meets the limit), <strong>✕</strong> (does not meet the limit) or <strong>?</strong> (not known). The first line gives the count, for example "Meets 2 of 3 mission requirements."</p>
+          <ul>
+            <li><strong>Longest darkness the hardware survives.</strong> Default 50 hours. Source: VIPER mission planning (SpaceOps 2022). A VIPER "safe haven" has 50 hours of darkness or less. The tool compares the longest continuous darkness in the period with the limit. If the darkness touches the start or the end of the period and is shorter than the limit, the result is <strong>?</strong>. Check a longer period.</li>
+            <li><strong>Continuous sunlight needed from the start.</strong> Default 6.5 days. Source: NASA Lunar Site Selection white paper (2023). The first Artemis landing site must have sunlight for the full surface stay of about 6 to 6.5 days. The Sun must be up at the start, and the first sunset must come at least this long after the start. If the Sun does not set in the period and the period is shorter than the limit, the result is <strong>?</strong>.</li>
+            <li><strong>Minimum Earth visibility.</strong> Default 25 %. Source: Artemis Human Landing System update (NASA LaRC, 2024). NASA excludes areas with Earth visibility below 25 %.</li>
+          </ul>
+          <p>You can change each limit. Type a number only. Click <span class="ui">NASA defaults</span> to go back to the defaults. The browser keeps your limits for your next visit. Each source name in the box is a link to the NASA document.</p>
           <p>"At least" means that the gap touches the start or the end of the period. The real gap can be longer. Such a gap does not count as a short gap. Make the period longer to find its full length.</p>
           <p>The tab also has the observer height (see <a href="#height">Observer height</a>) and <span class="ui">Save search</span>. The observer height is the same in both tabs. The tool keeps the last open tab for your next visit.</p>
           <p>Limits: "Earth up" uses Earth's centre only. The result is for one point, not for the full site area. Where the tool has no terrain data, the horizon is flat.</p>

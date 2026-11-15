@@ -343,6 +343,7 @@ export class ResultsPanel {
       siteName: $('selName').textContent || $('selLatLon').textContent || '',
       startMs: k?.startMs ?? 0,
       stopMs: k?.stopMs ?? 0,
+      latDeg: k ? k.point.latDeg : null,
     });
     this.lastVNow = '';
   }

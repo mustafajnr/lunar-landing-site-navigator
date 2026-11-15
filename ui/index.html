@@ -151,6 +151,7 @@
           <h2 class="sr-only">Verdict for the period</h2>
           <p id="vWhere" class="small v-where"></p>
           <p id="vHead" class="v-head" aria-live="polite">Select a point.</p>
+          <p class="small v-ours">Good, Limited and Poor are our rating, not a NASA standard. See Mission requirements.</p>
           <div id="vSun" class="v-block">
             <h3><span class="dot sun"></span>Solar power <span class="v-rate"></span></h3>
             <p class="v-plain"></p>
@@ -166,10 +167,37 @@
             <p class="v-plain"></p>
             <p class="v-planner mono"></p>
           </div>
+          <div id="vMission" class="v-mission" role="group" aria-labelledby="mrTitle">
+            <h3 id="mrTitle">Mission requirements</h3>
+            <p id="mrSummary" class="mr-summary" aria-live="polite"></p>
+            <ul class="mr-list">
+              <li class="mr-item">
+                <label for="mrDark">Longest darkness the hardware survives</label>
+                <div class="mr-in"><input id="mrDark" type="text" inputmode="decimal" size="6" aria-describedby="mrDarkErr" /> <span>hours</span> <span class="small">Default 50 h, <a id="mrDarkSrc" target="_blank" rel="noopener"></a></span></div>
+                <p id="mrDarkErr" class="error" role="alert" hidden></p>
+                <p id="mrDarkRes" class="mr-res"><span class="mr-sym" role="img"></span> <span class="mr-text"></span></p>
+              </li>
+              <li class="mr-item">
+                <label for="mrSun">Continuous sunlight needed from the start</label>
+                <div class="mr-in"><input id="mrSun" type="text" inputmode="decimal" size="6" aria-describedby="mrSunErr" /> <span>days</span> <span class="small">Default 6.5 d, <a id="mrSunSrc" target="_blank" rel="noopener"></a></span></div>
+                <p id="mrSunErr" class="error" role="alert" hidden></p>
+                <p id="mrSunRes" class="mr-res"><span class="mr-sym" role="img"></span> <span class="mr-text"></span></p>
+              </li>
+              <li class="mr-item">
+                <label for="mrEarth">Minimum Earth visibility</label>
+                <div class="mr-in"><input id="mrEarth" type="text" inputmode="decimal" size="6" aria-describedby="mrEarthErr" /> <span>%</span> <span class="small">Default 25 %, <a id="mrEarthSrc" target="_blank" rel="noopener"></a></span></div>
+                <p id="mrEarthErr" class="error" role="alert" hidden></p>
+                <p id="mrEarthRes" class="mr-res"><span class="mr-sym" role="img"></span> <span class="mr-text"></span></p>
+              </li>
+            </ul>
+            <button id="mrReset" type="button" class="mr-reset">NASA defaults</button>
+            <p class="small mr-note">NASA uses pass/fail requirements for each mission. These are examples from NASA documents. Change them for your mission.</p>
+          </div>
           <p id="vNow" class="v-now"></p>
           <p id="vCaveat" class="small v-caveat"></p>
           <details class="v-rules">
             <summary>How we rate</summary>
+            <p>Our rating, not a NASA standard. NASA uses requirements for each mission (see Mission requirements).</p>
             <ul id="vRules"></ul>
           </details>
         </section>
