@@ -17,6 +17,7 @@ import { createGrid, gridLight, updateGridLabels } from './grid';
 import { createEdgeIndicators } from './edgeind';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { featureAt, featureName } from './gazetteer';
+import { setupHistory, type View, type ViewHistory } from './history';
 import { setUseStartHook } from './landing';
 import { missionStepMinutes, ResultsPanel } from './results';
 import { setupSaved } from './saved';
@@ -361,6 +362,8 @@ const DEFAULT_POINT = { latDeg: -89.45, lonDeg: -137.31, name: 'Shackleton–de 
 let selected: LatLon = { latDeg: DEFAULT_POINT.latDeg, lonDeg: DEFAULT_POINT.lonDeg };
 let selectedSite: Site | null = null;
 let siteList: Site[] = [];
+// Back and Forward (history.ts). Null until the first view is set.
+let hist: ViewHistory | null = null;
 let state: MoonState | null = null;
 let batch: MoonStateBatch | null = null;
 let batchReq: AbortController | null = null;
@@ -416,6 +419,7 @@ function setPeriod(ms: number, days: number) {
     `Period: ${fmtUtcMin(startMs)} to ${fmtUtcMin(stopMs())} UTC. Step: ${step} min (${n.toLocaleString('en-US')} steps).`;
   requestBatch();
   requestSeries();
+  hist?.note();
 }
 
 // ---------- API: series for the selected point (results panel) ----------
@@ -673,6 +677,7 @@ function selectPoint(ll: LatLon, site: Site | null, fly: boolean, fromMap = fals
     flyAfterBatch = null;
     flyTo(selected);
   }
+  hist?.note();
 }
 
 function pointName(ll: LatLon, site: Site | null) {
@@ -731,17 +736,10 @@ setupSaved({
     // Restore the point, the height, the start and the duration. Old searches (a ±30 day
     // window around a date) load as a 60 day period from their start.
     const site = (s.siteId && siteList.find((x) => x.id === s.siteId)) || null;
-    results.setObserverHeight(s.observerHeightM);
     const a = Date.parse(s.startUtc);
     const raw = (Date.parse(s.stopUtc) - a) / (DAY_S * 1000);
     const days = Math.min(MAX_DAYS, Math.max(MIN_DAYS, +raw.toFixed(3)));
-    // The period first: the Moon orientation depends on the time. The camera flight
-    // waits until the Moon states of the new period are loaded, else it aims with the
-    // orientation of the old period and the Moon turns away after the flight.
-    setPeriod(Math.round(a / 60000) * 60000, days);
-    selectPoint({ latDeg: s.latDeg, lonDeg: s.lonDeg }, site, false);
-    if (batchLoaded === `${startMs}|${durationDays}`) flyTo(selected);
-    else flyAfterBatch = { ...selected };
+    restoreView({ latDeg: s.latDeg, lonDeg: s.lonDeg }, site, Math.round(a / 60000) * 60000, days, s.observerHeightM);
     const notes: string[] = [];
     if (days !== +raw.toFixed(3)) notes.push(`The main view shows ${fmtDays(days)}. The saved period is ${fmtDays(raw)}.`);
     const step = missionStepMinutes(days);
@@ -750,6 +748,18 @@ setupSaved({
   },
   compare: (list) => openCompare(list),
 });
+
+/** Restore a point, a period and a height (saved search, Back, Forward). */
+function restoreView(ll: LatLon, site: Site | null, ms: number, days: number, heightM: number) {
+  results.setObserverHeight(heightM);
+  // The period first: the Moon orientation depends on the time. The camera flight
+  // waits until the Moon states of the new period are loaded, else it aims with the
+  // orientation of the old period and the Moon turns away after the flight.
+  setPeriod(ms, days);
+  selectPoint(ll, site, false);
+  if (batchLoaded === `${startMs}|${durationDays}`) flyTo(selected);
+  else flyAfterBatch = { ...selected };
+}
 
 // Camera flight to a point: the camera ends above the point, looking at the Moon centre.
 let flight: { from: THREE.Vector3; ll: LatLon; fromD: number; toD: number; t0: number } | null = null;
@@ -1122,6 +1132,31 @@ resize();
 setPeriod(startMs, durationDays);
 selectPoint(selected, null, false);
 defaultView();
+hist = setupHistory({
+  current: (): View => ({
+    latDeg: selected.latDeg,
+    lonDeg: selected.lonDeg,
+    siteId: selectedSite?.id ?? null,
+    name: pointName(selected, selectedSite),
+    startMs,
+    durationDays,
+    heightM: results.observerHeightM,
+  }),
+  restore: (v) => {
+    const site = (v.siteId && siteList.find((x) => x.id === v.siteId)) || null;
+    restoreView({ latDeg: v.latDeg, lonDeg: v.lonDeg }, site, v.startMs, v.durationDays, v.heightM);
+  },
+  backBtn: $<HTMLButtonElement>('histBack'),
+  fwdBtn: $<HTMLButtonElement>('histFwd'),
+  status: $('histStatus'),
+  describe: (v, back) =>
+    `${back ? 'Back' : 'Forward'} to: ${v.name || fmtLL(v)}, ${new Date(v.startMs).toISOString().slice(0, 10)}, ${fmtDays(v.durationDays)}, ${v.heightM} m.`,
+});
+// A height change in the results panel (field or preset button) is also a view change.
+for (const id of ['heightIn', 'heightInV']) $(id).addEventListener('change', () => hist?.note());
+document.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement).closest?.('[data-height]')) hist?.note();
+});
 requestAnimationFrame(frame);
 
 // Dev builds only: handles for debugging in the browser console.

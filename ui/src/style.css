@@ -1783,3 +1783,35 @@ tr.ev.past td:first-child {
     padding-right: 4px;
   }
 }
+
+/* ---------- Back and Forward (history.ts) ---------- */
+.hist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.hist-btns {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.hist-btns button {
+  font-size: 12px;
+  padding: 2px 8px;
+}
+.hist-btns button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.hist-status {
+  margin: 2px 0 4px;
+  color: #9cf;
+}
+@media (max-width: 760px) {
+  .hist-btns button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 4px 12px;
+  }
+}

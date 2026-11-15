@@ -68,7 +68,14 @@
       </section>
 
       <section>
-        <h2>Point</h2>
+        <div class="hist-head">
+          <h2>Point</h2>
+          <div class="hist-btns">
+            <button id="histBack" type="button" title="Go back to the previous point and period" aria-label="Go back to the previous point and period" disabled>↶ Back</button>
+            <button id="histFwd" type="button" title="Go forward to the next point and period" aria-label="Go forward to the next point and period" disabled>↷ Forward</button>
+          </div>
+        </div>
+        <p id="histStatus" class="small hist-status" role="status" hidden></p>
         <div class="place-search">
           <label class="field" for="placeIn" id="placeLabel">Search a place on the Moon</label>
           <input id="placeIn" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false"
