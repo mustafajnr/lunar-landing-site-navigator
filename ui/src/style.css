@@ -723,3 +723,41 @@ button.danger {
   font: 10.5px/1.3 system-ui, sans-serif;
   overflow-wrap: anywhere;
 }
+
+/* ---------- Sun and Earth edge indicators on the globe (edgeind.ts) ---------- */
+.edge-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.edge-ind {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 13px system-ui, sans-serif;
+  white-space: nowrap;
+  text-shadow: 0 0 3px #000, 0 0 3px #000, 0 0 2px #000;
+  pointer-events: none;
+}
+.edge-ind.flip {
+  flex-direction: row-reverse;
+}
+.edge-ind[hidden],
+.edge-ind .arr[hidden] {
+  display: none;
+}
+.edge-ind .arr {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+}
+.edge-ind.sun {
+  color: #ffd54a;
+}
+.edge-ind.earth {
+  color: #7cc0ff;
+}

@@ -12,7 +12,8 @@ import {
   type MoonStateBatch,
   type Vec3,
 } from './ephemeris';
-import { createGrid, updateGridLabels } from './grid';
+import { createGrid, gridLight, updateGridLabels } from './grid';
+import { createEdgeIndicators } from './edgeind';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel, SERIES_STEP_MIN } from './results';
 import { setupSaved } from './saved';
@@ -664,17 +665,33 @@ function viewEarth() {
 $('viewEarth').addEventListener('click', viewEarth);
 
 /**
- * Default view: the Moon, the Earth and the Sun direction together. The camera looks at the
- * Moon centre from the side and from below the equator (the south pole is visible). The
- * function tries camera directions around the Moon and keeps the one that needs the
- * shortest distance to fit the Moon and the Earth in the free screen area, with these rules:
- * - the Earth line and the Sun line are at least 30° from the view direction (not end-on),
- * - the Earth disk does not touch the Moon disk on the screen.
- * A camera on the sunlit side gets a small bonus. Without a Moon state it uses the fixed fallback.
+ * Default view, "over the shoulder": the camera is behind the Earth (as seen from the
+ * Moon), moved up and to the side. The Earth is in the foreground in a lower corner, partly
+ * off the screen. The Moon is in the centre of the free area and shows about the phase that
+ * people on Earth see. Screen up is the Moon's north pole.
+ *
+ * - Distance: the Moon diameter is about DEFAULT_MOON_FRAC of the free area height. The
+ *   camera stays DEFAULT_K_MIN..DEFAULT_K_MAX behind the Earth. (On the screen, the Earth is
+ *   about EARTH_RADIUS * L / k as large as the Moon, so a closer Moon also gives a larger Earth.)
+ * - Side: the camera moves toward the Sun side, so the Earth goes to the other side of the
+ *   screen and the Sun arrow does not hit it.
+ * - Near new moon the near side is dark. Then the camera moves more toward the Sun side
+ *   (also down, if the Sun is south of the Earth line), as far as the Earth centre can stay
+ *   at the edge of the free area. This makes the phase angle smaller, so a thin lit limb
+ *   shows. No extra light is added. (A phase angle below DEFAULT_PHASE_MAX at new moon is
+ *   not possible with the Earth on the screen.)
+ * Without a Moon state it uses the fixed fallback.
  */
-const DEFAULT_MIN_LINE_ANGLE = THREE.MathUtils.degToRad(30);
+const DEFAULT_MOON_FRAC = 0.5;
+const DEFAULT_K_MIN = 4.5;
+const DEFAULT_K_MAX = 6;
+const DEFAULT_PHASE_MAX = 150;
+/** Wanted Earth centre on the screen, as a fraction of the free half width / half height. */
+const DEFAULT_EARTH_X = 0.9;
+const DEFAULT_EARTH_Y = 0.8;
 function defaultView() {
   flight = null;
+  if (trueEarth) setTrueEarth(false);
   if (!state) {
     viewFrom(new THREE.Vector3(0, -0.5, 1).normalize(), Math.max(3, fitDist()));
     return;
@@ -682,65 +699,60 @@ function defaultView() {
   const e = worldDir(state.earthDirInertial, inertial);
   const s = worldDir(state.sunDirInertial, inertial);
   const pole = worldDir([0, 0, 1], moonBody);
-  // Basis around the pole.
-  const h1 = e.clone().projectOnPlane(pole);
-  if (h1.lengthSq() < 1e-6) h1.set(1, 0, 0).projectOnPlane(pole);
-  h1.normalize();
-  const h2 = pole.clone().cross(h1);
-  const earthPos = e.clone().multiplyScalar(EARTH_DIST);
+  // Side: perpendicular to the Earth line, horizontal, toward the Sun.
+  const side = pole.clone().cross(e);
+  if (side.lengthSq() < 1e-6) side.set(1, 0, 0).projectOnPlane(e);
+  side.normalize();
+  if (side.dot(s) < 0) side.negate();
+  const upv = pole.clone().projectOnPlane(e).normalize();
   const f = freeArea();
-  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.88;
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const tH = (t * f.w) / window.innerHeight;
   const tV = (t * f.h) / window.innerHeight;
-  const up = camera.up;
-  const maxCos = Math.cos(DEFAULT_MIN_LINE_ANGLE);
-  let best: { d: THREE.Vector3; dist: number; score: number } | null = null;
-  const d = new THREE.Vector3();
+  const moonTan = DEFAULT_MOON_FRAC * tV;
+  const L = THREE.MathUtils.clamp(Math.sqrt(1 + 1 / (moonTan * moonTan)), EARTH_DIST + DEFAULT_K_MIN, EARTH_DIST + DEFAULT_K_MAX);
+  const earthPos = e.clone().multiplyScalar(EARTH_DIST);
+  const dirOf = (b: number, g: number) =>
+    e.clone().multiplyScalar(Math.cos(b) * Math.cos(g))
+      .addScaledVector(side, Math.sin(b) * Math.cos(g))
+      .addScaledVector(upv, Math.sin(g))
+      .normalize();
+  // Earth centre on the screen (tangents: x right, y up) for a camera at d * L.
+  const fwd = new THREE.Vector3();
   const r = new THREE.Vector3();
   const u = new THREE.Vector3();
-  for (let elDeg = -20; elDeg >= -55; elDeg -= 5) {
-    const el = THREE.MathUtils.degToRad(elDeg);
-    for (let azDeg = 0; azDeg < 360; azDeg += 5) {
-      const az = THREE.MathUtils.degToRad(azDeg);
-      d.copy(h1).multiplyScalar(Math.cos(el) * Math.cos(az))
-        .addScaledVector(h2, Math.cos(el) * Math.sin(az))
-        .addScaledVector(pole, Math.sin(el))
-        .normalize();
-      if (Math.abs(d.dot(e)) > maxCos || Math.abs(d.dot(s)) > maxCos) continue;
-      // Camera axes: right and up on the screen (the camera looks along -d).
-      r.copy(up).cross(d);
-      if (r.lengthSq() < 1e-6) continue;
-      r.normalize();
-      u.copy(d).cross(r);
-      let dist = fitDist();
-      if (!trueEarth) {
-        const ex = Math.abs(earthPos.dot(r)) + EARTH_RADIUS;
-        const ey = Math.abs(earthPos.dot(u)) + EARTH_RADIUS;
-        const ed = earthPos.dot(d);
-        dist = Math.max(dist, ed + ex / tH, ed + ey / tV);
-        // Earth disk and Moon disk must not touch on the screen.
-        const camE = d.clone().multiplyScalar(dist);
-        const toE = earthPos.clone().sub(camE);
-        const sep = toE.angleTo(camE.clone().negate());
-        const need = Math.asin(1 / dist) + Math.asin(Math.min(1, EARTH_RADIUS / toE.length())) + 0.02;
-        if (sep < need) continue;
-      }
-      // The Sun line must leave the Moon disk on the screen: its far end is in front of
-      // the camera and well outside the Moon disk.
-      const cam = d.clone().multiplyScalar(dist);
-      const toS = s.clone().multiplyScalar(SUN_DIST).sub(cam);
-      if (-toS.dot(d) < 0.3 * dist) continue;
-      if (toS.angleTo(cam.clone().negate()) < 2 * Math.asin(1 / dist)) continue;
-      if (dist > controls.maxDistance) continue;
-      const score = dist * (1 + 0.3 * (1 - d.dot(s)));
-      if (!best || score < best.score) best = { d: d.clone(), dist, score };
+  const earthTan = (d: THREE.Vector3) => {
+    fwd.copy(d).negate();
+    r.copy(fwd).cross(camera.up).normalize();
+    u.copy(r).cross(fwd);
+    const rel = earthPos.clone().addScaledVector(d, -L);
+    const z = rel.dot(fwd);
+    return { x: rel.dot(r) / z, y: rel.dot(u) / z };
+  };
+  const rad = THREE.MathUtils.degToRad;
+  // Search the camera offset: b to the side (positive = Sun side), g up (positive = north).
+  // Cost: the Earth centre away from its wanted place in a corner (a lower corner is
+  // better), plus a phase angle above DEFAULT_PHASE_MAX (dark Moon near new moon).
+  // The Earth centre must stay in the free area (or just at its edge).
+  let best = { b: rad(8), g: rad(4), cost: Infinity };
+  for (let bd = -30; bd <= 30; bd += 0.5) {
+    for (let gd = -20; gd <= 20; gd += 0.5) {
+      const d = dirOf(rad(bd), rad(gd));
+      const p = earthTan(d);
+      const ax = Math.abs(p.x) / tH;
+      const ay = Math.abs(p.y) / tV;
+      if (ax > 1.05 || ay > 1) continue;
+      const phase = THREE.MathUtils.radToDeg(d.angleTo(s));
+      const cost =
+        (ax - DEFAULT_EARTH_X) ** 2 +
+        (ay - DEFAULT_EARTH_Y) ** 2 +
+        (p.y > 0 ? 0.1 : 0) +
+        (bd < 0 ? 0.02 : 0) +
+        0.05 * (Math.max(0, phase - DEFAULT_PHASE_MAX) / 10) ** 2;
+      if (cost < best.cost) best = { b: rad(bd), g: rad(gd), cost };
     }
   }
-  if (!best) {
-    viewEarth();
-    return;
-  }
-  viewFrom(best.d, best.dist);
+  viewFrom(dirOf(best.b, best.g), L);
 }
 $('viewDefault').addEventListener('click', defaultView);
 // From below the south pole. The camera is 0.5° off the axis toward lon 0, so lon 0 is
@@ -787,6 +799,24 @@ trueSkyChk.addEventListener('change', () => {
   update();
   viewEarth();
 });
+
+// ---------- Sun and Earth edge indicators (edgeind.ts) ----------
+const edgeInd = createEdgeIndicators(canvas);
+function updateEdgeIndicators() {
+  const f = freeArea();
+  // Keep the indicators below the scale note at the top of the screen.
+  const box = { left: f.cx - f.w / 2, right: f.cx + f.w / 2, top: 24, bottom: f.h };
+  if (!state || !sunMarker.visible) {
+    edgeInd.update(camera, box, null, null);
+    return;
+  }
+  edgeInd.update(
+    camera,
+    box,
+    { pos: sunMarker.getWorldPosition(new THREE.Vector3()), radius: SUN_RADIUS },
+    { pos: earthMesh.getWorldPosition(new THREE.Vector3()), radius: trueEarth ? EARTH_TRUE_RADIUS : EARTH_RADIUS },
+  );
+}
 
 // ---------- Update loop ----------
 const m4 = new THREE.Matrix4();
@@ -879,6 +909,7 @@ function update() {
     earthEl: sky.earthElDeg,
     earthUp: api ? api.earthVisible : sky.earthElDeg > 0,
   });
+  gridLight.sun.value.set(...state.sunBodyKm).normalize();
   if (first) defaultView();
 }
 
@@ -940,6 +971,7 @@ function frame(now: number) {
   controls.update();
   updateGridLabels(grid, camera, window.innerHeight);
   renderer.render(scene, camera);
+  updateEdgeIndicators();
   requestAnimationFrame(frame);
 }
 
