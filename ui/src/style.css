@@ -831,6 +831,7 @@ button.danger {
 }
 .mis-lines li.warn {
   color: #c90;
+}
 /* "User guide" link below the title in the left panel. */
 .guide-link {
   display: inline-block;
