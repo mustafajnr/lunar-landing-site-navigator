@@ -1134,3 +1134,193 @@ tr.ev.past td:first-child {
 .state.down::before {
   content: '▼ ';
 }
+
+/* ---------- Results tabs: Verdict and Details (verdict.ts) ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.res-tabs {
+  display: flex;
+  gap: 4px;
+  margin: -8px -12px 4px;
+  padding: 4px 12px 0;
+  border-bottom: 1px solid #444;
+  position: sticky;
+  top: -8px;
+  z-index: 2;
+  background: rgb(15, 18, 24);
+}
+.res-tabs [role='tab'] {
+  flex: 1;
+  padding: 6px 8px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #aaa;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 13px;
+}
+.res-tabs [role='tab'][aria-selected='true'] {
+  color: #fff;
+  border-bottom-color: #4aa3ff;
+}
+.res-tabs [role='tab']:focus-visible,
+.res-tabpanel:focus-visible {
+  outline: 2px solid #4aa3ff;
+  outline-offset: -2px;
+}
+.res-tabpanel[hidden] {
+  display: none;
+}
+.verdict .v-where {
+  margin: 6px 0 2px;
+}
+.v-head {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 4px 0 8px;
+  line-height: 1.35;
+}
+.v-head.error {
+  color: #ff8a7a;
+  font-size: 13px;
+}
+.v-block {
+  margin: 6px 0;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid #555;
+  border-radius: 4px;
+}
+.v-block h3 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  margin: 0 0 2px;
+  color: #ddd;
+}
+.v-block h3 .small {
+  margin: 0;
+}
+.v-rate {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.v-plain {
+  margin: 2px 0;
+  font-size: 13px;
+  color: #ddd;
+}
+.v-planner {
+  margin: 2px 0 0;
+  color: #aab;
+}
+.v-planner:empty {
+  display: none;
+}
+.v-block[data-rating='good'] {
+  border-left-color: #7ee08f;
+}
+.v-block[data-rating='limited'] {
+  border-left-color: #ffd54a;
+}
+.v-block[data-rating='poor'] {
+  border-left-color: #ff8a7a;
+}
+.v-block[data-rating='good'] .v-rate {
+  color: #7ee08f;
+}
+.v-block[data-rating='limited'] .v-rate {
+  color: #ffd54a;
+}
+.v-block[data-rating='poor'] .v-rate {
+  color: #ff8a7a;
+}
+.v-now {
+  font-size: 12px;
+  margin: 8px 0 4px;
+  color: #ccc;
+  font-variant-numeric: tabular-nums;
+}
+.v-caveat {
+  margin: 4px 0;
+}
+.v-rules {
+  font-size: 12px;
+  color: #bbb;
+  margin: 4px 0 6px;
+}
+.v-rules summary {
+  cursor: pointer;
+  color: #8cc4ff;
+}
+.v-rules ul {
+  margin: 4px 0;
+  padding-left: 16px;
+}
+.v-rules li {
+  margin: 2px 0;
+}
+#saveSlotVerdict:not(:empty) {
+  margin-top: 6px;
+}
+@media (max-width: 760px) {
+  /* Phone: the tab panels are not boxes. Their sections join the one column.
+     The tabs come first in the results, then the active tab. */
+  #results > .res-tabpanel {
+    display: contents;
+  }
+  #results > .res-tabpanel[hidden] {
+    display: none;
+  }
+  #results > .res-tabs {
+    order: 9;
+    position: static;
+    margin: 8px 0 0;
+    padding: 0;
+    background: none;
+  }
+  #results > .res-tabpanel > * {
+    order: 85;
+  }
+  #tabVerdict > section.first,
+  #tabDetails > section.first {
+    order: 10;
+    border-top: none;
+  }
+  #tabVerdict > .verdict-input {
+    order: 11;
+  }
+  #tabDetails > section:has(#sky) {
+    order: 40;
+  }
+  #tabDetails > section:has(#curSunEl) {
+    order: 60;
+  }
+  #tabDetails > #summary {
+    order: 70;
+  }
+  #tabDetails > section:has(#eventRows) {
+    order: 71;
+  }
+  #tabDetails > #checkSection {
+    order: 72;
+  }
+  .v-head {
+    font-size: 18px;
+  }
+  .v-plain {
+    font-size: 15px;
+  }
+}

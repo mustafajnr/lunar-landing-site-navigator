@@ -7,6 +7,7 @@
 import { ApiError, fetchSeries, type HorizonMask, type SeriesEvent, type SeriesOut } from './api';
 import type { LatLon } from './ephemeris';
 import { CheckPanel } from './check';
+import { fillRatingNote, renderVerdict, setupResultTabs } from './verdict';
 
 const HOUR_MS = 3600000;
 
@@ -155,20 +156,29 @@ export class ResultsPanel {
   private readonly onData: () => void;
   private applyHeight: (v: number) => void = () => {};
   /** "Check this result" section (check.ts). */
-  private readonly check = new CheckPanel($('results'));
+  private readonly check = new CheckPanel($('tabDetails'));
   /** The point and observer height of the loaded data. */
   private dataReq: { point: LatLon; heightM: number } | null = null;
+  /** True from the start of a load to its end. The Verdict then shows "Loading…". */
+  private loading = false;
+  private statusText = '';
+  private statusError = false;
+  private lastVNow = '';
 
   constructor(onData: () => void) {
     this.onData = onData;
-    const hIn = $<HTMLInputElement>('heightIn');
-    const hErr = $<HTMLParagraphElement>('heightErr');
-    hIn.value = String(this.heightM);
+    // Two height fields (Details and Verdict tabs) show the same value: this.heightM.
+    const fields: [HTMLInputElement, HTMLParagraphElement][] = [
+      [$<HTMLInputElement>('heightIn'), $<HTMLParagraphElement>('heightErr')],
+      [$<HTMLInputElement>('heightInV'), $<HTMLParagraphElement>('heightErrV')],
+    ];
     const apply = (v: number) => {
       this.heightM = v;
-      hIn.value = String(v);
-      hErr.hidden = true;
-      hIn.classList.remove('bad');
+      for (const [hIn, hErr] of fields) {
+        hIn.value = String(v);
+        hErr.hidden = true;
+        hIn.classList.remove('bad');
+      }
       for (const b of document.querySelectorAll<HTMLButtonElement>('[data-height]')) {
         b.classList.toggle('active', Number(b.dataset.height) === v);
       }
@@ -177,24 +187,37 @@ export class ResultsPanel {
         this.horizon = null;
         this.renderHorizon();
         this.onData();
+        // The old result is for the old height: the Verdict must not show it.
+        this.loading = true;
+        this.renderVerdict();
       }
       this.schedule(250);
     };
-    hIn.addEventListener('change', () => {
-      const v = Number(hIn.value.replace(',', '.'));
-      if (!Number.isFinite(v) || v < 0 || v > 1000) {
-        hErr.textContent = 'Observer height must be a number from 0 to 1000 m.';
-        hErr.hidden = false;
-        hIn.classList.add('bad');
-        return;
-      }
-      apply(v);
-    });
+    for (const [hIn, hErr] of fields) {
+      hIn.addEventListener('change', () => {
+        const v = Number(hIn.value.replace(',', '.'));
+        if (!Number.isFinite(v) || v < 0 || v > 1000) {
+          hErr.textContent = 'Observer height must be a number from 0 to 1000 m.';
+          hErr.hidden = false;
+          hIn.classList.add('bad');
+          return;
+        }
+        apply(v);
+      });
+    }
     for (const b of document.querySelectorAll<HTMLButtonElement>('[data-height]')) {
       b.addEventListener('click', () => apply(Number(b.dataset.height)));
     }
     this.applyHeight = apply;
     apply(this.heightM);
+
+    fillRatingNote();
+    // One "Save search" box. It moves to the tab that is on the screen.
+    const saveBox = $('saveBox');
+    setupResultTabs((tab) => {
+      $(tab === 'verdict' ? 'saveSlotVerdict' : 'saveSlotDetails').append(saveBox);
+    });
+    this.renderVerdict();
   }
 
   get observerHeightM() {
@@ -227,6 +250,7 @@ export class ResultsPanel {
       this.nextAfter = null;
       this.times = [];
       this.events = [];
+      this.loading = true;
       this.render();
       this.onData();
     }
@@ -244,6 +268,7 @@ export class ResultsPanel {
     this.ctrl?.abort();
     const ctrl = new AbortController();
     this.ctrl = ctrl;
+    this.loading = true;
     this.setStatus('Loading…', false);
     const heightM = this.heightM;
     let sent: HorizonMask | null = null;
@@ -280,6 +305,7 @@ export class ResultsPanel {
           : null;
         this.times = d.times_utc.map((t) => Date.parse(t));
         this.events = d.events.map((e) => ({ type: e.type, ms: Date.parse(e.utc) }));
+        this.loading = false;
         this.setStatus('', false);
         this.render();
         this.onData();
@@ -291,7 +317,9 @@ export class ResultsPanel {
           e instanceof ApiError && e.unreachable
             ? 'The API is not available. No results.'
             : `Cannot load results: ${(e as Error).message}`;
+        this.loading = false;
         this.setStatus(msg, true);
+        this.renderVerdict();
       });
   }
 
@@ -300,6 +328,23 @@ export class ResultsPanel {
     el.textContent = text;
     el.hidden = text === '';
     el.classList.toggle('error', error);
+    this.statusText = text;
+    this.statusError = error;
+  }
+
+  private renderVerdict() {
+    const k = this.key;
+    const ready = !this.loading && !this.statusError && this.data;
+    renderVerdict({
+      data: ready ? this.data : null,
+      horizon: this.horizon,
+      status: this.statusError ? this.statusText : k ? 'Loading…' : 'Select a point.',
+      error: this.statusError,
+      siteName: $('selName').textContent || $('selLatLon').textContent || '',
+      startMs: k?.startMs ?? 0,
+      stopMs: k?.stopMs ?? 0,
+    });
+    this.lastVNow = '';
   }
 
   /** Values at a time, interpolated linearly between series samples. Null outside the series. */
@@ -339,6 +384,7 @@ export class ResultsPanel {
   /** Static parts: summary and event list. */
   private render() {
     this.renderHorizon();
+    this.renderVerdict();
     const d = this.data;
     const sum = $('summary');
     const list = $<HTMLTableSectionElement>('eventRows');
@@ -451,6 +497,12 @@ export class ResultsPanel {
     );
   }
 
+  private setVNow(text: string) {
+    if (text === this.lastVNow) return;
+    this.lastVNow = text;
+    $('vNow').textContent = text;
+  }
+
   /** Live parts: current values and countdowns. Call every frame. */
   tick(nowMs: number) {
     this.check.tick(nowMs);
@@ -466,6 +518,7 @@ export class ResultsPanel {
       set('cdEarthSub', '');
       set('cdSunState', '');
       set('cdEarthState', '');
+      this.setVNow(this.data && !this.loading ? 'Right now: the clock time is outside the period.' : '');
       return;
     }
     set('curSunEl', signed(now.sunEl));
@@ -474,10 +527,14 @@ export class ResultsPanel {
     set('curEarthMargin', signed(now.earthMargin));
 
     const stop = this.times[this.times.length - 1];
+    const ups = { sun: false, earth: false };
+    let firstNext: { type: SeriesEvent['type']; ms: number } | null = null;
     const countdown = (body: 'sun' | 'earth', upNow: boolean) => {
       const next = this.events.find((e) => e.ms > nowMs && (body === 'sun' ? e.type.startsWith('sun') : e.type.startsWith('earth')));
       // The next event decides the state (avoids a mismatch from interpolation near a crossing).
       const up = next ? next.type.endsWith('set') : upNow;
+      ups[body] = up;
+      if (next && (!firstNext || next.ms < firstNext.ms)) firstNext = next;
       const stateEl = $(body === 'sun' ? 'cdSunState' : 'cdEarthState');
       const label = body === 'sun' ? 'Sun' : 'Earth';
       const st = up ? `${label} is up` : `${label} is down`;
@@ -505,6 +562,15 @@ export class ResultsPanel {
     set('cdSunSub', sunSub);
     set('cdEarth', earthBig);
     set('cdEarthSub', earthSub);
+    if (this.loading || this.statusError) this.setVNow('');
+    else {
+      const fn = firstNext as { type: SeriesEvent['type']; ms: number } | null;
+      const st = (up: boolean, label: string) => `${up ? '▲' : '▼'} ${label} ${up ? 'up' : 'down'}.`;
+      this.setVNow(
+        `Right now (${fmtUtc(nowMs)} UTC): ${st(ups.sun, 'Sun')} ${st(ups.earth, 'Earth')} ` +
+          (fn ? `Next change: ${EVENT_LABEL[fn.type]} in ${fmtDuration(fn.ms - nowMs)}.` : 'No change before the end of the period.'),
+      );
+    }
 
     // Mark past events and the next one of each kind.
     const key = String(this.events.findIndex((e) => e.ms > nowMs));
