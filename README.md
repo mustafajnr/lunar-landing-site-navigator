@@ -30,15 +30,19 @@ The users are mission planners, educators and the public. A planner can check a 
 
 ## What you can do
 
-- **Select a point.** Pick one of 22 curated sites, type a latitude and longitude, or click the globe or the map. The curated sites are 15 past landings (Apollo, Chang'e, Chandrayaan-3, SLIM, IM-1, IM-2 and Blue Ghost Mission 1) and the 7 Artemis III candidate regions.
-- **Select a time.** Type a UTC date and time, or move the slider over ±30 days. "Play" animates the time at 1 minute to 1 day per second.
-- **Read the countdowns.** The results panel tells you if the Sun and Earth are up. It gives the time to the next sunset or sunrise, and to the next Earthset or Earthrise.
-- **Read the values.** The panel shows the Sun elevation, the part of the Sun's disk that is visible, and the Earth elevation. "Earth margin" is the Earth elevation minus the terrain horizon elevation in the Earth direction.
-- **Read the summary.** For the ±30-day window, the panel shows the time with the Sun, with Earth and with both. It also shows the longest period of each. The panel lists all sunrise, sunset, Earthrise and Earthset events.
-- **See the local sky.** The sky plot shows the Sun and Earth tracks over the window, with the terrain horizon outline. You can zoom to ±2° to see the true disk sizes.
-- **See the site.** The site map shows NASA Moon Trek images of the site, with arrows to the Sun and Earth.
+- **Select a point.** Search a place by name (9,087 IAU/USGS Gazetteer names, with English names for the maria), pick one of 24 curated sites, type a latitude and longitude, or click the globe or the map. The curated sites are 7 Artemis III candidate regions, 2 planned NASA CLPS landing sites and 15 past landings (Apollo, Chang'e, Chandrayaan-3, SLIM, IM-1, IM-2 and Blue Ghost Mission 1). "Back" and "Forward" (and the browser Back button) go to the previous or next point and period.
+- **Set the period.** Type a UTC start, then select a duration: 1 week, 1 month, 3 months, 1 year, or 1 to 400 days. The slider and "Play" (1 minute to 1 week per second) move the time through the period.
+- **Read the verdict.** The "Verdict" tab gives a short answer for the period. "Solar power", "Talk to Earth" and "Both together" each get Good, Limited or Poor. This is our rating, not a NASA standard.
+- **Check mission requirements.** Three limits with NASA example values: the longest darkness the hardware survives (50 h, VIPER), continuous sunlight from the start (6.5 days, Artemis) and the minimum Earth visibility (25 %, Artemis HLS). Each limit shows ✓, ✕ or ?. You can change the limits. "Next landing window" finds the next landing time that meets all three limits in the 60 days after the start. "Use this start" sets it.
+- **Read the details.** The "Details" tab tells you if the Sun and Earth are up, with the time to the next sunset or sunrise and the next Earthset or Earthrise. It gives the Sun and Earth elevation, the visible part of the Sun's disk and the Earth margin, the result for the period (time with the Sun, with Earth and with both, the longest periods and gaps) and all events in the period.
+- **See the local sky.** The sky plot shows the Sun and Earth tracks with the terrain horizon outline. You can zoom to ±2° to see the true disk sizes. For a period longer than 30 days, a time strip selects the part of the period to show.
+- **See the site.** The site map shows NASA Moon Trek images of the site, with arrows to the Sun and Earth, and a slope layer (LOLA 20 m). South of 75° S, two layers and the "Sun and Earth" tab show the NASA PGDA long-term average sunlight and Earth visibility. The "Best points in this site" list gives up to 5 points with the most long-term Sun and Earth. A link opens the point in LROC QuickMap.
+- **Save and compare.** Save a search (point, height, start and duration). Compare 2 to 4 saved searches side by side: site images with Sun and Earth arrows, the verdict rows, the mission requirements, the numbers and a timeline.
 - **See the geometry.** The 3D globe shows the Moon's orientation, the lit half, the sub-solar point and the sub-Earth point. "Earth and Moon, true scale" shows Earth at its true distance and size.
 - **Change the observer height.** Use 0 m (ground), 2 m (lander) or 10 m (mast), or type a value.
+- **Check a result.** "Check this result" gives the data and settings of the result, and links to the same query in JPL Horizons.
+
+The [user guide](https://lunarsite.select/guide.html) describes each feature.
 
 Definitions:
 
@@ -83,13 +87,13 @@ The challenge page lists seven objectives. This table tells how the tool meets e
 
 | Objective | How the tool meets it |
 |---|---|
-| Interactive site selection and comparison | 22 curated sites with sources, typed coordinates, and clicks on the globe or the map. You compare sites one after the other. There is no side-by-side view. |
-| Date and time flexibility | Date and time input, a ±30-day slider, and "Play". Each new date loads a new 60-day window. |
+| Interactive site selection and comparison | Place search, 24 curated sites with sources, typed coordinates, and clicks on the globe or the map. Side-by-side comparison of 2 to 4 saved searches. |
+| Date and time flexibility | A UTC start and a duration of 1 to 400 days. A slider and "Play" over the period. "Next landing window" finds a valid landing time. |
 | Sun and Earth position visualization | Local sky plot (azimuth and elevation) with the terrain horizon, Sun and Earth arrows on the site map, and the 3D globe. Countdowns to the next sunset and Earthset. |
-| Power and communication assessment | Sun elevation, visible part of the Sun's disk, time with the Sun, Earth margin, time with Earth, time with both, and the longest periods. |
+| Power and communication assessment | Verdict with Solar power, Talk to Earth and Both together. Mission requirements with NASA example limits. Sun elevation, visible part of the Sun's disk, time with the Sun, Earth margin, time with Earth, time with both, and the longest periods and gaps. NASA PGDA long-term average maps. |
 | Multiple visualization approaches | 3D globe (three.js), 2D site map (OpenLayers), and the sky plot. |
-| Temporal dynamics | Time animation, Sun and Earth tracks over ±30 days, and the event list. |
-| Accessibility across skill levels | Plain-language help in the sky plot, presets for the observer height, and a public API with an interactive schema for technical users. |
+| Temporal dynamics | Time animation, Sun and Earth tracks over the period, the event list, and the comparison timeline. |
+| Accessibility across skill levels | A welcome card, a user guide, plain-language verdicts, help in the sky plot, presets for the observer height, a phone layout, and a public API with an interactive schema for technical users. |
 
 The challenge also names some technical points:
 
@@ -151,9 +155,9 @@ On 2026-11-14, the deployed API returned terrain masks for points outside the pr
 | Blue Marble Next Generation, January 2004 | Earth texture | NASA Earth Observatory, Reto Stöckli, NASA GSFC |
 | SDO/HMI continuum image, 2026-11-14 16:00 UTC | Sun texture | Courtesy of NASA/SDO and the AIA, EVE and HMI science teams |
 | LROC QuickMap (TerrainSlope layer, NAC 2 m south pole mosaic, WAC+NAC base) | External link "Open in LROC QuickMap (slope in degrees)": the selected point with terrain slope in degrees. The tool does not copy QuickMap data. | LROC QuickMap, https://quickmap.lroc.im-ldi.com/. NASA/GSFC/Arizona State University. |
-| IAU/USGS Gazetteer of Planetary Nomenclature, `MOON_nomenclature_center_pts` (downloaded 2026-11-15) | Place search "Search a place on the Moon": name, type, centre and diameter of about 9,000 approved features (`data/scripts/make_gazetteer.py`, `ui/public/gazetteer.json`) | USGS Astrogeology Science Center and the IAU, https://planetarynames.wr.usgs.gov/. Public domain (USGS). |
+| IAU/USGS Gazetteer of Planetary Nomenclature, `MOON_nomenclature_center_pts` (downloaded 2026-11-15) | Place search "Search a place on the Moon": name, type, centre and diameter of 9,087 approved features (`data/scripts/make_gazetteer.py`, `ui/public/gazetteer.json`) | USGS Astrogeology Science Center and the IAU, https://planetarynames.wr.usgs.gov/. Public domain (USGS). |
 | JPL Horizons | Validation data | NASA JPL, https://ssd.jpl.nasa.gov/horizons/ |
-| Site coordinates | Curated site list | NASA NSSDC (Apollo), LROC (other landings and the Artemis III regions). Each site in `data/sites.json` has its source URL. |
+| Site coordinates | Curated site list | NASA NSSDC (Apollo), LROC (other landings and the Artemis III regions), NASA CLPS mission pages (planned missions). Each site in `data/sites.json` has its source URL. |
 
 Software: three.js, OpenLayers, Vite, TypeScript, Python, FastAPI, uvicorn, numpy, rasterio, uv, nginx and Google Cloud Run.
 
@@ -238,11 +242,10 @@ If a download stops with a certificate error, read "Troubleshooting" in `core/RE
 
 - **Earth visibility uses Earth's centre only.** "Earth up" does not include Earth's disk (radius about 0.95°). It does not include antenna beam width or a link budget. Use the Earth margin to find marginal geometry.
 - **One horizon value for the Sun's disk.** The visible part of the Sun uses the horizon elevation at the Sun's centre only. At a sharp peak or notch, the real value can be different.
-- **Short events can be missed.** The UI uses 60-minute steps. If two events occur in one step, for example a short sunrise behind a peak, the tool does not find them.
+- **Short events can be missed.** The UI uses 10-minute steps up to 31 days, 30-minute steps up to 100 days and 60-minute steps for a longer period. The landing window search uses 30-minute steps. If two events occur in one step, for example a short sunrise behind a peak, the tool does not find them.
 - **Terrain only near the south pole.** There is terrain data only south of about 65° S. At other points, the horizon is flat at 0°. The panel then says "Flat horizon". If the server has no terrain for a polar point, the panel shows a warning.
 - **Terrain resolution.** The horizon uses 20 m/pixel data to 25 km and 120 m/pixel data to 150 km. Terrain farther than 150 km is not included. The masks are not validated against measured illumination.
 - **One point, not an area.** The results are for the centre point of a site. The site radius is shown on the map, but the tool does not calculate results over the area. The Artemis III centres are the centres of LROC image boxes, not official region centres. Their radius is an upper bound.
-- **No side-by-side comparison.** You compare sites and dates one after the other.
 - **The globe is not to scale.** Earth and the Sun are closer and smaller in the default view. The globe relief does not cast shadows. Use the results panel, not the globe shading, to decide if a point is lit.
 - **Time range.** The ephemeris covers about 1849 to 2150.
 - **Heights.** Heights are above a sphere of radius 1,737,400 m, not above a gravity surface.
