@@ -179,6 +179,7 @@ Response:
 | `summary` | object | Summary fields (section 4) |
 | `horizon` | object | The horizon that the API used (see below) |
 | `next_events` | object | First event of each type after `stop_utc` (see below) |
+| `provenance` | object | The data and settings that made the result (see below) |
 
 Fields of `horizon`:
 
@@ -192,6 +193,20 @@ Fields of `horizon`:
 | `terrain_status` | text | `ok`: terrain is in use. `no_coverage`: the DEMs do not cover the point. `unavailable`: the DEMs cover the point, but this server has no DEM files and no cached mask, so the flat horizon can be wrong. `not_requested`: a mask was provided, or `terrain` is `"none"`. |
 
 Fields of `next_events`: `sunrise`, `sunset`, `earthrise` and `earthset`. Each value is UTC text with whole seconds, or null. The API uses `next_events` (section 4) with the same horizon and surface height as the series. It searches for 400 days after `stop_utc` with a 2 h step. Null means no event of that type in 400 days.
+
+Fields of `provenance`:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `software` | object | `lunarnav`: version of the core package. `api`: version of the API package. |
+| `kernels` | list of text | File names of the SPICE kernels that are loaded, in load order |
+| `ephemeris` | text | `"DE440"` |
+| `frame` | text | `"MOON_ME"` |
+| `mask_origin` | text | Where the mask came from. `memory_cache`: the in-memory cache. `disk_cache`: the disk cache (precomputed masks are in the disk cache). `computed`: calculated from the DEMs for this request. `provided`: the request `mask`. `none`: no mask (flat horizon). |
+| `dem_source` | text or null | The same value as `horizon.dem_source` |
+| `step_minutes` | number | The step of the series, minutes |
+| `event_tol_s` | number | Accuracy of the event times (bisection tolerance), seconds |
+| `generated_utc` | text | Time of the response, UTC with whole seconds |
 
 ### `GET /v1/mask`
 
@@ -287,3 +302,4 @@ The terrain tool is the package `lunarterrain` in `data/` (`data/src/lunarterrai
 - 2026-11-14: `evaluate_series` added to section 4. Time offset, latitude and longitude input rules added. A mask with no `observer_height_m` is accepted. Section 5 now gives the real API endpoints.
 - 2026-11-14: `surface_height_m` added to the mask format. `GET /v1/mask` added. `/v1/series` has `terrain`, `horizon` and `next_events`. The API accepts `lon_deg` up to 360. `stop_utc` can be equal to `start_utc`. `next_events` added to section 4.
 - 2026-11-14: `horizon.terrain_status` added. `/v1/health` added for Cloud Run.
+- 2026-11-15: `provenance` added to the `/v1/series` response.

@@ -62,23 +62,39 @@ class MaskCache:
         Raises NoTerrain if the DEMs do not cover the point or its horizon rays.
         Raises TerrainUnavailable if the DEM files are missing and no cache has the mask.
         """
+        return self.get_with_origin(lat_deg, lon_deg, observer_height_m)[0]
+
+    def get_with_origin(self, lat_deg: float, lon_deg: float,
+                        observer_height_m: float) -> tuple[dict, str]:
+        """(mask, origin). The same as get(), and also the origin of the mask.
+
+        origin is "memory_cache", "disk_cache" or "computed". Precomputed masks are
+        files in the disk cache, so their origin is "disk_cache".
+        """
         key = mask_key(lat_deg, lon_deg, observer_height_m)
         lat, lon, h = key
         if lat > MIN_LAT_DEG:
             raise NoTerrain(f"the DEMs cover 60-90 S only; lat_deg={lat} is north of 60 S")
+        origin = "memory_cache"
         entry = self._lru_get(key)
         if entry is None:
+            origin = "disk_cache"
             entry = self._disk_get(key)
             if entry is None:
                 with self._dem_lock:
-                    entry = self._lru_get(key) or self._disk_get(key)
+                    entry = self._lru_get(key)
+                    if entry is not None:
+                        origin = "memory_cache"
+                    else:
+                        entry = self._disk_get(key)
                     if entry is None:
+                        origin = "computed"
                         entry = self._compute(lat, lon, h)
                         self._disk_put(key, entry)
             self._lru_put(key, entry)
         if "no_terrain" in entry:
             raise NoTerrain(entry["no_terrain"])
-        return entry
+        return entry, origin
 
     def clear_memory(self) -> None:
         with self._lru_lock:

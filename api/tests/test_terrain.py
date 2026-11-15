@@ -142,6 +142,8 @@ def test_lon_0_360_same_as_minus_180_180(client, terrain):
     a = client.post("/v1/series", json={**RIDGE, **SPAN30, "terrain": terrain}).json()
     b = client.post("/v1/series", json={"lat_deg": -89.45, "lon_deg": 222.69, **SPAN30,
                                         "terrain": terrain}).json()
+    # The provenance has the response time and the mask origin (computed, then cache).
+    a.pop("provenance"), b.pop("provenance")
     assert a == b
 
 
