@@ -32,7 +32,7 @@ The tool is for mission planners, educators and the public. It runs in a web bro
 
 ## Link to Project Demo
 
-TODO(developer): upload the 30-second video (script: `demo-script.md`) to a public host, for example YouTube. Paste the link here. Test the link in a private browser window.
+TODO(developer): paste the public link to the demo here: the 30-second video (script: `demo-script.md`) or the 6-slide deck as a PDF. Test the link in a private browser window.
 
 ---
 
@@ -165,6 +165,6 @@ Tools: Claude Code (Anthropic), Google Cloud Run, Cloud Build and Cloud Storage,
 - Team name: lunarspot.
 - Team member: Mustafa Abdeltawwab.
 - Local Event: London (registration confirmed, not waitlisted).
-- TODO(developer): upload the demo video and add its link (see "Link to Project Demo").
+- TODO(developer): put the demo (video or slide PDF) on a public host and add its link (see "Link to Project Demo").
 - TODO(developer): FortiGuard Web Filter classification request for https://lunarsite.select (the developer will do it; recommended, not required).
 - TODO(developer): images for the project page (JPG or PNG, up to 10 MB). Use the files in `screenshots/`. Files 09 to 12 show the Artemis IV example.

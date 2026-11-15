@@ -63,8 +63,8 @@ Extra facts for the slides or the description:
 - Near de Gerlache Rim, points 0.4 to 1.5 km apart gave 0 % to 100 % Sun for 22–29 Jan 2028.
 - At the Shackleton–de Gerlache ridge, a 10 m mast changes the sunlight over 2027 from 72 % to 96 %, and the longest night from 14 days to 3 days.
 
-## Alternative: 7-slide deck
+## Alternative: slide deck (6 slides)
 
-The backup deck tells the same Artemis IV story in 7 slides: https://claude.ai/artifact/Gy2KAkQGkenaG3GzqjhB2e
+The deck tells the Artemis IV story in 6 slides: the title, the scenario, the tool and its data, the slip (comparison), the solutions (comparison and best points), and the next steps. Each slide names its data sources. Link: https://claude.ai/artifact/Gy2KAkQGkenaG3GzqjhB2e
 
-It is private. To submit it, share it from its Share menu, or export it as PDF or PowerPoint and put the file on a public host. Test the link in a private browser window.
+It is private. To submit it as the demo: export it as PDF (Share › Export), put the PDF on a public host (for example Google Drive, "Anyone with the link"), and test the link in a private browser window.
