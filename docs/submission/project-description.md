@@ -42,42 +42,49 @@ Code repository (public, Apache 2.0): https://github.com/mustafajnr/lunar-landin
 
 ## Detailed Project Description
 
-(About 7,100 characters. A short version follows.)
+(About 890 words. The answers follow the questions of the form.)
 
-**What it does.** The tool answers two questions for a landing site and a mission period. Can a solar array see the Sun? Can an antenna see Earth? You select one of 24 curated sites, search a place name or type coordinates. The curated sites are 15 past landings (Apollo, Chang'e, Chandrayaan-3, SLIM, IM-1, IM-2 and Blue Ghost Mission 1), 2 planned NASA CLPS landing sites and the 7 Artemis III candidate regions. You set a UTC start and a duration (presets from 1 week to 1 year, or 1 to 400 days). You set the observer height: ground 0 m, lander 2 m, mast 10 m or a custom value. Play moves the time through the period. The results panel has two tabs.
+**What does it do, and how does it work?**
 
-- **Verdict:** a plain-language headline, and three blocks: "Solar power", "Talk to Earth" and "Both together". Each block has a rating: Good, Limited or Poor. The rating is our rule of thumb, not a NASA standard. It uses the NASA exclusion floors: a site with the Sun up less than 5 % or Earth up less than 25 % of the period is Poor. "Mission requirements" gives a pass or fail line for each limit. The NASA defaults are 50 h of darkness or less (VIPER mission planning), 6.5 days of sunlight from the start (NASA Lunar Site Selection white paper) and 25 % Earth visibility (Artemis HLS update). You can change the limits.
-- **Next landing window:** the tool searches the 60 days after the start and gives the next time when a landing meets all three mission requirements. One click sets this landing time as the start.
-- **Details:** the Sun and Earth now, and the time to the next sunset, sunrise, Earthset or Earthrise. The period result: the time with the Sun, with Earth and with both, and the longest periods. The full list of events, with filters. A local sky plot with the Sun and Earth tracks and the terrain horizon, with a time strip for long periods. "Check this result" gives JPL Horizons links for an independent check.
+lunarsite.select answers two questions for a point on the Moon and a mission period: can a solar array see the Sun, and can an antenna see Earth?
 
-You can save searches and compare up to 4 of them side by side. The comparison shows a site image for each search, and a ★ marks the best value in each row.
+1. **Pick a point.** Select one of 24 curated sites (15 past landings, the 7 Artemis III candidate regions and 2 planned NASA CLPS sites), search 9,087 official lunar feature names, type coordinates, or click the 3D globe. For each south-pole site, "Best points in this site" lists the 5 points with the most long-term sunlight and Earth visibility (NASA PGDA maps), with a slope under 15°.
+2. **Set the period.** A UTC start, a duration of up to 400 days, and the height of the solar panel or antenna.
+3. **Read the Verdict.** Plain-language ratings for solar power, the radio link to Earth, and both together, and pass/fail checks against NASA mission requirements: at most 50 h of darkness (VIPER planning), sunlight for 6.5 days from landing (Artemis), and at least 25 % Earth visibility (Artemis HLS). The user can change the limits. If the date fails, "Next landing window" searches the next 60 days, and one click sets the new start.
+4. **Look deeper and compare.** The Details tab has the Sun and Earth positions now, countdowns to sunset and Earthset, a sky plot with the terrain horizon, and all events. Saved searches compare side by side, with the verdicts, site images and Sun and Earth arrows.
 
-The site map shows NASA Moon Trek images and arrows to the Sun and Earth. Its layers include slope (LOLA 20 m) and the NASA PGDA "Average sunlight" and "Average Earth visibility" maps (18.6-year averages). "Best points in this site" lists the points with the highest mean of average sunlight and average Earth visibility, with slope less than 15° and at least 500 m apart. For a small site, it searches a circle of 5 km radius. A link opens the point in LROC QuickMap. A 3D globe shows the true Moon orientation, the lit half, and the sub-solar and sub-Earth points.
+A Python API calculates the geometry with NASA NAIF SPICE and the JPL DE440 ephemeris, which includes libration. South of about 65° S, it calculates the terrain horizon of the point from LRO LOLA elevation data (20 m and 120 m per pixel): every 0.5° of azimuth, along 150 km, with the curvature of the Moon. It finds each sunrise, sunset, Earthrise and Earthset to 1 second. At six test times, our Sun and Earth directions agree with JPL Horizons to within 4.5 × 10⁻⁷°.
 
-The tool has a phone layout, a welcome card, a user guide and accessibility labels.
+**Example.** We assume an Artemis IV landing at Malapert Massif best point 1 on 10 January 2028, for 6.5 days (NASA has not chosen a region or a date). It meets 3 of 3 requirements. The launch slips 12 days: now the Sun is down at the landing, and the point meets 1 of 3. The tool suggests the next landing window at the same point, 3 to 8 February. In the comparison, de Gerlache Rim, nearer the pole, also meets 3 of 3 on the new date, but Earth is visible only 49 % of the stay, so the crew may need a relay satellite.
 
-**How it works.** A Python API on Google Cloud Run calculates the geometry. It uses NASA NAIF SPICE, the JPL DE440 ephemeris and the DE440 lunar orientation. Thus libration is included. For points south of about 65° S, the API calculates a terrain horizon mask. It uses two LOLA elevation models (20 m and 120 m per pixel). For each 0.5° of azimuth, it samples the terrain along a 150 km line and includes the curvature of the Moon. The API compares the Sun and Earth directions with this horizon. It finds each event by bisection. Each period result from the API has a provenance block: the kernels, the frame (MOON_ME), the ephemeris and the origin of the horizon mask. The web app (TypeScript, three.js and OpenLayers) gets all values from the API.
+**What benefits does it have?**
 
-**Validation.** At six test instants, the Sun and Earth directions agree with JPL Horizons. The largest difference is 0.00000045°. The sub-solar and sub-Earth points agree with Horizons to about 0.005°. The terrain horizon is not validated against independent illumination data.
+- Answers in seconds that today need several detailed tools (QuickMap, Moon Trek, JPL Horizons) and raw data.
+- The real terrain horizon, not a flat one. Near the pole, a move of about 1 km can change a week from full sunlight to full darkness.
+- NASA requirements and the next landing window, not only numbers.
+- One screen for experts and the public: the Verdict for everyone, the Details for planners.
+- Free, in any browser, also on a phone. No account, no cookies.
 
-**Example.** NASA plans Artemis IV, the first crewed landing, for early 2028 at the south pole. The surface stay is about 6.5 days. NASA has not chosen a region or a day. Thus the landing days below are examples. We use a duration of 6.5 days, an observer height of 2 m and the NASA default requirements.
+**What is the intended impact?**
 
-- **Plan.** In the Malapert Massif region, "Best points in this site" gives point 1 (85.98° S, 1.85° W). For a landing on 2028-01-10 00:00 UTC, the Sun is up 100 % and Earth is up 99 % of the stay. The point meets 3 of 3 requirements.
-- **Slip.** The launch slips 12 days to 2028-01-22. At the same point, the Sun is up only 10 % of the stay. The Sun is down at the landing. The longest darkness is at least 5 d 14 h. The point meets 1 of 3 requirements.
-- **Wait.** We select Malapert best point 4 (85.96° S, 2.32° W). "Next landing window" finds a window from 2028-02-03 13:00 to 2028-02-16 18:30 UTC. "Use this start" sets this start, and the point meets 3 of 3 requirements.
-- **Move.** We keep the landing on 2028-01-22 and select de Gerlache Rim best point 1 (88.66° S, 68.40° W). The Sun is up 100 % and Earth is up 49 % of the stay. The point meets 3 of 3 requirements. But Earth is below the horizon for about half of the stay. Thus the crew needs a relay satellite for that time. Our rating shows "Talk to Earth" as Poor.
+Mission teams can make a fast first check when a launch slips or a site changes, and see at once which dates and points still work. Teachers and students can see why the lunar south pole is difficult: the Sun and Earth skim the horizon, and a ridge or a few days change everything. Next, the tool can analyse a whole region for a period, and help to plan rover routes between "safe havens" with short nights, for missions such as NASA's VIPER rover.
 
-Small distances have a large effect. Near de Gerlache Rim, points 0.4 to 1.5 km apart gave 0 % to 100 % Sun for 22–29 January 2028. For this reason, the tool uses the best-points list from the NASA PGDA maps and then calculates each point.
+**What tools, languages, hardware or software did we use?**
 
-Height also has an effect. At the Shackleton–de Gerlache ridge in 2027, a 2 m observer has sunlight 72 % of the time and a longest night of 14 days. A 10 m mast has 96 % and 3 days.
+TypeScript, three.js, OpenLayers and Vite for the web app. Python, FastAPI, spiceypy (NASA NAIF CSPICE), numpy and rasterio for the API and the calculations. Google Cloud Run, Cloud Build and Cloud Storage for hosting. pytest and Playwright for tests. Claude Code (Anthropic) for AI-assisted development, under the developer's direction and review. No special hardware.
 
-**Benefits.** Tools such as QuickMap, Moon Trek and JPL Horizons are built for detailed analysis. Our tool puts the answers for a site and a period on one screen, in a few seconds. It checks NASA mission requirements and compares sites side by side. It shows the effect of the terrain and of the observer height, which a flat horizon does not show. It is free and runs in a web browser.
+**How is the project creative?**
 
-**Limitations.** "Earth up" uses Earth's centre only, with no antenna or link model. There is terrain only south of about 65° S. Elsewhere the horizon is flat. The result is for one point, not for the area of a site. The best-points list uses long-term averages at ground level, not the selected period. The Good, Limited and Poor rating is our rule of thumb. At 0 m height, small errors in the terrain data can change the result. The tool does not search automatically for the best point in a site for a given period.
+- It turns ephemeris and terrain data into a decision: a verdict, pass/fail requirements, and a suggested next landing window with a "Use this start" button.
+- It joins NASA's long-term illumination maps with an exact calculation: the maps propose the best points in a site, and the tool then checks each point for the real dates.
+- It shows the problem visually: two linked maps of sunlight and Earth visibility, Sun and Earth arrows on NASA images, and a sky plot with the terrain horizon.
 
-**What we hope to achieve.** We hope that planners use the tool for a first check of a site and a period. We hope that teachers use it to show why the lunar south pole is difficult. Next steps: an automatic search for the best point in a site for a given period and height, an Earth disk and antenna model, export (iCalendar, CSV and JSON), and more NASA mission requirement presets.
+**What factors did we consider?**
 
-**Tools and languages.** TypeScript, three.js, OpenLayers and Vite for the web app. Python, FastAPI, spiceypy, numpy and rasterio for the API and the calculations. Google Cloud Run, Cloud Build and nginx for hosting. uv and npm for packages. pytest for tests. Claude Code for SI-assisted development (see the SI field).
+- **Accuracy:** the JPL DE440 ephemeris with libration, the real LOLA terrain, independent checks against JPL Horizons, and the data sources of each result.
+- **Honesty:** the rating is labelled as our rule of thumb, the NASA requirements have their sources, and the limits are listed (Earth's centre only with no antenna model, terrain only south of about 65° S, one point and not a whole area).
+- **Users:** plain language for the public, the numbers for planners, a user guide, a phone layout, and accessibility labels.
+- **Rules and openness:** NASA data only, an Apache 2.0 licence, a public repository, no cookies or tracking, and AI use stated in the tool, the metadata and the documents.
 
 ### Short version (about 1,118 characters)
 
