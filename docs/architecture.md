@@ -16,7 +16,7 @@ The diagrams use Mermaid. GitHub shows them as diagrams.
 
 | Component | Code | Runs on | Task |
 |---|---|---|---|
-| UI | `ui/` (Vite, TypeScript, three.js, OpenLayers) | Cloud Run service `lunarsite-ui` (nginx), https://lunarsite.select | Shows the globe, the sky plot, the results, the site map, the saved searches and the comparison. It does not calculate positions. |
+| UI | `ui/` (Vite, TypeScript, three.js, OpenLayers) | Cloud Run service `lunarsite-ui` (nginx), https://lunarsite.select | Shows the globe, the results (Verdict and Details tabs), the sky plot, the site map, the place search, the saved searches and the comparison. It calculates the verdict, the mission requirements and the landing window from the API results. It does not calculate positions. |
 | API | `api/` (FastAPI) | Cloud Run service `lunarsite-api`, https://api.lunarsite.select | Receives requests, gets the horizon mask, runs the core, returns JSON. |
 | Core | `core/` (package `lunarnav`) | Inside the API container | Sun and Earth positions, visibility, events and summary. Uses SPICE. |
 | Terrain | `data/` (package `lunarterrain`) | Inside the API container | Horizon masks from the LOLA elevation models. |
@@ -27,7 +27,7 @@ The diagrams use Mermaid. GitHub shows them as diagrams.
 flowchart LR
   subgraph Browser
     UI["UI<br/>globe, sky plot, results,<br/>site map, comparison"]
-    LS[("localStorage<br/>saved searches")]
+    LS[("localStorage<br/>saved searches, settings,<br/>mission limits")]
   end
 
   subgraph GCP["Google Cloud, project lunar-site-select, europe-west1"]
@@ -73,6 +73,7 @@ There are two kinds of data:
 | NASA Moon Trek tiles (LRO WAC, NAC, LOLA hillshade, Kaguya) | Display | Moon Trek, and a copy in the tile bucket | UI site map | None |
 | Slope tiles from `LDEM_80S_20MPP_ADJ` (`data/scripts/make_slope_tiles.py`) | Display | Tile bucket, `slope/` | UI site map | None |
 | NASA PGDA product 69 average Sun and Earth visibility (Mazarico et al. 2011), 60 m and 120 m maps | Display | Tile bucket, `illum_sun/` and `illum_earth/` (`data/scripts/make_illum_tiles.py`), and `ui/public/bestpoints.json` (`data/scripts/make_best_points.py`) | UI site map layers, "Best points in this site" list | None. They are 18.6-year averages at ground level. The period results come from the core. |
+| IAU/USGS Gazetteer of Planetary Nomenclature (9,087 lunar names, `data/scripts/make_gazetteer.py`) | Input | UI image, `ui/public/gazetteer.json` | UI place search | Only the selected point. The search selects the centre of the feature. |
 | CGI Moon Kit (LROC colour, LOLA relief) | Display | UI image | UI globe | None |
 | Blue Marble (Earth), SDO/HMI (Sun) | Display | UI image | UI globe | None |
 | JPL Horizons | Check | Test fixtures in `core/tests/fixtures/` | Tests | None. It is the independent reference for the validation. |
@@ -81,7 +82,7 @@ Credits and links are in the [README](../README.md#data-sources-and-credits).
 
 ### 1.4 Where the numbers come from
 
-All numbers in the results panel, the sky plot and the comparison come from the API. The UI does not calculate any Sun or Earth position. The globe uses `/v1/moon-state` at regular steps and interpolates between them (the error is less than 0.01°).
+All numbers in the results panel, the sky plot and the comparison come from the API. The UI does not calculate any Sun or Earth position. The UI calculates three things from the API results: the Verdict ratings (from the `summary` fields), the mission requirements (from the `summary` fields and the user limits) and the next landing window (from one more `/v1/series` call, 60 days from the start, 30-minute steps). The globe uses `/v1/moon-state` at regular steps and interpolates between them (the error is less than 0.01°).
 
 The horizon mask has three possible sources. The API response says which one it used, in `horizon.source` and `horizon.terrain_status`:
 
@@ -164,7 +165,8 @@ flowchart TD
   LOOP --> OUT
   OUT["JSON response<br/>times, series, events, summary,<br/>horizon (source, status, mask), next events"]
 
-  OUT --> UIR["UI: results panel, countdowns, event list"]
+  OUT --> UIV["UI: Verdict tab<br/>ratings, mission requirements"]
+  OUT --> UIR["UI: Details tab<br/>countdowns, result for the period, event list"]
   OUT --> UISK["UI: sky plot<br/>Sun and Earth paths over the horizon profile"]
   OUT --> UICMP["UI: comparison table and timelines"]
 ```
@@ -214,7 +216,7 @@ Horizons does not know the terrain. Compare only the azimuth and the elevation, 
 
 1. Open the sky plot. The brown area is the terrain horizon. Check that the shape is plausible: a crater floor has a high horizon in all directions, a ridge or rim has a low horizon.
 2. Move the time slider. The Sun must disappear when its path goes behind the brown area.
-3. Compare with published illumination maps for the south pole. The LOLA team publishes average illumination maps on the NASA GSFC Planetary Geodesy Data Archive (https://pgda.gsfc.nasa.gov). Our percentages are for your time span, not for a long-term average. Thus expect the same pattern (high, low, never), not the same number.
+3. Compare with published illumination maps for the south pole. South of 75° S, the site map shows the NASA PGDA product 69 average sunlight and Earth visibility (layers and the "Sun and Earth" tab). Our percentages are for your time span, not for a long-term average. Thus expect the same pattern (high, low, never), not the same number.
 
 Limits of the terrain horizon:
 
@@ -244,10 +246,9 @@ A result that changes a lot when an input changes a little is a weak result. Use
 
 ## 4. Possible tool improvements for result checks
 
-These are proposals. They are not built.
+The "Check this result" panel is built (Details tab). It gives the data used and links that open JPL Horizons with the same point, height and time. The proposals below are not built.
 
 | Proposal | What the user gets | Size |
 |---|---|---|
-| "Check this result" panel | The data used (kernel versions, DEM file, mask source: precomputed, cached or new, step, software version) and a link that opens JPL Horizons with the same point, height and time | Small |
 | Sensitivity button | One click runs the point at ±2 m height and at 4 points 250 m away, and shows the spread of the Sun and Earth % | Medium (overlaps with the radius stretch goal) |
 | Horizon profile view | The terrain horizon as a 360° panorama, with the Sun and Earth paths | Small to medium |
