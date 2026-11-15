@@ -262,5 +262,29 @@
     "radius_m": 28500,
     "source": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_DEGERRIMLO1",
     "notes": "Artemis III candidate region (NASA list of nine, October 2024: https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/). NASA gives no centre coordinates in text. Centre and radius come from the lat/lon bounding box of the LROC controlled NAC mosaic NAC_ROI_DEGERRIMLO1, made over this candidate region (box lat -89.02..-87.79, lon -83.18..-41.31). Centre = spherical centre of the box; radius = distance to the farthest box point. NASA says each region is about 15 km x 15 km, so the radius is an upper bound. The LROC mosaic covers the whole de Gerlache rim area (2022 regions Rim 1 and Rim 2). Only Rim 2 stays in the 2024 candidate list."
+  },
+  {
+    "id": "clps-blue-moon-mk1-connecting-ridge",
+    "name": "Shackleton connecting ridge (Blue Moon MK1 target)",
+    "mission": "Blue Moon MK1",
+    "agency": "Blue Origin / NASA CLPS",
+    "status": "planned",
+    "lat_deg": -89.45,
+    "lon_deg": -137.31,
+    "radius_m": 5000,
+    "source": "https://www.nasa.gov/event/clps-flight-blue-origins-blue-moon-mark-1/",
+    "notes": "Planned CLPS landing (NASA CLPS CT-3) on the Shackleton connecting ridge, 2027. NASA publishes no landing coordinates or ellipse. The point is a representative point on the ridge between Shackleton and de Gerlache (the tool's default point). The 5 km radius is a search area, not a landing ellipse."
+  },
+  {
+    "id": "clps-mons-mouton",
+    "name": "Mons Mouton (Griffin-1, IM-4 and VIPER target)",
+    "mission": "Griffin Mission One, IM-4, VIPER",
+    "agency": "Astrobotic, Intuitive Machines / NASA CLPS",
+    "status": "planned",
+    "lat_deg": -84.6,
+    "lon_deg": 31.0,
+    "radius_m": 5000,
+    "source": "https://www.nasa.gov/event/clps-flight-intuitive-machines-im-4-2/",
+    "notes": "Planned CLPS landings at Mons Mouton: Astrobotic Griffin Mission One (late 2026 or early 2027, https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/), Intuitive Machines IM-4 (2027) and the NASA VIPER rover (2027, https://science.nasa.gov/mission/viper/). No mission publishes landing coordinates. The point is the centre of Mons Mouton in the IAU/USGS Gazetteer of Planetary Nomenclature. The 5 km radius is a search area, not a landing ellipse."
   }
 ]

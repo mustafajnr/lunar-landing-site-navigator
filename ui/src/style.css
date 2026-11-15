@@ -186,6 +186,7 @@ td:last-child {
 .dot.earth { background: #4aa3ff; }
 .dot.sel { background: #ff4a4a; }
 .dot.cand { background: #6be38a; }
+.dot.plan { background: #c58cff; }
 .dot.past { background: #d0d0d0; }
 .field {
   display: flex;
