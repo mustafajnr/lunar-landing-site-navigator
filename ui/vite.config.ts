@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite';
 
-// Two pages: the main app and the standalone site-detail map.
+// Three pages: the main app, the standalone site-detail map and the user guide.
 export default defineConfig({
   build: {
     rollupOptions: {
-      input: { main: 'index.html', detail: 'detail.html' },
+      input: { main: 'index.html', detail: 'detail.html', guide: 'guide.html' },
     },
   },
 });

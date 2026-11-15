@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User guide – Lunar Landing Site Navigator</title>
+    <meta name="description" content="User guide for the Lunar Landing Site Navigator: select a site and a time, read the Sun and Earth results, compare sites and check the results." />
+    <meta name="generator" content="Built with AI assistance (Claude Code, Anthropic) under the developer's direction and review" />
+    <link rel="stylesheet" href="/src/guide.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="top" id="top">
+        <h1>Lunar Landing Site Navigator: user guide</h1>
+        <p>For the public, teachers and mission planners.</p>
+        <p><a href="./">Open the tool</a></p>
+      </header>
+
+      <nav class="toc" aria-label="Contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#what">What the tool does</a></li>
+          <li><a href="#quick-start">Quick start</a></li>
+          <li><a href="#screen">The screen</a></li>
+          <li><a href="#site">Select a site</a></li>
+          <li><a href="#time">Time</a></li>
+          <li><a href="#results">Read the results</a></li>
+          <li><a href="#sky-plot">The sky plot</a></li>
+          <li><a href="#height">Observer height</a></li>
+          <li><a href="#terrain">Terrain</a></li>
+          <li><a href="#globe">The globe views</a></li>
+          <li><a href="#map">The site map</a></li>
+          <li><a href="#compare">Save and compare</a></li>
+          <li><a href="#check">Check a result</a></li>
+          <li><a href="#glossary">Glossary</a></li>
+          <li><a href="#limits">Limits</a></li>
+          <li><a href="#credits">Data sources and credits</a></li>
+        </ol>
+      </nav>
+
+      <main>
+        <!-- 1 -->
+        <section id="what">
+          <h2>1. What the tool does <a class="anchor" href="#what" aria-label="Link to this section">#</a></h2>
+          <p>The tool shows the Sun and Earth as seen from one point on the Moon. It tells you if the Sun is up and if Earth is up at a date and time. It gives the time to the next sunset, sunrise, Earthset and Earthrise. It uses the terrain near the lunar south pole, because hills and craters can hide the Sun and Earth there.</p>
+          <p>You can use the results to estimate two things:</p>
+          <ul>
+            <li><strong>Solar power.</strong> A solar panel needs the Sun.</li>
+            <li><strong>Direct communication with Earth.</strong> An antenna needs a line of sight to Earth.</li>
+          </ul>
+          <p>The tool does <strong>not</strong> do these things:</p>
+          <ul>
+            <li>It does not calculate the power of a solar panel or the strength of a radio link.</li>
+            <li>It does not calculate results over an area. The results are for one point.</li>
+            <li>It does not include relay satellites, slopes, rocks or the shadow of the lander.</li>
+            <li>It does not use terrain data north of about 60° S. There, the horizon is flat.</li>
+          </ul>
+        </section>
+
+        <!-- 2 -->
+        <section id="quick-start">
+          <h2>2. Quick start <a class="anchor" href="#quick-start" aria-label="Link to this section">#</a></h2>
+          <p>Do these 5 steps to see if the Sun and Earth are up at a site.</p>
+          <ol class="steps">
+            <li>Open the tool at <a href="https://lunarsite.select">lunarsite.select</a>.</li>
+            <li>In the left panel, under <span class="ui">Point</span>, select a site in the <span class="ui">Site</span> list. For example, select <span class="ui">Malapert Massif</span>.</li>
+            <li>Under <span class="ui">Time (UTC)</span>, set the date and the time in the date field. For example, set 6 December 2026, 00:00. The field can show the date in the format of your computer.</li>
+            <li>Look at the top of the results panel on the right. Read <span class="up">Sun is up</span> or <span class="down">Sun is down</span>, and <span class="up">Earth is up</span> or <span class="down">Earth is down</span>.</li>
+            <li>Read the countdown below each line. It tells you the time to the next change, for example "Sunset in 7 d 06 h 55 min".</li>
+          </ol>
+          <p>The tool needs a few seconds to load the results. The status line says "Loading…" until the results are ready.</p>
+        </section>
+
+        <!-- 3 -->
+        <section id="screen">
+          <h2>3. The screen <a class="anchor" href="#screen" aria-label="Link to this section">#</a></h2>
+          <figure>
+            <img src="/guide/overview-annotated.jpg" width="1600" height="900" alt="The tool screen with numbered markers: 1 time, 2 point, 3 saved searches, 4 view buttons, 5 globe, 6 results with countdowns, 7 observer height, 8 sky plot, 9 site map, 10 edge arrows." />
+            <figcaption>Shackleton–de Gerlache ridge on 2026-11-22 at 00:00 UTC. The numbers refer to the list below.</figcaption>
+          </figure>
+          <ol class="legend">
+            <li><span class="marker">1</span><strong>Time (left panel).</strong> The date field, the slider and <span class="ui">Play</span>. See <a href="#time">Time</a>.</li>
+            <li><span class="marker">2</span><strong>Point (left panel).</strong> The site list and the latitude and longitude fields. See <a href="#site">Select a site</a>.</li>
+            <li><span class="marker">3</span><strong>Saved searches (left panel).</strong> See <a href="#compare">Save and compare</a>.</li>
+            <li><span class="marker">4</span><strong>View (left panel).</strong> The camera buttons for the globe. See <a href="#globe">The globe views</a>.</li>
+            <li><span class="marker">5</span><strong>Globe.</strong> The Moon with the lit half, the grid and the sites. Drag to turn it. Use the mouse wheel to zoom.</li>
+            <li><span class="marker">6</span><strong>Results panel (right).</strong> The selected point, the horizon tag and the two countdowns. See <a href="#results">Read the results</a>.</li>
+            <li><span class="marker">7</span><strong>Observer height.</strong> See <a href="#height">Observer height</a>.</li>
+            <li><span class="marker">8</span><strong>Sky plot.</strong> The local sky over ±30 days. See <a href="#sky-plot">The sky plot</a>.</li>
+            <li><span class="marker">9</span><strong>Site map.</strong> NASA images of the site, with Sun and Earth arrows. See <a href="#map">The site map</a>.</li>
+            <li><span class="marker">10</span><strong>Edge arrows.</strong> "To the Sun" and "To the Earth" point to a body that is off the screen.</li>
+          </ol>
+          <p>Below the sky plot, the results panel also has the summary, the event list and <span class="ui">Check this result</span>. Scroll the results panel to see them.</p>
+          <p>Use a screen that is 1280 pixels wide or more. On a smaller screen, the panels cover a large part of the globe. Scroll each panel to see all of it.</p>
+        </section>
+
+        <!-- 4 -->
+        <section id="site">
+          <h2>4. Select a site <a class="anchor" href="#site" aria-label="Link to this section">#</a></h2>
+          <p>You can select a point in four ways. The results are always for one point.</p>
+
+          <h3 id="site-list">Site list</h3>
+          <p>The <span class="ui">Site</span> list has 22 sites:</p>
+          <ul>
+            <li>15 past landings: Apollo 11, 12, 14, 15, 16 and 17, Chang'e 3, 4, 5 and 6, Chandrayaan-3, SLIM, IM-1, IM-2 and Blue Ghost Mission 1.</li>
+            <li>7 Artemis III candidate regions near the south pole.</li>
+          </ul>
+          <p>Select a site. The globe turns to the site, and the results panel loads new results. The text below the fields gives the source of the site position.</p>
+          <p>On the globe, a green dot is a candidate site. A grey dot is a past landing. A red dot is the selected point.</p>
+
+          <h3 id="coordinates">Typed coordinates</h3>
+          <ol class="steps">
+            <li>Type the latitude in <span class="ui">Lat (°)</span>.</li>
+            <li>Type the longitude in <span class="ui">Lon (°)</span>.</li>
+            <li>Click <span class="ui">Go</span>.</li>
+          </ol>
+          <p>Use decimal degrees. These rules apply:</p>
+          <ul>
+            <li><strong>Latitude:</strong> −90 to +90. South is negative. Do not use exactly −90 or +90.</li>
+            <li><strong>Longitude:</strong> east is positive. You can use −180 to +180 or 0 to 360. For example, 137.31° W is −137.31 or 222.69. Both give the same point.</li>
+          </ul>
+          <p>The coordinates are planetocentric, in the MOON_ME frame (see the <a href="#glossary">Glossary</a>). This is the frame of most lunar maps.</p>
+
+          <h3 id="click">Click on the globe or the map</h3>
+          <p>Click a point on the globe. The tool selects that point. A drag turns the globe and does not select a point.</p>
+          <p>You can also click a point on the site map. The globe then follows.</p>
+
+          <h3 id="load">Load a saved search</h3>
+          <p>Click <span class="ui">Load</span> next to a saved search. The tool sets the point, the time and the observer height of that search.</p>
+        </section>
+
+        <!-- 5 -->
+        <section id="time">
+          <h2>5. Time <a class="anchor" href="#time" aria-label="Link to this section">#</a></h2>
+          <p>All times in the tool are in UTC (see the <a href="#glossary">Glossary</a>).</p>
+          <h3>Date field</h3>
+          <p>Set a date and a time in the date field. Or click <span class="ui">Now</span> to use the current time. The tool then loads a new <strong>window</strong>. The window is the 60 days from 30 days before to 30 days after the date.</p>
+          <h3>Slider</h3>
+          <p>Move the slider to change the time in the window. The label above the slider shows the offset from the date, for example "+2 d 06 h". The line below the slider shows the full UTC time. The countdowns, the values and the sky plot follow the slider. The slider does not load new data, so it is fast.</p>
+          <h3>Play</h3>
+          <ol class="steps">
+            <li>Select a speed: 1 min / s, 1 hour / s, 6 hours / s or 1 day / s.</li>
+            <li>Click <span class="ui">Play</span>. The time moves forward.</li>
+            <li>Click the button again to stop.</li>
+          </ol>
+          <p>When the time is 15 days after the date, the tool loads a new window around the new time. Thus <span class="ui">Play</span> can run for more than 30 days.</p>
+          <h3>The ±30-day window</h3>
+          <p>The summary, the event list and the sky plot tracks use the full window. A new date gives a new window and new values in the summary.</p>
+        </section>
+
+        <!-- 6 -->
+        <section id="results">
+          <h2>6. Read the results <a class="anchor" href="#results" aria-label="Link to this section">#</a></h2>
+          <figure class="narrow">
+            <img src="/guide/results-top.jpg" width="354" height="270" alt="Top of the results panel: Sun is up, sunset in 45 days. Earth is down, Earthrise in 9 days 15 hours." />
+            <figcaption>Shackleton–de Gerlache ridge, 2026-12-06 00:00 UTC. The Sun is up. Earth is down.</figcaption>
+          </figure>
+
+          <h3 id="sun-up">Sun up and Sun down</h3>
+          <p><span class="up">Sun is up</span> means that some part of the Sun's disk is above the horizon. <span class="down">Sun is down</span> means that all of the disk is below the horizon. The horizon is the terrain horizon where the tool has terrain data. Elsewhere, the horizon is flat, at 0°.</p>
+
+          <h3 id="earth-up">Earth up and Earth down</h3>
+          <p><span class="up">Earth is up</span> means that the centre of Earth is above the horizon. <span class="down">Earth is down</span> has two possible causes:</p>
+          <ul>
+            <li><strong>Earth is below the horizon.</strong> The Earth elevation is negative. Earth is on the other side of the Moon for this point.</li>
+            <li><strong>Earth is behind the terrain.</strong> The Earth elevation is positive, but a hill or a crater rim in that direction is higher. The Earth margin is then negative.</li>
+          </ul>
+          <p>Look at the sky plot to see which cause applies. The brown area is the terrain.</p>
+
+          <h3 id="countdowns">Countdowns</h3>
+          <p>Each countdown gives the time from the slider time to the next change. For example, "Earthrise in 9 d 15 h 10 min". The line below gives the UTC time of the event.</p>
+          <ul>
+            <li>If the event is after the loaded window, the line says "(after the loaded window)". The server finds the event up to 400 days after the window.</li>
+            <li>If there is no event in that time, the panel says "No sunset for more than …". This can occur near the pole.</li>
+          </ul>
+
+          <h3 id="now-values">The values in "Now"</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Value</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td>Sun elevation</td><td>The angle of the Sun's centre above the flat 0° horizon. It can be negative while the Sun is up, if the terrain horizon is below 0° in that direction.</td></tr>
+                <tr><td>Sun disk visible</td><td>The part of the Sun's disk that is above the horizon, in percent. 100 % is the full disk. 0 % means that the Sun is down. A value between them means that the Sun is on the horizon.</td></tr>
+                <tr><td>Earth elevation</td><td>The angle of Earth's centre above the flat 0° horizon.</td></tr>
+                <tr><td>Earth margin above horizon</td><td>The Earth elevation minus the terrain horizon elevation in the Earth direction. A positive value means that Earth is up. A small value (less than about 1°) means that part of Earth's disk is behind the terrain.</td></tr>
+                <tr><td>Sun az / el, Earth az / el</td><td>The azimuth and the elevation of the Sun and Earth (see the <a href="#glossary">Glossary</a>).</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="summary">Summary for the window</h3>
+          <p>The summary is for the full 60-day window.</p>
+          <ul>
+            <li><span class="ui">Time with Sun</span>, <span class="ui">Time with Earth</span> and <span class="ui">Time with both</span>: the percent of the window with the Sun up, with Earth up, and with both up.</li>
+            <li><span class="ui">Mean Sun disk visible</span>: the mean of "Sun disk visible" over the window. It is a better guide to solar power than "Time with Sun".</li>
+            <li><span class="ui">Longest Sun period</span>, <span class="ui">Longest Earth period</span> and <span class="ui">Longest period with both</span>: the longest time without a change. Use them to find the longest time that a lander can work without a break.</li>
+          </ul>
+
+          <h3 id="events">Events</h3>
+          <p>The event list gives all sunrises, sunsets, Earthrises and Earthsets in the window, in UTC. Past events are grey. The next Sun event and the next Earth event are bold.</p>
+
+          <h3 id="south-pole">Why the south pole is special</h3>
+          <p>At the poles, the Sun and Earth do not rise high. They move around the horizon and stay a few degrees above or below it. Thus a small hill can hide them for days. A high ridge can have the Sun for weeks or months. A deep crater can have no Sun at all.</p>
+          <p>Earth also moves up and down by a few degrees in a cycle of about 27 days. This movement is part of <a href="#glossary">libration</a>. At the pole, it causes long periods with Earth and long periods without Earth.</p>
+          <p>For this reason, the south pole is a good place for solar power and for water ice. It is also a difficult place to plan a landing. Near the equator, the Sun is up for about 14.8 days and down for about 14.8 days, and Earth is always at almost the same place in the sky.</p>
+        </section>
+
+        <!-- 7 -->
+        <section id="sky-plot">
+          <h2>7. The sky plot <a class="anchor" href="#sky-plot" aria-label="Link to this section">#</a></h2>
+          <figure class="narrow">
+            <img src="/guide/sky.jpg" width="354" height="318" alt="Sky plot. A yellow Sun track near +1° all around. A blue Earth loop near 140° azimuth goes below the brown terrain horizon." />
+            <figcaption>Shackleton–de Gerlache ridge, 2026-12-06. The Sun (yellow) stays above the terrain. Earth (blue, large dot) is below the horizon.</figcaption>
+          </figure>
+          <p>The sky plot shows the sky around the selected point over the ±30-day window.</p>
+          <ul>
+            <li><strong>Left to right</strong> is the azimuth: the compass direction, from 0° (north) through 90° (east), 180° (south) and 270° (west).</li>
+            <li><strong>Bottom to top</strong> is the elevation: the angle above the flat horizon.</li>
+            <li><strong>Small yellow dots</strong> are the Sun at each hour of the window. <strong>Small blue dots</strong> are Earth.</li>
+            <li><strong>Large dots</strong> show the Sun and Earth at the slider time.</li>
+            <li><strong>The dashed line</strong> is the flat horizon at 0°.</li>
+            <li><strong>The brown area</strong> is the terrain horizon. A body in the brown area is behind the terrain. You cannot see it from the point.</li>
+          </ul>
+          <p>Click the <span class="ui">i</span> button next to the title to show a short help text.</p>
+
+          <h3 id="zoom">Zoom buttons</h3>
+          <ul>
+            <li><span class="ui">El.</span> buttons set the elevation axis: <span class="ui">Auto</span>, <span class="ui">±2°</span>, <span class="ui">±5°</span>, <span class="ui">±15°</span> or <span class="ui">±90°</span>. You can also use the mouse wheel on the plot.</li>
+            <li>The azimuth list sets the azimuth axis: <span class="ui">Az 0–360°</span>, <span class="ui">Around the Sun</span> or <span class="ui">Around Earth</span>. The last two use the same scale on both axes.</li>
+          </ul>
+          <p>When you zoom in, the Sun and Earth show as disks of their true size. The Sun disk is about 0.53° wide. Earth is about 1.9° wide. The terrain hides the part of a disk that is below the horizon line.</p>
+          <figure class="narrow">
+            <img src="/guide/sky-zoom-sun.jpg" width="354" height="318" alt="Sky plot zoomed to ±2 degrees around the Sun. The Sun shows as a disk of true size above the brown terrain horizon." />
+            <figcaption>Shackleton–de Gerlache ridge, 2026-11-22, with <span class="ui">±2°</span> and <span class="ui">Around the Sun</span>. All of the Sun disk is above the terrain.</figcaption>
+          </figure>
+        </section>
+
+        <!-- 8 -->
+        <section id="height">
+          <h2>8. Observer height <a class="anchor" href="#height" aria-label="Link to this section">#</a></h2>
+          <p>The observer height is the height of the eye, the solar panel or the antenna above the ground. The default is 2 m.</p>
+          <ul>
+            <li><span class="ui">Ground 0 m</span>: a person who lies on the ground, or a sensor on the surface.</li>
+            <li><span class="ui">Lander 2 m</span>: a solar panel or an antenna on a small lander.</li>
+            <li><span class="ui">Mast 10 m</span>: a tall mast or a tower.</li>
+          </ul>
+          <p>You can also type a value from 0 to 1000 m in <span class="ui">Observer height (m)</span>.</p>
+          <p><strong>Why it matters.</strong> A higher observer sees over nearby rocks and small hills. Near the pole, the Sun and Earth are often less than 1° above the terrain. Thus a few metres can add hours or days of Sun or Earth. Near the equator, the observer height has almost no effect.</p>
+          <p>A new observer height loads a new terrain horizon and new results.</p>
+        </section>
+
+        <!-- 9 -->
+        <section id="terrain">
+          <h2>9. Terrain <a class="anchor" href="#terrain" aria-label="Link to this section">#</a></h2>
+          <p>The tool calculates the terrain horizon from NASA LOLA elevation data (see the <a href="#glossary">Glossary</a>). The tag next to <span class="ui">Selected point</span> tells you which horizon the results use.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Tag</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td><span class="tag terrain">Terrain (LOLA 20 m)</span></td><td>A LOLA horizon mask. The near terrain uses 20 m data. This is the best case. It applies south of 80° S.</td></tr>
+                <tr><td><span class="tag terrain">Terrain (LOLA 120 m)</span></td><td>A LOLA horizon mask with 120 m data only. The point is north of 80° S. The near horizon has less detail.</td></tr>
+                <tr><td><span class="tag flat">Flat horizon (no terrain data here)</span></td><td>The point is north of 60° S. The elevation data does not cover it. The horizon is flat, at 0°. This is normal.</td></tr>
+                <tr><td><span class="tag warn">Flat horizon: terrain not available. Results can be wrong.</span></td><td>The elevation data covers the point, but the server cannot read it. The results use a flat horizon.</td></tr>
+                <tr><td><span class="tag provided">Provided</span></td><td>The request included its own horizon mask. This occurs only with the API.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="warning">
+            <p><strong>Do not use a result with the red tag for a polar point.</strong> Near the pole, the terrain controls the result. A flat horizon can show the Sun or Earth as up when the terrain hides them. Select a curated site, or try again later.</p>
+          </div>
+          <h3>When to trust a flat horizon</h3>
+          <p>Near the equator, the Sun and Earth rise high. A flat horizon then has only a small effect on the results. But a large crater or a hill near the point can still change the time of a sunrise or a sunset.</p>
+          <h3>How to check that the terrain is plausible</h3>
+          <ol class="steps">
+            <li>Open the sky plot. Look at the brown area. A crater floor has a high horizon in all directions. A ridge or a crater rim has a low horizon.</li>
+            <li>Move the time slider. The Sun must go down when its large dot goes into the brown area.</li>
+          </ol>
+        </section>
+
+        <!-- 10 -->
+        <section id="globe">
+          <h2>10. The globe views <a class="anchor" href="#globe" aria-label="Link to this section">#</a></h2>
+          <p>The globe shows the Moon at the slider time. The lit half faces the Sun. The globe is <strong>not to scale</strong>. Earth and the Sun are closer and smaller than in reality. The globe relief does not cast shadows. Use the results panel, not the globe shading, to decide if a point has Sun.</p>
+          <p>Screen up is the Moon's north pole. The line through the poles is the spin axis of the Moon.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Control</th><th>What it does</th></tr></thead>
+              <tbody>
+                <tr><td><span class="ui">Default view</span></td><td>Shows the Moon, Earth and the Sun direction together, from a point behind Earth.</td></tr>
+                <tr><td><span class="ui">View from Earth</span></td><td>Shows the Moon as an observer on Earth sees it. You see the near side and the current phase.</td></tr>
+                <tr><td><span class="ui">View south pole</span></td><td>Looks down on the south pole. Use it to see the sites near the pole.</td></tr>
+                <tr><td><span class="ui">True scale Earth</span></td><td>Shows Earth at its true size and distance. Earth is then about 220 Moon radii away.</td></tr>
+                <tr><td><span class="ui">Earth and Moon, true scale</span></td><td>Sets the true scale and moves the camera so that you see Earth and the Moon together.</td></tr>
+                <tr><td><span class="ui">Show latitude/longitude grid</span>, <span class="ui">Show sites</span></td><td>Show or hide the grid and the site dots.</td></tr>
+                <tr><td><span class="ui">Camera turns with the Moon</span></td><td>The camera follows the rotation of the Moon. A point on the Moon then stays at the same place on the screen.</td></tr>
+                <tr><td><span class="ui">True sky orientation (view from Earth)</span></td><td>Screen up is celestial north, as an observer on Earth sees the Moon.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <figure>
+            <img src="/guide/view-south.jpg" width="1600" height="900" alt="The tool with the south pole view: the globe seen from below, with the site dots near the pole." />
+            <figcaption><span class="ui">View south pole</span>, 2026-11-22. The sites near the pole are green dots.</figcaption>
+          </figure>
+          <h3 id="edge-arrows">Edge arrows</h3>
+          <p>When the Sun or Earth is on the screen, a small label shows next to it. When it is off the screen, an arrow at the edge of the globe area points to it. The arrow label says "To the Sun" or "To the Earth".</p>
+          <h3>Moon geometry</h3>
+          <p>The <span class="ui">Moon geometry</span> table in the left panel gives the sub-solar point, the sub-Earth point and the Earth distance (see the <a href="#glossary">Glossary</a>).</p>
+        </section>
+
+        <!-- 11 -->
+        <section id="map">
+          <h2>11. The site map <a class="anchor" href="#map" aria-label="Link to this section">#</a></h2>
+          <p>The site map is at the bottom of the screen. It shows NASA images around the selected point. A small circle marks the point. A larger circle shows the site radius, if the site has one.</p>
+          <figure>
+            <img src="/guide/map-full.jpg" width="1600" height="900" alt="The site map in full screen with the Sun, Earth and north arrows from the selected point." />
+            <figcaption>The site map in full screen. The yellow arrow points to the Sun. The blue arrow points to Earth. "N" points to north.</figcaption>
+          </figure>
+          <ul>
+            <li><strong>Arrows.</strong> The yellow arrow points in the Sun direction (azimuth). The blue arrow points in the Earth direction. A dashed, dim arrow means that the body is down. The label gives the azimuth, for example "Sun 167°".</li>
+            <li><strong>Layers.</strong> Click <span class="ui">Layers</span> in the box at the lower right. Select the images to show. For example, the LOLA hillshade shows the relief. The PSR mosaic shows the floors of permanently shadowed regions.</li>
+            <li><strong>Box at the lower right.</strong> It shows the best image for this point and its resolution in metres per pixel.</li>
+            <li><strong>Full screen.</strong> Click <span class="ui">Full screen</span> to make the map fill the window. Click <span class="ui">Exit full screen</span> to go back.</li>
+            <li><strong>Fold.</strong> Click <span class="ui">▾ Site map</span> to hide the map and see more of the globe.</li>
+            <li><strong>Select a point.</strong> Click on the map to select that point.</li>
+          </ul>
+        </section>
+
+        <!-- 12 -->
+        <section id="compare">
+          <h2>12. Save and compare <a class="anchor" href="#compare" aria-label="Link to this section">#</a></h2>
+          <h3 id="save">Save a search</h3>
+          <p>A saved search keeps the point, the observer height and the 60-day window.</p>
+          <ol class="steps">
+            <li>Select a point, a time and an observer height.</li>
+            <li>In the results panel, click <span class="ui">Save search</span>.</li>
+            <li>Type a name, or keep the name that the tool gives.</li>
+            <li>Click <span class="ui">Save</span>.</li>
+          </ol>
+          <p>The search shows under <span class="ui">Saved searches</span> in the left panel. Your browser keeps the list. Use <span class="ui">Export</span> to download the list as a file. Use <span class="ui">Import</span> to add searches from a file, for example on a different computer.</p>
+
+          <h3 id="compare-steps">Compare 2 to 4 searches</h3>
+          <ol class="steps">
+            <li>Select the check box of 2, 3 or 4 saved searches.</li>
+            <li>Click <span class="ui">Compare</span>.</li>
+          </ol>
+          <figure>
+            <img src="/guide/compare.jpg" width="1600" height="900" alt="The comparison panel with three columns: a table, site images and timelines." />
+            <figcaption>Comparison of three saved searches.</figcaption>
+          </figure>
+          <ul>
+            <li><strong>The table</strong> has one column for each search. It gives the terrain status, the percent of time with the Sun, with Earth and with both, the mean visible Sun disk, the longest periods and the time to the next sunset and Earthset.</li>
+            <li><strong>The stars.</strong> A <span class="up">★</span> marks the best value in a row: the highest value, or the latest sunset or Earthset.</li>
+            <li><strong>The site images</strong> show each point on a NASA image. <span class="ui">Same scale</span> on: all images use the same metres per pixel, so you can compare the sizes. <span class="ui">Same scale</span> off: each image fits its site.</li>
+            <li><strong>The timeline</strong> shows three strips for each search: Sun, Earth, and Sun and Earth. A coloured part means "up".</li>
+            <li><span class="ui">Calendar date</span> uses one shared time axis, in UTC.</li>
+            <li><span class="ui">Days from start</span> starts each search at day 0. Use it to compare different dates.</li>
+          </ul>
+
+          <h3 id="example">Worked example: a 2-week launch slip</h3>
+          <p>A mission plans to land at the Shackleton–de Gerlache ridge on 2026-11-22. Then the launch slips by 2 weeks, to 2026-12-06. The observer height is 2 m.</p>
+          <ol class="steps">
+            <li>Type −89.45 in <span class="ui">Lat (°)</span> and −137.31 in <span class="ui">Lon (°)</span>. Click <span class="ui">Go</span>.</li>
+            <li>Set the date field to 22 November 2026, 00:00.</li>
+            <li>Click <span class="ui">Save search</span>. Type the name "Ridge, landing 2026-11-22". Click <span class="ui">Save</span>.</li>
+            <li>Set the date field to 6 December 2026, 00:00.</li>
+            <li>Click <span class="ui">Save search</span>. Type the name "Ridge, landing 2026-12-06 (slip)". Click <span class="ui">Save</span>.</li>
+            <li>Select <span class="ui">Malapert Massif</span> in the site list. Save it as "Malapert Massif, landing 2026-12-06".</li>
+            <li>Select the three check boxes. Click <span class="ui">Compare</span>.</li>
+            <li>Click <span class="ui">Days from start</span>. In each search, the landing date is at day 30.</li>
+          </ol>
+          <p>The results panel shows these values at 00:00 UTC on each date (API values of 2026-11-15):</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Search</th><th>Sun</th><th>Earth</th><th>Earth margin</th></tr></thead>
+              <tbody>
+                <tr><td>Ridge, 2026-11-22</td><td><span class="up">Up</span>. Sunset in 59 d 08 h 58 min.</td><td><span class="up">Up</span>. Earthset in 7 d 05 h 19 min.</td><td>+4.14°</td></tr>
+                <tr><td>Ridge, 2026-12-06</td><td><span class="up">Up</span>. Sunset in 45 d 08 h 58 min.</td><td><span class="down">Down</span>. Earthrise in 9 d 15 h 10 min.</td><td>−7.88°</td></tr>
+                <tr><td>Malapert Massif, 2026-12-06</td><td><span class="up">Up</span>. Sunset in 7 d 06 h 55 min.</td><td><span class="down">Down</span>. Earthrise in 8 d 06 h 40 min.</td><td>−5.82°</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The comparison table gives these values for the 60-day windows:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Search</th><th>Sun, % of time</th><th>Earth, % of time</th><th>Sun and Earth, % of time</th><th>Next Earthset</th></tr></thead>
+              <tbody>
+                <tr><td>Ridge, 2026-11-22</td><td>100.0 %</td><td>45.3 %</td><td>45.3 %</td><td>10.1 d after the start</td></tr>
+                <tr><td>Ridge, 2026-12-06</td><td>100.0 %</td><td>35.9 %</td><td>35.9 %</td><td>Earth is down at the start.</td></tr>
+                <tr><td>Malapert Massif, 2026-12-06</td><td>78.0 %</td><td>44.5 %</td><td>36.4 %</td><td>Earth is down at the start.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>What the planner learns:</p>
+          <ul>
+            <li>On 2026-11-22, the ridge has the Sun and Earth. Earth sets after about 7 days.</li>
+            <li>After the slip, the ridge still has the Sun. But Earth is below the horizon for the first 9 days. Thus direct communication with Earth is not possible without a relay satellite.</li>
+            <li>At Malapert Massif, Earth is also down. The Sun sets after about 7 days.</li>
+            <li>In the timeline with <span class="ui">Days from start</span>, the Earth strip of the slipped searches is empty around day 30.</li>
+          </ul>
+          <p>Next, the planner can save the ridge on 2026-12-16 and compare again. On that date, the Sun and Earth are both up at the ridge.</p>
+          <figure>
+            <img src="/guide/compare-days.jpg" width="1600" height="900" alt="The comparison timeline with Days from start selected." />
+            <figcaption>The timeline with <span class="ui">Days from start</span>. Day 30 is the landing date of each search.</figcaption>
+          </figure>
+        </section>
+
+        <!-- 13 -->
+        <section id="check">
+          <h2>13. Check a result <a class="anchor" href="#check" aria-label="Link to this section">#</a></h2>
+          <p>The <span class="ui">Check this result</span> part is at the bottom of the results panel. Click its title to open it.</p>
+          <figure class="narrow">
+            <img src="/guide/check.jpg" width="354" height="774" alt="The Check this result panel: the data and settings, the values at the time slider and two links to JPL Horizons." />
+            <figcaption>The <span class="ui">Check this result</span> panel.</figcaption>
+          </figure>
+          <ul>
+            <li><strong>Data and settings</strong> gives the horizon, the software versions, the ephemeris, the frame, the SPICE kernels, the origin of the terrain mask, the elevation data file and the time step.</li>
+            <li><strong>Values at the time slider</strong> gives the Sun and Earth azimuth and elevation at the nearest calculated step. It also gives the latitude, the longitude and the height above the 1737.4 km reference sphere.</li>
+          </ul>
+          <p>JPL Horizons is the NASA JPL service for the positions of solar system bodies. It is independent of this tool. To compare the tool with Horizons, do these steps:</p>
+          <ol class="steps">
+            <li>Move the slider to the time that you want to check.</li>
+            <li>Click <span class="ui">Check the Sun in JPL Horizons</span>. A new tab opens with the Horizons result for the same point, height and time.</li>
+            <li>In the Horizons text, find the line between <code>$$SOE</code> and <code>$$EOE</code>. The last two numbers are the azimuth and the elevation, in degrees.</li>
+            <li>Compare them with <span class="ui">Sun azimuth</span> and <span class="ui">Sun elevation</span> in the panel. The difference must be less than 0.001°.</li>
+            <li>Do steps 2 to 4 again with <span class="ui">Check the Earth in JPL Horizons</span>.</li>
+          </ol>
+          <div class="note">
+            <p>Horizons does not know the terrain. Compare only the azimuth and the elevation. Do not compare "up" or "down".</p>
+          </div>
+          <h3>Check how sensitive a result is</h3>
+          <p>A result that changes a lot for a small change of input is a weak result. Use saved searches and the comparison:</p>
+          <ol class="steps">
+            <li>Save the same point at 0 m, 2 m and 10 m. Compare them.</li>
+            <li>Save the point and two or three points 100 to 500 m away. If the Sun percent changes a lot, the landing accuracy is important at this site. For example, from 2026-11-06 to 2027-01-05, the Malapert Massif site centre (85.9861° S, 0.2550° W) has the Sun for 78.0 % of the time. A point about 120 m away (85.99° S, 0.26° W) has the Sun for only 34.9 % of the time.</li>
+            <li>Save the same point with a date 1 or 2 weeks later. Compare them with <span class="ui">Days from start</span>.</li>
+          </ol>
+        </section>
+
+        <!-- 14 -->
+        <section id="glossary">
+          <h2>14. Glossary <a class="anchor" href="#glossary" aria-label="Link to this section">#</a></h2>
+          <dl class="glossary">
+            <dt id="g-azimuth">Azimuth</dt>
+            <dd>The compass direction to a body, measured clockwise from north. North is 0°, east is 90°, south is 180° and west is 270°.</dd>
+            <dt id="g-elevation">Elevation</dt>
+            <dd>The angle of a body above the flat horizon. 0° is on the flat horizon. 90° is straight up. A negative value is below the flat horizon.</dd>
+            <dt id="g-horizon-mask">Horizon mask</dt>
+            <dd>A list of the terrain horizon elevation for each direction. The tool uses one value for each 0.5° of azimuth.</dd>
+            <dt id="g-terrain-horizon">Terrain horizon</dt>
+            <dd>The elevation angle of the highest terrain in each direction, as seen from the observer. The tool calculates it from LOLA elevation data, up to 150 km from the point. It includes the curvature of the Moon.</dd>
+            <dt id="g-observer-height">Observer height</dt>
+            <dd>The height of the observer (an eye, a solar panel or an antenna) above the ground at the point.</dd>
+            <dt id="g-sub-solar">Sub-solar point</dt>
+            <dd>The point on the Moon where the Sun is straight up. It is the centre of the lit half.</dd>
+            <dt id="g-sub-earth">Sub-Earth point</dt>
+            <dd>The point on the Moon where Earth is straight up. It is near the centre of the near side.</dd>
+            <dt id="g-libration">Libration</dt>
+            <dd>A small, slow change of the Moon's orientation as seen from Earth. Because of libration, the sub-Earth point moves by a few degrees. At the poles, Earth thus moves up and down near the horizon.</dd>
+            <dt id="g-terminator">Terminator</dt>
+            <dd>The line between the lit half and the dark half of the Moon.</dd>
+            <dt id="g-ephemeris">Ephemeris</dt>
+            <dd>A table or a model that gives the positions of solar system bodies at each time. The tool uses the NASA JPL DE440 ephemeris.</dd>
+            <dt id="g-moon-me">MOON_ME</dt>
+            <dd>The "Moon Mean Earth / Polar Axis" reference frame. Lunar maps and the LOLA data use this frame. The latitudes and longitudes in the tool are in this frame.</dd>
+            <dt id="g-utc">UTC</dt>
+            <dd>Coordinated Universal Time. It is the time standard of the world. It is not your local time.</dd>
+            <dt id="g-psr">Permanently shadowed region (PSR)</dt>
+            <dd>An area, often a crater floor near a pole, that never gets direct sunlight. These areas are very cold and can contain water ice.</dd>
+            <dt id="g-lola">LOLA</dt>
+            <dd>The Lunar Orbiter Laser Altimeter on the NASA Lunar Reconnaissance Orbiter. It measured the height of the lunar surface.</dd>
+          </dl>
+        </section>
+
+        <!-- 15 -->
+        <section id="limits">
+          <h2>15. Limits <a class="anchor" href="#limits" aria-label="Link to this section">#</a></h2>
+          <ul>
+            <li>"Earth up" uses the centre of Earth, not its edge. Earth is about 1.9° wide as seen from the Moon. Use the Earth margin to find marginal cases.</li>
+            <li>There is no atmospheric refraction. This is correct for the Moon, because the Moon has no atmosphere.</li>
+            <li>All times are in UTC. A lunar time standard (Coordinated Lunar Time) is in development. It does not change the geometry.</li>
+            <li>The site radius is not used in the calculation. The result is for the centre point.</li>
+            <li>A line of sight to Earth is not a full communication check. The antenna pattern, the power and the ground station time are not included.</li>
+            <li>The tool uses 1-hour steps. It can miss two events that are less than 1 hour apart, for example a short sunrise behind a peak.</li>
+            <li>The terrain data has 20 m and 120 m pixels. Small rocks and boulders are not in the data. Terrain more than 150 km away is not included.</li>
+            <li>The globe is not to scale.</li>
+          </ul>
+        </section>
+
+        <!-- 16 -->
+        <section id="credits">
+          <h2>16. Data sources and credits <a class="anchor" href="#credits" aria-label="Link to this section">#</a></h2>
+          <ul>
+            <li><strong>Sun, Earth and Moon positions:</strong> NASA NAIF SPICE toolkit and kernels, JPL DE440 ephemeris and DE440 lunar orientation (NASA JPL, Park et al. 2021). Python interface: spiceypy (Annex et al. 2020).</li>
+            <li><strong>Terrain:</strong> LOLA elevation models LDEM_80S_20MPP_ADJ and LDEM_60S_120MPP_ADJ, NASA GSFC Planetary Geodesy Data Archive, product 90, "A New View of the Lunar South Pole from LOLA" (Barker et al. 2023).</li>
+            <li><strong>Site map images:</strong> <a href="https://trek.nasa.gov/moon/">NASA Moon Trek</a>. LRO WAC and NAC mosaics (LROC: NASA/GSFC/Arizona State University), LOLA hillshades (NASA/GSFC), Kaguya Terrain Camera mosaic (JAXA/SELENE).</li>
+            <li><strong>Globe:</strong> CGI Moon Kit, NASA Scientific Visualization Studio (LROC WAC colour mosaic and LOLA elevation). Earth: Blue Marble Next Generation (NASA Earth Observatory, Reto Stöckli). Sun: SDO/HMI image (NASA/SDO and the AIA, EVE and HMI science teams).</li>
+            <li><strong>Site positions:</strong> NASA NSSDC (Apollo) and LROC (other landings and the Artemis III regions).</li>
+            <li><strong>Validation:</strong> <a href="https://ssd.jpl.nasa.gov/horizons/">JPL Horizons</a>, NASA JPL.</li>
+            <li><strong>Software:</strong> three.js, OpenLayers, Vite, TypeScript, Python, FastAPI, numpy and rasterio.</li>
+          </ul>
+          <p>This tool is an entry for the NASA Space Apps Challenge 2026, challenge "Lunar Landing Site Navigator".</p>
+          <p class="note">Built with AI assistance (Claude Code) under the developer's direction and review. The data and the images come from NASA and JAXA sources. They are not AI-generated.</p>
+        </section>
+      </main>
+
+      <footer>
+        <p><a href="#top">Back to the top</a> · <a href="./">Open the tool</a></p>
+      </footer>
+    </div>
+  </body>
+</html>
