@@ -97,7 +97,7 @@ Yes. The developer built the project with Claude Code (Anthropic), an SI coding 
 
 Where to see it: the web app shows the note "Built with AI assistance" in its left panel and has the same note in its HTML metadata. The package metadata (`package.json`, `pyproject.toml`) has the note too. Each commit in the repository has a "Co-Authored-By: Claude" line in its metadata. The README has a "Use of AI" section.
 
-The project logo is the only SI-generated image. It has a visible "AI-generated image" mark, and only the README and the slide deck use it. The web app has no logo and no favicon. The project has no other SI-generated images, and no SI-generated video or audio. The screenshots are browser captures of the tool. The textures and map images are NASA data.
+The project logo is the only SI-generated image. It has a visible "AI-generated image" mark, and only the README and the slide deck use it. The web app uses the logo only as its browser tab icon (favicon). At 32 px a mark cannot be read, so the app says in text (left panel and HTML metadata) that the icon is an AI-generated image. The project has no other SI-generated images, and no SI-generated video or audio. The screenshots are browser captures of the tool. The textures and map images are NASA data.
 
 The developer confirmed that the idea of how to solve the challenge is the developer's own. SI did not come up with the idea. SI helped to build it under the developer's direction.
 
