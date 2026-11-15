@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <title>Lunar Landing Site Navigator logo: the Moon in front of Earth, Earth in front of the Sun</title>
-  <!-- Hand-written SVG, AI-generated (Claude Code). Clean version without the AI mark: see logo-ai.svg.
+  <title>lunarsite.select logo (AI-generated image, no mark: see the text note on the page): the Moon in front of Earth, Earth in front of the Sun</title>
+  <!-- Hand-written SVG, AI-generated (Claude Code). This version has a visible "AI-generated" mark. Clean version: logo.svg.
        Each body is drawn with radius 100 around 0,0 and placed with a transform. -->
   <defs>
     <!-- Sun: a few sunspots -->
@@ -82,13 +82,17 @@
     </g>
 
     <!-- The dark ring around a front body shows only where it covers a body behind it. -->
-    <clipPath id="behindEarth"><circle cx="314" cy="181" r="150"/></clipPath>
-    <clipPath id="behindMoon"><circle cx="314" cy="181" r="150"/><circle cx="140" cy="229" r="96"/></clipPath>
+    <clipPath id="behindEarth"><circle cx="330" cy="190" r="180"/></clipPath>
+    <clipPath id="behindMoon"><circle cx="330" cy="190" r="180"/><circle cx="160" cy="230" r="150"/></clipPath>
   </defs>
 
-  <use href="#sun" transform="translate(314 181) scale(1.5)"/>
-  <circle cx="140" cy="229" r="106" fill="#0b0f17" clip-path="url(#behindEarth)"/>
-  <use href="#earth" transform="translate(140 229) scale(0.96)"/>
-  <circle cx="258" cy="361" r="138" fill="#0b0f17" clip-path="url(#behindMoon)"/>
-  <use href="#moon" transform="translate(258 361) scale(1.28)"/>
+  <!-- Sizes: Moon (front) < Earth < Sun. Earth and the Sun sit mostly behind the Moon. -->
+  <g transform="translate(27 11) scale(0.88)">
+    <use href="#sun" transform="translate(330 190) scale(1.8)"/>
+    <circle cx="160" cy="230" r="160" fill="#0b0f17" clip-path="url(#behindEarth)"/>
+    <use href="#earth" transform="translate(160 230) scale(1.5)"/>
+    <circle cx="256" cy="330" r="138" fill="#0b0f17" clip-path="url(#behindMoon)"/>
+    <use href="#moon" transform="translate(256 330) scale(1.28)"/>
+  </g>
+
 </svg>
