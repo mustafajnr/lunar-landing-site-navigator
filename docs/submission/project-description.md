@@ -40,7 +40,7 @@ TODO(developer): upload the 30-second video (script: `demo-script.md`) to a publ
 
 https://lunarsite.select
 
-TODO(developer): the code repository is private now. Make it public and add its link here, or give only the live site. The judges must not need a password, permission or registration.
+Code repository (public, Apache 2.0): https://github.com/mustafajnr/lunar-landing-site-navigator
 
 ---
 
@@ -99,7 +99,7 @@ Where to see it: the web app shows the note "Built with AI assistance" in its le
 
 The project logo is the only SI-generated image. It has a visible "AI-generated image" mark, and only the README and the slide deck use it. The web app has no logo and no favicon. The project has no other SI-generated images, and no SI-generated video or audio. The screenshots are browser captures of the tool. The textures and map images are NASA data.
 
-TODO(developer): confirm that the idea of how to solve the challenge came from you, not from SI. The guide says that SI should not be used to come up with the idea. If the demo video uses an SI voice or SI images, add a visible watermark or an acknowledgement as the guide requires.
+The developer confirmed that the idea of how to solve the challenge is his own. SI did not come up with the idea. SI helped to build it under his direction.
 
 ---
 
@@ -162,10 +162,8 @@ TODO(developer): check that this list is complete. The guide asks for all code, 
 - Project name: lunarsite.select.
 - Team name: lunarspot.
 - Team member: Mustafa Abdeltawwab.
-- Local Event: London. A team of one is eligible for global judging only in a Local Event. TODO(developer): make sure that your registration for the London event is not "waitlisted" (check the event page and the registration email).
+- Local Event: London (registration confirmed, not waitlisted).
 - TODO(developer): upload the demo video and add its link (see "Link to Project Demo").
-- TODO(developer): make the repository public, or give only the live site (see "Link to Final Project").
-- TODO(developer): confirm that the idea came from you, not from SI (see the SI field).
 - TODO(developer): check that the reference list is complete (see the references field).
-- TODO(developer): optional FortiGuard Web Filter Classification request for https://lunarsite.select (recommended for a new website, not required).
+- TODO(developer): FortiGuard Web Filter classification request for https://lunarsite.select (the developer will do it; recommended, not required).
 - TODO(developer): images for the project page (JPG or PNG, up to 10 MB). The files in `screenshots/` are suitable. Add a new screenshot of the Artemis IV example (Verdict tab, best points and next landing window).
