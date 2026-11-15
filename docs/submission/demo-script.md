@@ -26,16 +26,16 @@ All values come from the live site on 2026-11-15, with observer height 2 m ("Lan
 
 ## Scenes
 
-The narration has about 75 words, about 2.5 words per second.
+The structure follows the Space Apps guide: name and team, the challenge, the title and tagline, how it works with NASA data, and what it does for people. The narration has about 67 words, so you can speak at a normal speed (about 2.3 words per second).
 
-| Time | Screen and actions | Narration |
-|---|---|---|
-| 0:00–0:03 | Title card: "lunarsite.select", "Lunar Landing Site Navigator challenge", "Mustafa Abdeltawwab, team lunarspot". | "I'm Mustafa Abdeltawwab, team lunarspot. This is lunarsite dot select." |
-| 0:03–0:09 | Site: "Malapert Massif". In "Best points in this site", click **1**. Start 2028-01-10 00:00. Verdict: "Meets 3 of 3 mission requirements." | "Artemis IV lands at the south pole for six and a half days. It needs sunlight and Earth in view. Malapert works." |
-| 0:09–0:14 | Change the start to 2028-01-22 00:00. Verdict: "✕ Difficult: no sunlight…", "Meets 1 of 3", and "Next landing window: 2028-02-03 20:30 to 2028-02-08 20:00". | "The launch slips twelve days. Now the site is dark." |
-| 0:14–0:19 | Click **Use this start**. The start changes to 2028-02-03 20:30. "Meets 3 of 3". | "The tool finds the next landing window at the same point." |
-| 0:19–0:25 | Start 2028-01-22 00:00 again. Click best point **4**: "Next landing window: 2028-02-03 13:00 to 2028-02-16 18:30". | "A nearby point gives eight more days of margin." |
-| 0:25–0:30 | Map → "Sun and Earth" tab, then the end card: "lunarsite.select". | "NASA ephemeris, terrain and illumination data. Any site, any date." |
+| Time | Part | Screen and actions | Narration |
+|---|---|---|---|
+| 0:00–0:03 | Name and team | Title card: "lunarsite.select", "Lunar Landing Site Navigator challenge", "Mustafa Abdeltawwab, team lunarspot". | "I'm Mustafa Abdeltawwab, team lunarspot." |
+| 0:03–0:09 | The challenge | Click **View south pole** on the globe. Let the Sun and Earth lines show. Optional: the sky plot (Details tab), where the Sun track skims the brown terrain line. | "At the lunar south pole, the Sun and Earth skim the horizon. Terrain can cut a lander's power and its link to Earth." |
+| 0:09–0:12 | Title and tagline | Text over the default view: **"lunarsite.select: solar power and a link to Earth, for any site and date."** | "lunarsite dot select checks any site and date." |
+| 0:12–0:21 | How it works | Malapert Massif, best point **1**, start 2028-01-10: **"Meets 3 of 3"**. Change the start to 2028-01-22: **"Meets 1 of 3"**. Click **Use this start**: **"Meets 3 of 3"**. Caption: "Example landing days. NASA has not chosen a day or a region." | "Malapert works for Artemis IV. After a launch slip, it doesn't. The tool finds the next landing window." |
+| 0:21–0:26 | NASA data | Map → **Sun and Earth** tab (the two NASA PGDA maps). Optional: the Details tab with the "Check this result" links to JPL Horizons. | "NASA ephemeris, terrain and illumination data, checked against JPL Horizons." |
+| 0:26–0:30 | For people | End card: "lunarsite.select". Optional small line: "Built with AI assistance (Claude Code)". | "For mission planners, teachers and the public. Free online." |
 
 ## Values to show (check them in the recording)
 
