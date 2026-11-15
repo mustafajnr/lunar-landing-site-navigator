@@ -102,14 +102,16 @@ function render(s: Samples, r: WindowRequest, l: Limits) {
     return;
   }
   const close = `${fmtUtc(w.closeMs)} UTC${w.closeCut ? ' or later' : ''}`;
+  const cur = `${fmtUtc(r.startMs)} UTC`;
   if (w.startValid) {
-    show(`✓ This start is in a landing window. The window closes at ${close} (${dh((w.closeMs - r.startMs) / 3600000)} after the start).`, {
-      ok: true,
-    });
+    show(
+      `✓ This start is in a landing window. The last landing time in this window is ${close}: ${dh((w.closeMs - r.startMs) / 3600000)} after the current start (${cur}). A later landing does not get sunlight for all of the ${l.sunD} d stay.`,
+      { ok: true },
+    );
     return;
   }
   show(
-    `Next landing window: ${fmtUtc(w.openMs)} to ${close}. It opens ${dh((w.openMs - r.startMs) / 3600000)} after the start.`,
+    `Next landing window: land between ${fmtUtc(w.openMs)} and ${close}. It opens ${dh((w.openMs - r.startMs) / 3600000)} after the current start (${cur}).`,
     { use: { openMs: w.openMs, days: l.sunD } },
   );
 }
