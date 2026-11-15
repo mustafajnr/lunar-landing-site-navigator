@@ -70,7 +70,7 @@ The short lists below go into the form: one entry for each resource. The full li
 
 | Link Text | URL |
 |---|---|
-| JAXA Kaguya (SELENE) Terrain Camera ortho mosaic, through NASA Moon Trek | https://darts.isas.jaxa.jp/planet/pdap/selene/ |
+| JAXA Kaguya (SELENE) Terrain Camera ortho mosaic, a map layer in NASA Moon Trek (we used it through Moon Trek) | https://trek.nasa.gov/moon/ |
 | IAU/USGS Gazetteer of Planetary Nomenclature (place search) | https://planetarynames.wr.usgs.gov/ |
 | Voyager Technologies: Griffin landing site (Mons Mouton) | https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/ (blocks automatic checks: test it in a browser) |
 | Mazarico et al. 2011, Illumination conditions of the lunar polar regions using LOLA topography (Icarus) | https://doi.org/10.1016/j.icarus.2010.10.030 |
