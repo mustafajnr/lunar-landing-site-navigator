@@ -64,7 +64,7 @@
           <ol class="steps">
             <li>Open the tool at <a href="https://lunarsite.select">lunarsite.select</a>.</li>
             <li>In the left panel, under <span class="ui">Point</span>, select a site in the <span class="ui">Site</span> list. For example, select <span class="ui">Malapert Massif</span>.</li>
-            <li>Under <span class="ui">Time (UTC)</span>, set the date and the time in the date field. For example, set 6 December 2026, 00:00. The field can show the date in the format of your computer.</li>
+            <li>Under <span class="ui">Time and period (UTC)</span>, set the date and the time in <span class="ui">Start (UTC)</span>. For example, set 6 December 2026, 00:00. The field can show the date in the format of your computer. Then click a <span class="ui">Duration</span>, for example <span class="ui">1 month</span>.</li>
             <li>Read the <span class="ui">Verdict</span> tab of the results panel on the right. It gives a short answer for the period. See <a href="#verdict">Verdict</a>. For the live values, click the <span class="ui">Details</span> tab. At the top, read <span class="up">Sun is up</span> or <span class="down">Sun is down</span>, and <span class="up">Earth is up</span> or <span class="down">Earth is down</span>.</li>
             <li>Read the countdown below each line. It tells you the time to the next change, for example "Sunset in 7 d 06 h 55 min".</li>
           </ol>
@@ -122,14 +122,15 @@
           <p>The list has about 9,000 names from the IAU/USGS <a href="https://planetarynames.wr.usgs.gov/">Gazetteer of Planetary Nomenclature</a>. It has the names that the IAU approved. You can type the Latin name or the English name of a mare, a bay, a lake or a marsh. Upper case, lower case and accents do not change the result. Type the full name of a site in the site list and push Enter to select that site.</p>
 
           <h3 id="site-list">Site list</h3>
-          <p>The <span class="ui">Site</span> list has 22 sites:</p>
+          <p>The <span class="ui">Site</span> list has 24 sites:</p>
           <ul>
-            <li>15 past landings: Apollo 11, 12, 14, 15, 16 and 17, Chang'e 3, 4, 5 and 6, Chandrayaan-3, SLIM, IM-1, IM-2 and Blue Ghost Mission 1.</li>
             <li>7 Artemis III candidate regions near the south pole.</li>
+            <li>2 planned missions: the target sites of NASA CLPS landings (Blue Moon MK1 at the Shackleton connecting ridge, and Griffin-1, IM-4 and VIPER at Mons Mouton).</li>
+            <li>15 past landings: Apollo 11, 12, 14, 15, 16 and 17, Chang'e 3, 4, 5 and 6, Chandrayaan-3, SLIM, IM-1, IM-2 and Blue Ghost Mission 1.</li>
           </ul>
-          <p>The list shows the sites in two groups: <span class="ui">Artemis III candidate regions</span> and <span class="ui">Past landings</span>. The list also has the default point, <span class="ui">Shackleton–de Gerlache ridge (default)</span>. The tool opens at this point. <span class="ui">— Custom point —</span> shows when you typed coordinates or clicked a point.</p>
+          <p>The list shows the sites in three groups: <span class="ui">Artemis III candidate regions</span>, <span class="ui">Planned missions</span> and <span class="ui">Past landings</span>. The list also has the default point, <span class="ui">Shackleton–de Gerlache ridge (default)</span>. The tool opens at this point. <span class="ui">— Custom point —</span> shows when you typed coordinates or clicked a point.</p>
           <p>Select a site. The globe turns to the site, and the results panel loads new results. The text below the fields gives the source of the site position.</p>
-          <p>On the globe, a green dot is a candidate site. A grey dot is a past landing. A red dot is the selected point.</p>
+          <p>On the globe, a green dot is a candidate site. A purple dot is a planned mission. A grey dot is a past landing. A red dot is the selected point.</p>
 
           <h3 id="coordinates">Typed coordinates</h3>
           <ol class="steps">
@@ -214,8 +215,8 @@
           <p>This part is at the bottom of the <span class="ui">Mission requirements</span> box. It finds the next time when a landing meets all three limits. The rule: from the landing time, the Sun is visible for all of the stay, and Earth is visible for the minimum Earth visibility or more. The stay is the "Continuous sunlight" limit, for example 6.5 days. Then the darkness limit also passes, because there is no darkness.</p>
           <ul>
             <li>The tool searches the 60 days after the start of the period, with a step of 30 minutes. The times are correct to 30 minutes.</li>
-            <li>If the start is in a landing window, the box says so and gives the time when the window closes. This is the last landing time that is valid.</li>
-            <li>If the start is not in a window, the box gives the next window, for example "Next landing window: land between 2028-02-03 13:00 and 2028-02-16 18:30 UTC. It opens 12 d 13 h after the current start". Click <span class="ui">Use this start</span> to set the start to the window open time and the duration to the stay. The Verdict then shows the result for this landing.</li>
+            <li>If the start is in a landing window, the box says "✓ This start is in a landing window. The last landing time in this window is …", with the time after the current start. If the window continues to the end of the search, the time has "or later".</li>
+            <li>If the start is not in a window, the box gives the next window, for example "Next landing window: land between 2028-02-03 13:00 and 2028-02-16 18:30 UTC. It opens 12 d 13 h after the current start (…)". Click <span class="ui">Use this start</span> to set the start to the window open time and the duration to the stay. The Verdict then shows the result for this landing.</li>
             <li>If there is no window, the box says "No landing window in the 60 days after the start."</li>
             <li>The search uses the same point and observer height. It runs again when you change the point, the start, the height or a limit. Where the tool has no terrain data, the search uses a flat horizon.</li>
           </ul>
@@ -520,10 +521,11 @@
             <figcaption>Comparison of three saved searches.</figcaption>
           </figure>
           <ul>
-            <li><strong>The table</strong> has one column for each search. It gives the terrain status, the percent of time with the Sun, with Earth and with both, the mean visible Sun disk, the longest periods and the time to the next sunset and Earthset.</li>
-            <li><strong>The verdict rows.</strong> The first rows give the same result as the Verdict tab: the overall rating, the Solar power, Talk to Earth and Both together ratings, and how many mission requirements each search meets (with your current limits).</li>
+            <li><strong>The table</strong> has one column for each search. The first rows give the site, the point, the observer height, the period and the terrain status.</li>
+            <li><strong>The verdict rows.</strong> The next rows give the same result as the Verdict tab: <span class="ui">Verdict</span>, <span class="ui">Solar power</span>, <span class="ui">Talk to Earth</span>, <span class="ui">Both together</span> and <span class="ui">Mission requirements</span>, for example "Meets 2 of 3" (with your current limits).</li>
+            <li><strong>The numbers.</strong> Below the verdict rows, the table gives the percent of time with the Sun, with Earth and with both, the mean visible Sun disk, the longest periods, the longest gaps, the first sunset after the start and the time to the next sunset and Earthset.</li>
             <li><strong>The stars.</strong> A <span class="up">★</span> marks the best value in a row: the highest value, or the latest sunset or Earthset.</li>
-            <li><strong>The site images</strong> show each point on a NASA image. <span class="ui">Same scale</span> on: all images use the same metres per pixel, so you can compare the sizes. <span class="ui">Same scale</span> off: each image fits its site.</li>
+            <li><strong>The site images</strong> show each point on a NASA image. The yellow arrow points to the Sun and the blue arrow points to Earth, at the start of each period. A dim arrow means that the body is hidden by the terrain or is below the horizon. <span class="ui">Same scale</span> on: all images use the same metres per pixel, so you can compare the sizes. <span class="ui">Same scale</span> off: each image fits its site.</li>
             <li><strong>The timeline</strong> shows three strips for each search: Sun, Earth, and Sun and Earth. A coloured part means "up".</li>
             <li><span class="ui">Calendar date</span> uses one shared time axis, in UTC.</li>
             <li><span class="ui">Days from start</span> starts each search at day 0. Use it to compare different dates.</li>
@@ -580,7 +582,7 @@
         <!-- 13 -->
         <section id="check">
           <h2>13. Check a result <a class="anchor" href="#check" aria-label="Link to this section">#</a></h2>
-          <p>The <span class="ui">Check this result</span> part is at the bottom of the results panel. Click its title to open it.</p>
+          <p>The <span class="ui">Check this result</span> part is at the bottom of the <span class="ui">Details</span> tab of the results panel. Click its title to open it.</p>
           <figure class="narrow">
             <img src="/guide/check.jpg" width="354" height="774" alt="The Check this result panel: the data and settings, the values at the time slider and two links to JPL Horizons." />
             <figcaption>The <span class="ui">Check this result</span> panel.</figcaption>
@@ -667,13 +669,14 @@
             <li><strong>Terrain:</strong> LOLA elevation models LDEM_80S_20MPP_ADJ and LDEM_60S_120MPP_ADJ, NASA GSFC Planetary Geodesy Data Archive, product 90, "A New View of the Lunar South Pole from LOLA" (Barker et al. 2023).</li>
             <li><strong>Site map images:</strong> <a href="https://trek.nasa.gov/moon/">NASA Moon Trek</a>. LRO WAC and NAC mosaics (LROC: NASA/GSFC/Arizona State University), LOLA hillshades (NASA/GSFC), Kaguya Terrain Camera mosaic (JAXA/SELENE).</li>
             <li><strong>Globe:</strong> CGI Moon Kit, NASA Scientific Visualization Studio (LROC WAC colour mosaic and LOLA elevation). Earth: Blue Marble Next Generation (NASA Earth Observatory, Reto Stöckli). Sun: SDO/HMI image (NASA/SDO and the AIA, EVE and HMI science teams).</li>
-            <li><strong>Site positions:</strong> NASA NSSDC (Apollo) and LROC (other landings and the Artemis III regions).</li>
+            <li><strong>Site positions:</strong> NASA NSSDC (Apollo), LROC (other landings and the Artemis III regions) and NASA CLPS mission pages (planned missions).</li>
             <li><strong>Place names:</strong> IAU/USGS <a href="https://planetarynames.wr.usgs.gov/">Gazetteer of Planetary Nomenclature</a> (USGS Astrogeology Science Center, public domain). Name, type, centre and diameter of each feature.</li>
+            <li><strong>Average sunlight, average Earth visibility and best points:</strong> NASA GSFC Planetary Geodesy Data Archive, product 69 (Mazarico et al. 2011).</li>
             <li><strong>Validation:</strong> <a href="https://ssd.jpl.nasa.gov/horizons/">JPL Horizons</a>, NASA JPL.</li>
             <li><strong>Software:</strong> three.js, OpenLayers, Vite, TypeScript, Python, FastAPI, numpy and rasterio.</li>
           </ul>
           <p>This tool is an entry for the NASA Space Apps Challenge 2026, challenge "Lunar Landing Site Navigator".</p>
-          <p class="note">Built with AI assistance (Claude Code) under the developer's direction and review. The data and the images come from NASA and JAXA sources. They are not AI-generated.</p>
+          <p class="note">Built with AI assistance (Claude Code) under the developer's direction and review. The data and the images come from NASA and JAXA sources. They are not AI-generated. The one exception is the browser tab icon (favicon): it is an AI-generated image.</p>
           <p class="note">Privacy: this site uses no cookies and no tracking. Your browser keeps your saved searches and settings in its local storage, on your device only. To delete them, use "Delete" in Saved searches, or clear the site data in your browser settings.</p>
         </section>
       </main>
