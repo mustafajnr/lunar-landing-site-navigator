@@ -68,6 +68,30 @@
         <p id="savedStatus" class="small" role="status" hidden></p>
       </section>
 
+      <section id="missionSec">
+        <h2>Mission</h2>
+        <p class="small">Evaluate the selected point and observer height for one mission.</p>
+        <label class="field">Landing (UTC)<input id="misLanding" type="datetime-local" step="60" /></label>
+        <div class="row presets mis-presets" role="group" aria-label="Duration">
+          <button type="button" data-days="7">1 week</button>
+          <button type="button" data-days="30">1 month</button>
+          <button type="button" data-days="91">3 months</button>
+          <button type="button" data-days="365">1 year</button>
+        </div>
+        <div class="row">
+          <label class="small" for="misDays">Duration (days, 1–400)</label>
+          <input id="misDays" type="text" inputmode="decimal" size="5" />
+        </div>
+        <p id="misStep" class="small"></p>
+        <p id="misErr" class="error" role="alert" hidden></p>
+        <div class="row">
+          <button id="misEval" type="button">Evaluate mission</button>
+          <button id="misSave" type="button" title="Save as a saved search: start = landing, stop = landing + duration">Save as mission</button>
+        </div>
+        <p id="misMsg" class="small" role="status" hidden></p>
+        <div id="misResult" aria-live="polite" hidden></div>
+      </section>
+
       <section>
         <h2>View</h2>
         <div class="row">

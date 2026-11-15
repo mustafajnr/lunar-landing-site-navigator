@@ -17,6 +17,7 @@ import { createEdgeIndicators } from './edgeind';
 import { setupPointUi, STATUS_COLOR } from './point';
 import { ResultsPanel, SERIES_STEP_MIN } from './results';
 import { setupSaved } from './saved';
+import { setupMission, type MissionApi } from './mission';
 import { openCompare } from './compare';
 import { setupMapPanel } from './mappanel';
 import { drawSkyPlot, type AzMode, type ElZoom, type TrackPt } from './skyplot';
@@ -600,14 +601,18 @@ function loadSites() {
 loadSites();
 
 // ---------- Saved searches and comparison (saved.ts, compare.ts) ----------
-setupSaved({
+const currentPoint = () => ({
+  siteName: pointName(selected, selectedSite) || fmtLL(selected),
+  siteId: selectedSite?.id ?? null,
+  latDeg: selected.latDeg,
+  lonDeg: selected.lonDeg,
+  radiusM: selectedSite?.radius_m ?? null,
+  observerHeightM: results.observerHeightM,
+});
+let mission: MissionApi | null = null;
+const saved = setupSaved({
   current: () => ({
-    siteName: pointName(selected, selectedSite) || fmtLL(selected),
-    siteId: selectedSite?.id ?? null,
-    latDeg: selected.latDeg,
-    lonDeg: selected.lonDeg,
-    radiusM: selectedSite?.radius_m ?? null,
-    observerHeightM: results.observerHeightM,
+    ...currentPoint(),
     startUtc: new Date(baseMs - WINDOW_S * 1000).toISOString(),
     stopUtc: new Date(baseMs + WINDOW_S * 1000).toISOString(),
     stepMinutes: SERIES_STEP_MIN,
@@ -621,8 +626,16 @@ setupSaved({
     selectPoint({ latDeg: s.latDeg, lonDeg: s.lonDeg }, site, true);
     const mid = (Date.parse(s.startUtc) + Date.parse(s.stopUtc)) / 2;
     setBase(Math.round(mid / 60000) * 60000);
+    if (s.kind === 'mission') mission?.fill(s);
   },
   compare: (list) => openCompare(list),
+});
+
+// ---------- Mission (mission.ts) ----------
+mission = setupMission({
+  point: currentPoint,
+  nowMs: () => baseMs,
+  save: (inputs, name) => saved.add(inputs, name),
 });
 
 // Camera flight to a point: the camera ends above the point, looking at the Moon centre.
