@@ -30,7 +30,7 @@ The short lists below go into the form: one entry for each resource. The full li
 | IAU/USGS Gazetteer of Planetary Nomenclature (place names) | https://planetarynames.wr.usgs.gov/ |
 | Voyager Technologies: Griffin landing site (Mons Mouton) | https://voyagertechnologies.com/insights/how-voyager-chose-griffins-lunar-landing-site/ |
 | Gläser et al. 2014, Connecting Ridge: a landing site at the lunar south pole with extended illumination (EPSC abstract, DLR library) | https://elib.dlr.de/94242/ |
-| Open-source libraries: three.js, OpenLayers, Vite, tsx, TypeScript type definitions for three.js, FastAPI, Pydantic, Uvicorn, SpiceyPy, NumPy, Rasterio, GDAL, certifi, HTTPX, nginx (full list with licences and links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
+| Open-source libraries: three.js, OpenLayers, Vite, TypeScript compiler, tsx, TypeScript type definitions for three.js, FastAPI, Pydantic, Uvicorn, SpiceyPy, NumPy, Rasterio, GDAL, certifi, HTTPX, nginx (full list with licences and links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
 | Development and test tools: uv, pytest, Pillow, and Playwright and axe-core (used during development for screenshots and accessibility checks) (full list with links) | https://github.com/mustafajnr/lunar-landing-site-navigator/blob/main/docs/submission/data-links.md |
 | Google Cloud (Cloud Run, Cloud Build, Cloud Storage) for hosting | https://cloud.google.com/ |
 | Claude Code by Anthropic (AI-assisted development) | https://www.anthropic.com/claude-code |
@@ -77,6 +77,7 @@ The short lists below go into the form: one entry for each resource. The full li
 | three.js (3D globe, MIT) | https://threejs.org/ |
 | OpenLayers (maps, BSD-2-Clause) | https://openlayers.org/ |
 | Vite (build tool, MIT) | https://vite.dev/ |
+| TypeScript compiler (Apache 2.0) | https://www.typescriptlang.org/ |
 | tsx (MIT) | https://github.com/privatenumber/tsx |
 | FastAPI (API, MIT) | https://fastapi.tiangolo.com/ |
 | Pydantic (MIT) | https://docs.pydantic.dev/ |
