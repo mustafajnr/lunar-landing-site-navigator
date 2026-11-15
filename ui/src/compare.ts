@@ -4,6 +4,8 @@
 
 import { ApiError, fetchSeries, type SeriesOut } from './api';
 import { horizonOf } from './results';
+import { rate, RATING, type Rating } from './verdict';
+import { checkDark, checkEarth, checkSun, getLimits, type Check } from './mission';
 import { searchKey, type SavedSearch } from './saved';
 import type { DetailMap } from './detail/detailmap';
 
@@ -239,6 +241,20 @@ export function openCompare(searches: SavedSearch[]) {
     return { text: `${fmtH((ms - t0) / HOUR_MS)} after the start`, sub: `${fmtUtc(ms)} UTC`, value: ms - t0 };
   }
 
+  const RANK: Record<Rating, number> = { good: 2, limited: 1, poor: 0 };
+  const R_WORD: Record<Rating, string> = { good: 'Good', limited: 'Limited', poor: 'Poor' };
+  const R_SYMBOL: Record<Rating, string> = { good: '✓', limited: '◐', poor: '✕' };
+  const C_SYMBOL: Record<Check, string> = { pass: '✓', fail: '✕', unknown: '?' };
+  function ratings(e: Entry) {
+    const s = e.data!.summary;
+    return {
+      sun: rate(s.sun_fraction_of_time, s.longest_no_sun_period_h, s.longest_no_sun_period_truncated, RATING.sunFloor),
+      earth: rate(s.earth_fraction_of_time, s.longest_no_earth_period_h, s.longest_no_earth_period_truncated, RATING.earthFloor),
+      both: rate(s.both_fraction_of_time, s.longest_no_both_period_h, s.longest_no_both_period_truncated),
+    };
+  }
+  const ratingCell = (r: Rating): Cell => ({ text: `${R_SYMBOL[r]} ${R_WORD[r]}`, value: RANK[r] });
+
   const rows: Row[] = [
     { label: 'Site', cell: (e) => ({ text: e.s.siteName, sub: e.s.radiusM ? `Site radius ${e.s.radiusM} m` : 'Custom point' }) },
     { label: 'Point', cell: (e) => ({ text: `${fmtLat(e.s.latDeg)}, ${fmtLon(e.s.lonDeg)}` }) },
@@ -269,6 +285,37 @@ export function openCompare(searches: SavedSearch[]) {
           };
         }
         return { text: status ?? 'unknown (older API)', tag: { text: info.label, cls: info.kind, title: info.title } };
+      },
+    },
+    // Verdict and mission requirements: the same rules as the Verdict tab.
+    {
+      label: 'Verdict',
+      title: 'The lowest of the three ratings below, as in the Verdict tab. Our rating, not a NASA standard.',
+      numeric: true,
+      cell: (e) => {
+        const r = ratings(e);
+        const low = [r.sun, r.earth, r.both].reduce((a, b) => (RANK[b] < RANK[a] ? b : a));
+        return { text: `${R_SYMBOL[low]} ${R_WORD[low]}`, value: RANK[low] };
+      },
+    },
+    { label: 'Solar power', numeric: true, cell: (e) => ratingCell(ratings(e).sun) },
+    { label: 'Talk to Earth', numeric: true, cell: (e) => ratingCell(ratings(e).earth) },
+    { label: 'Both together', numeric: true, cell: (e) => ratingCell(ratings(e).both) },
+    {
+      label: 'Mission requirements',
+      title: 'The limits in the Verdict tab (NASA defaults unless you changed them).',
+      numeric: true,
+      cell: (e) => {
+        const s = e.data!.summary;
+        const L = getLimits();
+        const res = [checkDark(s, L.darkH), checkSun(s, L.sunD), checkEarth(s, L.earthPct)];
+        const n = res.filter((r) => r.check === 'pass').length;
+        const names = ['Darkness', 'Sunlight from the start', 'Earth visibility'];
+        return {
+          text: `Meets ${n} of 3`,
+          sub: res.map((r, i) => `${C_SYMBOL[r.check]} ${names[i]}`).join(' · '),
+          value: n,
+        };
       },
     },
     { label: 'Sun, % of time', numeric: true, cell: (e) => pct(e.data!.summary.sun_fraction_of_time) },
