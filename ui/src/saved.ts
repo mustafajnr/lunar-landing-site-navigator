@@ -16,6 +16,10 @@ export interface SearchInputs {
   stopUtc: string;
   stepMinutes: number;
   terrain: 'auto' | 'none';
+  /** "mission": saved from the Mission section. Missing for a normal search. */
+  kind?: 'mission';
+  /** Mission duration in days (kind "mission" only). */
+  durationDays?: number;
 }
 
 export interface SavedSearch extends SearchInputs {
@@ -108,6 +112,9 @@ function validateItem(x: unknown): { ok: true; s: SavedSearch } | { ok: false; e
   for (const f of ['name', 'siteName', 'id', 'savedUtc'] as const) {
     if (o[f] !== undefined && typeof o[f] !== 'string') return { ok: false, error: `${f} must be text.` };
   }
+  if (o.kind !== undefined && o.kind !== 'mission') return { ok: false, error: 'kind must be "mission" or not given.' };
+  if (o.durationDays !== undefined && (!isNum(o.durationDays) || o.durationDays <= 0))
+    return { ok: false, error: 'durationDays must be a number more than 0.' };
   const lon = o.lonDeg > 180 ? o.lonDeg - 360 : o.lonDeg;
   const inputs: SearchInputs = {
     siteName: ((o.siteName as string | undefined) ?? '').trim().slice(0, 120) || `${o.latDeg.toFixed(4)}°, ${lon.toFixed(4)}°`,
@@ -120,6 +127,8 @@ function validateItem(x: unknown): { ok: true; s: SavedSearch } | { ok: false; e
     stopUtc: new Date(stopMs).toISOString(),
     stepMinutes: o.stepMinutes,
     terrain,
+    ...(o.kind === 'mission' ? { kind: 'mission' as const } : {}),
+    ...(o.kind === 'mission' && isNum(o.durationDays) ? { durationDays: o.durationDays } : {}),
   };
   return {
     ok: true,
@@ -172,7 +181,12 @@ function button(text: string, title?: string): HTMLButtonElement {
   return b;
 }
 
-export function setupSaved(hooks: SavedUiHooks) {
+export interface SavedApi {
+  /** Add a search to the list. Returns the message for the user. */
+  add(inputs: SearchInputs, name: string): string;
+}
+
+export function setupSaved(hooks: SavedUiHooks): SavedApi {
   const stored = readStore();
   let list = stored.list;
   let storageOk = stored.ok;
@@ -236,7 +250,9 @@ export function setupSaved(hooks: SavedUiHooks) {
         hooks.load(s);
         const span = Date.parse(s.stopUtc) - Date.parse(s.startUtc);
         setStatus(
-          Math.abs(span - 60 * 86400000) > 60000 || s.stepMinutes !== 60
+          s.kind === 'mission'
+            ? `Loaded mission "${s.name}". The Mission section shows the landing date and the duration. The main view shows ±30 days around the mission.`
+            : Math.abs(span - 60 * 86400000) > 60000 || s.stepMinutes !== 60
             ? `Loaded "${s.name}". The main view always shows ±30 days with a 60 min step. The comparison uses the saved period.`
             : `Loaded "${s.name}".`,
         );
@@ -294,18 +310,22 @@ export function setupSaved(hooks: SavedUiHooks) {
   saveForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const inputs = hooks.current();
-    const name = saveName.value.trim().slice(0, 160) || defaultName(inputs);
+    saveMsg.textContent = add(inputs, saveName.value);
+    saveForm.hidden = true;
+    saveOpen.hidden = false;
+    saveMsg.hidden = false;
+  });
+
+  function add(inputs: SearchInputs, rawName: string): string {
+    const name = rawName.trim().slice(0, 160) || defaultName(inputs);
+    if (list.length >= MAX_ITEMS) return `Not saved. The list is full (${MAX_ITEMS}). Delete a saved search first.`;
     const s: SavedSearch = { ...inputs, id: newId(), name, savedUtc: new Date().toISOString() };
     list = [...list, s];
     persist();
     render();
-    saveForm.hidden = true;
-    saveOpen.hidden = false;
     const same = list.filter((x) => searchKey(x) === searchKey(s)).length;
-    saveMsg.textContent =
-      `Saved "${name}".` + (same > 1 ? ' A saved search with the same inputs exists.' : '') + (storageOk ? '' : ' It is kept for this page only.');
-    saveMsg.hidden = false;
-  });
+    return `Saved "${name}".` + (same > 1 ? ' A saved search with the same inputs exists.' : '') + (storageOk ? '' : ' It is kept for this page only.');
+  }
 
   // ----- Export -----
   exportBtn.addEventListener('click', () => {
@@ -370,4 +390,5 @@ export function setupSaved(hooks: SavedUiHooks) {
 
   storeNote.hidden = storageOk;
   render();
+  return { add };
 }

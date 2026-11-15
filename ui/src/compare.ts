@@ -13,6 +13,11 @@ const HOUR_MS = 3600000;
 /** Results by search inputs. Kept for the page session. */
 const cache = new Map<string, SeriesOut>();
 
+/** Put a result in the cache (for example a mission result), so a comparison does not load it again. */
+export function cacheSeries(key: string, d: SeriesOut) {
+  cache.set(key, d);
+}
+
 type Entry = {
   s: SavedSearch;
   state: 'wait' | 'load' | 'ok' | 'error';
@@ -213,7 +218,7 @@ export function openCompare(searches: SavedSearch[]) {
 
   // ---------- Table ----------
   type Cell = { text: string; sub?: string; value?: number; tag?: { text: string; cls: string; title?: string } };
-  type Row = { label: string; title?: string; cell: (e: Entry) => Cell; numeric?: boolean };
+  type Row = { label: string; title?: string; cell: (e: Entry) => Cell; numeric?: boolean; lowerBetter?: boolean };
 
   /** Time from the start to the first sunset/earthset. -Infinity: the body is down at the start. */
   function toNextSet(e: Entry, body: 'sun' | 'earth'): Cell {
@@ -273,6 +278,33 @@ export function openCompare(searches: SavedSearch[]) {
     { label: 'Longest Sun period', numeric: true, cell: (e) => hours(e.data!.summary.longest_sun_period_h) },
     { label: 'Longest Earth period', numeric: true, cell: (e) => hours(e.data!.summary.longest_earth_period_h) },
     { label: 'Longest Sun and Earth period', numeric: true, cell: (e) => hours(e.data!.summary.longest_both_period_h) },
+    {
+      label: 'Longest night',
+      title: 'Longest period with no part of the Sun disk visible. Shorter is better.',
+      numeric: true,
+      lowerBetter: true,
+      cell: (e) => gap(e.data!.summary.longest_no_sun_period_h, e.data!.summary.longest_no_sun_period_truncated),
+    },
+    {
+      label: 'Longest Earth outage',
+      title: 'Longest period with Earth not visible. Shorter is better.',
+      numeric: true,
+      lowerBetter: true,
+      cell: (e) => gap(e.data!.summary.longest_no_earth_period_h, e.data!.summary.longest_no_earth_period_truncated),
+    },
+    {
+      label: 'Longest time without Sun and Earth',
+      title: 'Longest period when the Sun and Earth are not both visible. Shorter is better.',
+      numeric: true,
+      lowerBetter: true,
+      cell: (e) => gap(e.data!.summary.longest_no_both_period_h, e.data!.summary.longest_no_both_period_truncated),
+    },
+    {
+      label: 'First sunset after start',
+      title: 'First sunset in the period, also if the Sun is down at the start. Later is better.',
+      numeric: true,
+      cell: (e) => firstSunset(e),
+    },
     { label: 'Next sunset', title: 'First sunset after the start of the period. Later is better.', numeric: true, cell: (e) => toNextSet(e, 'sun') },
     { label: 'Next Earthset', title: 'First Earthset after the start of the period. Later is better.', numeric: true, cell: (e) => toNextSet(e, 'earth') },
   ];
@@ -283,6 +315,18 @@ export function openCompare(searches: SavedSearch[]) {
   }
   function hours(h: number): Cell {
     return { text: fmtH(h), value: h };
+  }
+  /** A gap from a newer API. "–" (no value) for an older API without the field. */
+  function gap(h: number | undefined, cut: boolean | undefined): Cell {
+    if (h === undefined) return { text: '–', sub: 'Not in this API version.' };
+    if (h === 0) return { text: 'None', value: 0 };
+    return { text: fmtH(h), value: h, sub: cut ? 'Touches the period edge. Can be longer.' : undefined };
+  }
+  function firstSunset(e: Entry): Cell {
+    const v = e.data!.summary.time_to_first_sunset_h;
+    if (v === undefined) return { text: '–', sub: 'Not in this API version.' };
+    if (v === null) return { text: 'None in the period.', value: Infinity };
+    return { text: `${fmtH(v)} after the start`, sub: `${fmtUtc(e.times![0] + v * HOUR_MS)} UTC`, value: v };
   }
 
   function renderTable() {
@@ -320,7 +364,8 @@ export function openCompare(searches: SavedSearch[]) {
       let bestText: string | null = null;
       if (r.numeric) {
         const vals = cells.filter((c): c is Cell => !!c && c.value !== undefined && !Number.isNaN(c.value));
-        const top = vals.reduce<Cell | null>((a, c) => (!a || c.value! > a.value! ? c : a), null);
+        const better = (c: Cell, a: Cell) => (r.lowerBetter ? c.value! < a.value! : c.value! > a.value!);
+        const top = vals.reduce<Cell | null>((a, c) => (!a || better(c, a) ? c : a), null);
         if (vals.length >= 2 && top && top.value! > -Infinity && vals.some((c) => c.text !== top.text)) bestText = top.text;
       }
       entries.forEach((e, i) => {
@@ -353,7 +398,7 @@ export function openCompare(searches: SavedSearch[]) {
     t.append(thead, tb);
     tableWrap.replaceChildren(t);
     const mark = el('p', 'small');
-    mark.innerHTML = '<span class="best-key">★</span> Best value in the row (the highest, or the latest sunset or Earthset).';
+    mark.innerHTML = '<span class="best-key">★</span> Best value in the row (the highest, the latest sunset or Earthset, or the shortest night or outage).';
     tableWrap.append(mark);
     updateNote();
   }
