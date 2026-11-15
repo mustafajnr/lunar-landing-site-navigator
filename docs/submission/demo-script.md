@@ -4,64 +4,60 @@ The Space Apps rules permit a video of **30 seconds or less**, or a deck of 7 sl
 
 ## The story
 
-NASA's VIPER rover will work for about 100 days at Mons Mouton, near the lunar south pole. NASA plans it for 2027 on a Blue Origin lander. NASA has not published a landing day or a landing point. Thus the demo uses:
+NASA plans Artemis IV, the first crewed landing, for early 2028 at the lunar south pole. The crew stays about 6.5 days. NASA needs sunlight for the whole stay, and it excludes places with less than 25 % Earth visibility. These are the "Artemis" defaults in the tool's Mission requirements. NASA has not chosen a region or a day, so the landing days in the video are **examples**.
 
-- the published landing point of IM-2 "Athena" on Mons Mouton (84.79° S, 29.20° E, LROC), which is in the site list as "IM-2 Athena (Mons Mouton)",
-- an **example** start date of 2027-09-01 and a period of 100 days,
-- the NASA default mission requirements in the tool: VIPER survives 50 hours of darkness, Artemis needs 6.5 days of sunlight from the start, and Artemis HLS needs 25 % Earth visibility.
+1. The plan: land on 2028-01-10 at the best point of the Malapert Massif region. Meets 3 of 3.
+2. The launch slips 12 days to 2028-01-22. The same point is in darkness. Meets 1 of 3.
+3. The tool shows two ways out:
+   - **Wait:** best point 4 of the same region. The "Next landing window" opens on 2028-02-03 13:00. "Use this start" gives Meets 3 of 3.
+   - **Move:** de Gerlache Rim, near the pole. Its best point 1 meets 3 of 3 on 2028-01-22.
 
-The tool shows that the night at the IM-2 point lasts about 14 days. Then the NASA PGDA sunlight layer and the "Best points in this site" list find a point about 27 km away, in the Artemis III region "Nobile Rim 1 and Mons Mouton", where the longest night is 2.9 times shorter and Earth is always in view.
-
-All values below come from the live site on 2026-11-15, with observer height 2 m ("Lander 2 m").
+All values come from the live site on 2026-11-15, with observer height 2 m ("Lander 2 m") and the NASA default requirements.
 
 ## Before you record
 
 1. Open https://lunarsite.select in Chrome at 1920 × 1080, full screen (F11). Close the welcome card (✕).
 2. **Warm up the API.** Do the full flow once before you record. The first load of a new point calculates its terrain horizon and can take up to 1 minute. After that, it loads in a few seconds.
-3. Record each scene as a separate clip, then cut the clips together. There is not enough time to type and click live in 30 seconds.
-4. Add English subtitles that repeat the narration.
-5. Add the caption "Example start date. NASA has not set the landing day." in scene 2.
-6. Do not show people under 18. Do not add NASA logos. If you use an AI voice or AI images, add an acknowledgement or a watermark.
+3. Set "Custom duration" to **6.5** before the first clip. It stays for all scenes.
+4. Record each scene as a separate clip, then cut the clips together.
+5. Add English subtitles that repeat the narration.
+6. Add the caption "Example landing days. NASA has not chosen a day or a region." in scene 2.
+7. Do not show people under 18. Do not add NASA logos. If you use an AI voice or AI images, add an acknowledgement or a watermark.
 
 ## Scenes
 
-The narration has about 75 words. That is about 2.5 words per second.
+The narration has about 75 words, about 2.5 words per second.
 
 | Time | Screen and actions | Narration |
 |---|---|---|
 | 0:00–0:03 | Title card: "lunarsite.select", "Lunar Landing Site Navigator challenge", "Mustafa Abdeltawwab, team lunarspot". | "I'm Mustafa Abdeltawwab, team lunarspot. This is lunarsite dot select." |
-| 0:03–0:11 | Site: "IM-2 Athena (Mons Mouton)". Start 2027-09-01 00:00. Custom duration 100. Verdict tab: zoom on "Meets 1 of 3 mission requirements" and "✕ Longest darkness 13 d 22 h. The limit is 50 h (VIPER)." | "NASA's VIPER rover will work 100 days at Mons Mouton. At the IM-2 landing point, the night lasts 14 days. VIPER survives only 50 hours." |
-| 0:11–0:16 | Site map → Layers → "Average sunlight (NASA PGDA, 18.6 years)". Zoom out a little to show the brighter ground. | "NASA's long-term sunlight map shows brighter ground nearby." |
-| 0:16–0:24 | Site: "Nobile Rim 1 and Mons Mouton". Open "Best points in this site". Click point 1. Verdict: Sun 86 %, Earth 100 %, "longest continuous darkness 4 d 18 h", "Meets 2 of 3". | "The tool finds a point with Earth always in view and nights three times shorter." |
-| 0:24–0:30 | Details tab: the sky plot. Click Play for 2 seconds. Then the end card: "lunarsite.select". | "NASA ephemeris, terrain and illumination data. Any site, any date. Free at lunarsite dot select." |
+| 0:03–0:09 | Site: "Malapert Massif". In "Best points in this site", click **1**. Start 2028-01-10 00:00. Verdict: "Meets 3 of 3 mission requirements." | "Artemis IV lands at the south pole for six and a half days. NASA needs sunlight and Earth in view. Malapert works." |
+| 0:09–0:14 | Change the start to 2028-01-22 00:00. Verdict: "✕ Difficult: no sunlight…", "Meets 1 of 3". | "The launch slips twelve days. Now the site is in darkness." |
+| 0:14–0:21 | Click best point **4**. The Mission requirements box shows "Next landing window: 2028-02-03 13:00 …". Click **Use this start**. "Meets 3 of 3". | "The tool finds the next landing window: wait twelve days at a nearby point." |
+| 0:21–0:26 | Site map → "Sun and Earth" tab, zoomed out. Then site "de Gerlache Rim", best point **1**, start 2028-01-22: "Meets 3 of 3". | "Or move closer to the pole, where the Sun stays up." |
+| 0:26–0:30 | End card: "lunarsite.select". | "NASA ephemeris, terrain and illumination data. Any site, any date." |
 
 ## Values to show (check them in the recording)
 
-Period: 2027-09-01 00:00 UTC, 100 days. Observer height 2 m.
+Duration 6.5 days, observer height 2 m, NASA default requirements.
 
-| | IM-2 Athena (Mons Mouton) | Best point 1, Nobile Rim 1 and Mons Mouton (84.769° S, 38.986° E) |
-|---|---|---|
-| Headline | ◐ Possible with limits: sunlight 52 %, Earth 81 % | ◐ Possible with limits: sunlight 86 % |
-| Average illumination | 52.4 % | 86.0 % |
-| Longest continuous darkness | 13 d 22 h | 4 d 18 h |
-| Earth visibility | 81 % (longest outage 5 d 6 h) | 100 % |
-| Mission requirements | Meets 1 of 3: ✕ darkness, ✕ Sun down at the start, ✓ Earth | Meets 2 of 3: ✕ darkness (4 d 18 h > 50 h), ✓ sunlight 21 d 8 h from the start, ✓ Earth 100 % |
-| PGDA list value | – | Sun 67 %, Earth 99 %, slope 4° (18.6-year average at ground level) |
+| Scene | Point | Start (UTC) | Verdict |
+|---|---|---|---|
+| Plan | Malapert Massif, best point 1 (85.98° S, 1.85° W) | 2028-01-10 00:00 | Sun 100 %, Earth 99 %. Meets 3 of 3. |
+| Slip | The same point | 2028-01-22 00:00 | Sun 10 %, the Sun is down at the start, longest darkness at least 5 d 14 h. Meets 1 of 3. |
+| Wait | Malapert Massif, best point 4 (85.96° S, 2.32° W) | 2028-01-22 00:00, then "Use this start" | Next landing window 2028-02-03 13:00 to 2028-02-16 18:30. After "Use this start": Meets 3 of 3. |
+| Move | de Gerlache Rim, best point 1 (88.66° S, 68.40° W) | 2028-01-22 00:00 | Sun 100 %, Earth 49 %. Meets 3 of 3. The headline says "Difficult: no direct link to Earth for at least 3 d 6 h", because Earth is below the horizon about half of the stay. |
 
-Do not say that the new point meets the VIPER limit. It does not: 4 d 18 h is more than 50 h. Say "three times shorter" (13 d 22 h ÷ 4 d 18 h = 2.9).
+**What not to say:**
+- Do not say that NASA chose Malapert or de Gerlache Rim, or these days.
+- At de Gerlache Rim, do not say "Earth is always in view". Earth is visible 49 % of the stay. The crew needs a relay satellite for the rest. The narration says only "where the Sun stays up".
 
-The new point is about 27 km from the IM-2 point. Do not say "next to" or "a few hundred metres".
-
-Extra fact for the slides or the description: at the Shackleton–de Gerlache ridge, a 10 m mast changes the sunlight over 2027 from 72 % to 96 %, and the longest night from 14 days to 3 days.
+Extra facts for the slides or the description:
+- Near de Gerlache Rim, points 0.4 to 1.5 km apart gave 0 % to 100 % Sun for 22–29 Jan 2028.
+- At the Shackleton–de Gerlache ridge, a 10 m mast changes the sunlight over 2027 from 72 % to 96 %, and the longest night from 14 days to 3 days.
 
 ## Alternative: 7-slide deck
 
-Use this outline if you do not make a video. Slides must be in English. The deck must show the team name, the team member names and the challenge. Use the values in "Values to show" above.
+The backup deck tells the same Artemis IV story in 7 slides: https://claude.ai/artifact/Gy2KAkQGkenaG3GzqjhB2e
 
-1. **Title.** "lunarsite.select". Team lunarspot. Mustafa Abdeltawwab. Challenge: Lunar Landing Site Navigator. Screenshot `01-overview-ridge-2026-11-22.jpg`.
-2. **The problem.** At the south pole, the Sun and Earth stay near the horizon. Terrain can hide them. NASA's VIPER rover will work about 100 days at Mons Mouton. VIPER survives 50 hours of darkness or less. Which point gives power and a link to Earth?
-3. **The tool.** Select a site, a start, a duration (up to 400 days) and an observer height. The Verdict tab gives a plain-language result and checks three NASA mission requirements: 50 h darkness (VIPER), 6.5 days of sunlight (Artemis), 25 % Earth visibility (Artemis HLS). Link: https://lunarsite.select. TODO(developer): new screenshot (Verdict tab).
-4. **IM-2 Athena point.** Example start 2027-09-01, 100 days, 2 m. NASA has not set the landing day. Illumination 52.4 %. Longest darkness 13 d 22 h. Earth 81 %. Meets 1 of 3. TODO(developer): new screenshot (Verdict tab, IM-2 Athena).
-5. **A better point.** Site map with the NASA PGDA "Average sunlight" layer and "Best points in this site". Point 1 in "Nobile Rim 1 and Mons Mouton", about 27 km away: illumination 86.0 %, longest darkness 4 d 18 h, Earth 100 %, meets 2 of 3. The night is 2.9 times shorter, but it is still longer than 50 h. TODO(developer): new screenshot (site map with best points).
-6. **Compare and check.** Compare up to 4 saved searches side by side. ★ marks the best value in each row. Screenshot `07-compare-saved-searches-calendar.jpg`. Data: NASA NAIF SPICE, JPL DE440, LOLA (PGDA product 90), NASA PGDA product 69, NASA Moon Trek, JAXA Kaguya mosaic. Agreement with JPL Horizons at six test instants: 0.00000045°.
-7. **Next steps.** Automatic search for the best point for a period and height, an antenna and Earth-disk model, export (iCalendar, CSV, JSON), more NASA mission requirement presets. Use of SI: built with Claude Code under the developer's direction and review.
+It is private. To submit it, share it from its Share menu, or export it as PDF or PowerPoint and put the file on a public host. Test the link in a private browser window.
