@@ -1,4 +1,5 @@
 import './style.css';
+import { setupWelcome } from './welcome';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ApiError, API_URL, fetchSites, type Site } from './api';
@@ -43,6 +44,7 @@ const canvas = $<HTMLCanvasElement>('globe');
 // phone layout (style.css), it is a block in the page with a fixed height.
 const viewW = () => canvas.clientWidth || window.innerWidth;
 const viewH = () => canvas.clientHeight || window.innerHeight;
+setupWelcome();
 // The globe is hidden (opacity 0) until the first default view is set, then it fades
 // in (style.css). Without this, the start camera shows first and then jumps.
 const globeLoading = $<HTMLDivElement>('globeLoading');

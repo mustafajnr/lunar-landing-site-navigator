@@ -922,7 +922,8 @@ button.danger {
   input:not([type='checkbox']):not([type='radio']):not([type='range']),
   #mapPanel header a,
   .guide-link,
-  #siteInfo a {
+  #siteInfo a,
+  .check-link {
     min-height: 44px;
     box-sizing: border-box;
   }
@@ -950,6 +951,7 @@ button.danger {
   }
   .guide-link,
   #siteInfo a,
+  .check-link,
   #mapPanel header a {
     display: inline-flex;
     align-items: center;
@@ -1064,6 +1066,69 @@ button.danger {
     left: 8px;
     right: 8px;
     transform: none;
+  }
+}
+
+/* ---------- Welcome card (welcome.ts), in the left panel ---------- */
+.welcome {
+  position: relative;
+  margin: 0 0 8px;
+  padding: 2px 10px 4px;
+  background: rgba(74, 163, 255, 0.08);
+  border: 1px solid #2c4a6e;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #ccc;
+}
+.welcome[hidden] {
+  display: none;
+}
+.welcome h2 {
+  margin: 6px 0 2px;
+}
+.welcome p {
+  margin: 4px 28px 4px 0;
+}
+.welcome ol {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+.welcome li {
+  margin: 2px 0;
+}
+.welcome a {
+  color: #8cc4ff;
+}
+.welcome-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  line-height: 1;
+}
+@media (max-width: 760px) {
+  .welcome {
+    font-size: 14px;
+  }
+  .welcome h2 {
+    margin: 0;
+    line-height: 44px;
+  }
+  .welcome p {
+    margin-right: 0;
+  }
+  .welcome-close {
+    width: 44px;
+    height: 44px;
+    top: 0;
+    right: 0;
+  }
+  .welcome a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }
 

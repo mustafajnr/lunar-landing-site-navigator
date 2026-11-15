@@ -168,7 +168,7 @@ export function setupPointUi(
       if (defaultPoint) {
         const d = document.createElement('option');
         d.value = DEFAULT_VALUE;
-        d.textContent = `${defaultPoint.name} (default point, ${defaultPoint.latDeg.toFixed(2)}°, ${defaultPoint.lonDeg.toFixed(2)}°)`;
+        d.textContent = `${defaultPoint.name} (default, ${defaultPoint.latDeg.toFixed(2)}°, ${defaultPoint.lonDeg.toFixed(2)}°)`;
         siteSel.append(d);
       }
       const statuses = [...STATUS_ORDER, ...new Set(list.map((s) => s.status).filter((x) => !STATUS_ORDER.includes(x)))];
