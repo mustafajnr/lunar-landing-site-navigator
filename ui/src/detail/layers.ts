@@ -15,7 +15,8 @@ export type TrekLayer = {
   maxZ: number;
   /** Data extent in source CRS units (deg for EQ, m for SP). */
   bbox: Extent;
-  kind: 'image' | 'hillshade';
+  /** 'data' = a derived map (slope), not imagery: never the "best imagery". */
+  kind: 'image' | 'hillshade' | 'data';
   on: boolean;
   /** Role in the map: 'base' = one global image layer, 'detail' = drawn where it has data,
    *  'overlay' = only when the user turns it on. */
@@ -27,6 +28,11 @@ export type TrekLayer = {
   maxViewMpp?: number;
   /** SP layers: the data is a disk around the pole with this radius (m), not the full bbox. */
   rhoMax?: number;
+  /** Tiles that we make (not Trek): {url}/{z}/{row}/{col}.{ext}. No Trek fallback, no manifest. */
+  url?: string;
+  /** Short legend, shown when the layer is on. */
+  legend?: { colour: string; label: string }[];
+  legendNote?: string;
 };
 
 const TREK = 'https://trek.nasa.gov/tiles/Moon';
@@ -137,6 +143,41 @@ export const SP_LAYERS: TrekLayer[] = [
   { id: 'LRO_LOLA_Shade_SPole875_5mp_v04', title: 'LOLA hillshade 5 m DEM, S pole 87.5 deg', proj: 'SP', ext: 'png', maxZ: 9, bbox: [-75840, -75840, 75840, 75840], kind: 'hillshade', on: false, role: 'overlay', opaque: true, maxViewMpp: 1000 },
 ];
 
+// ---------- Own slope tiles ----------
+// Made by data/scripts/make_slope_tiles.py from the LOLA 20 m DEM (LDEM_80S_20MPP_ADJ) in the
+// Trek SP grid, uploaded to {tile cache}/slope/{z}/{row}/{col}.png. Only with a tile cache URL.
+/** Slope classes (deg) and colours: the same as make_slope_tiles.py (viridis steps). The tile
+ *  alpha is 150/255, so the legend shows the colours at that opacity. */
+export const SLOPE_LEGEND = [
+  { colour: '#440154', label: '< 5°' },
+  { colour: '#414487', label: '5–10°' },
+  { colour: '#2a788e', label: '10–15°' },
+  { colour: '#22a884', label: '15–20°' },
+  { colour: '#7ad151', label: '20–30°' },
+  { colour: '#fde725', label: '≥ 30°' },
+];
+/** 80° S in the SP projection: 2 R tan(5°). The DEM has no data north of it in our tiles. */
+export const SLOPE_RHO_MAX = 304006;
+export const SLOPE_LAYER: TrekLayer = {
+  id: 'slope_lola20m',
+  title: 'Slope (LOLA 20 m, degrees)',
+  proj: 'SP',
+  ext: 'png',
+  maxZ: 9,
+  bbox: [-SLOPE_RHO_MAX, -SLOPE_RHO_MAX, SLOPE_RHO_MAX, SLOPE_RHO_MAX],
+  kind: 'data',
+  on: false,
+  role: 'overlay',
+  opaque: false,
+  rhoMax: SLOPE_RHO_MAX,
+  url: `${CACHE_BASE}/slope`,
+  legend: SLOPE_LEGEND,
+  legendNote:
+    'Slope from LOLA 20 m elevation data. Small rocks are not included. ' +
+    'Each pixel shows the steepest slope inside it, so a coarse view never hides a steep spot.',
+};
+if (tileCacheOn()) SP_LAYERS.push(SLOPE_LAYER);
+
 export function makeLayer(l: TrekLayer): TileLayer<XYZ> {
   const isEq = l.proj === 'EQ';
   const res0 = isEq ? EQ_RES0 : SP_RES0;
@@ -152,6 +193,18 @@ export function makeLayer(l: TrekLayer): TileLayer<XYZ> {
     tileGrid,
     // Trek REST pattern: {TileMatrix}/{TileRow}/{TileCol}; OL y counts from the top.
     tileUrlFunction: ([z, x, y]) => {
+      if (l.url !== undefined) {
+        // Own tiles: no request for tiles outside the data disk.
+        if (l.rhoMax !== undefined) {
+          const span = (res0 / 2 ** z) * 256;
+          const x0 = -SP_HALF + x * span;
+          const y1 = SP_HALF - y * span;
+          const nx = Math.min(Math.max(0, x0), x0 + span);
+          const ny = Math.min(Math.max(0, y1 - span), y1);
+          if (Math.hypot(nx, ny) > l.rhoMax) return undefined;
+        }
+        return `${l.url}/${z}/${y}/${x}.${l.ext}`;
+      }
       const path = `${l.proj}/${l.id}/1.0.0/default/default028mm/${z}/${y}/${x}.${l.ext}`;
       const from = tileSource(`${l.proj}/${l.id}`, z, x, y);
       // undefined = empty tile, no request.
@@ -159,7 +212,9 @@ export function makeLayer(l: TrekLayer): TileLayer<XYZ> {
       return from === 'cache' ? `${CACHE_BASE}/${path}` : `${TREK}/${path}`;
     },
     crossOrigin: 'anonymous',
-    attributions: 'Imagery: NASA Moon Trek (NASA/GSFC/ASU LROC, LOLA; JAXA SELENE)',
+    attributions: l.url
+      ? 'Slope: made from NASA LRO LOLA 20 m DEM (LDEM_80S_20MPP_ADJ)'
+      : 'Imagery: NASA Moon Trek (NASA/GSFC/ASU LROC, LOLA; JAXA SELENE)',
     wrapX: false,
   });
   const layer = new TileLayer({

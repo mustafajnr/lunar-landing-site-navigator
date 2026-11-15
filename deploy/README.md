@@ -48,6 +48,13 @@ gcloud storage rsync -r .tile-cache/tiles gs://lunar-site-select-tiles --cache-c
 gcloud storage cp .tile-cache/manifest.json gs://lunar-site-select-tiles/manifest.json --cache-control="public, max-age=300"
 ```
 
+Slope tiles (our own, not Trek). `data/scripts/make_slope_tiles.py` makes them from the LOLA 20 m DEM in the Trek SP grid (z 0-9, south of 80° S). The UI loads them from `{VITE_TILE_CACHE_URL}/slope/{z}/{row}/{col}.png`. They are not in the manifest. Make and upload (from `data/`):
+
+```bash
+uv run python scripts/make_slope_tiles.py --area disk   # about 4 min, 21681 tiles, 116 MB
+gcloud storage rsync -r cache/slope_tiles gs://lunar-site-select-tiles/slope --cache-control="public, max-age=31536000"
+```
+
 Bucket setup (done once):
 
 ```bash

@@ -125,7 +125,8 @@ function sourceExtent(l: TrekLayer, lat: number, lon: number, half: number): Ext
 function planSite(s: Site) {
   const { minRes, half } = startView(s.radius_m);
   const out: { l: TrekLayer; z: number; range: Range }[] = [];
-  for (const l of stackFor(s.lat_deg, s.lon_deg)) {
+  // Layers with their own tile URL (slope, made by data/scripts/make_slope_tiles.py) are not Trek tiles.
+  for (const l of stackFor(s.lat_deg, s.lon_deg).filter((x) => !x.url)) {
     const grid = makeLayer(l).getSource()!.getTileGrid() as TileGrid;
     for (let z = 0; z <= l.maxZ; z++) {
       const h = levelMpp(l, z) >= minRes / 2 ? half : Math.min(half, CAP_M);

@@ -48,7 +48,8 @@ export function stackFor(lat: number, lon: number): TrekLayer[] {
   const base = polar ? WAC_POLAR : Math.abs(lat) >= 60 ? WAC : KAGUYA;
   const local = EQ_LOCAL.filter((l) => hasDataAt(l, lon, lat));
   if (!polar) return [base, ...local];
-  const sp = SP_LAYERS.filter((l) => l.role === 'overlay' || hasDataAt(l, lon, lat));
+  // Own-tile overlays (slope) only where they have data: the slope tiles stop at 80° S.
+  const sp = SP_LAYERS.filter((l) => (l.role === 'overlay' && !l.url) || hasDataAt(l, lon, lat));
   // NAC mosaic below the overlays, so a hillshade shows on top when the user turns it on.
   sp.sort((a, b) => (a === NAC_SP ? -1 : b === NAC_SP ? 1 : 0));
   return [base, ...sp, ...local];
