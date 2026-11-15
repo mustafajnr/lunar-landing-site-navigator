@@ -194,7 +194,7 @@ export class CheckPanel {
     const surfaceM = d.horizon?.surface_height_m ?? 0;
     const heightM = surfaceM + inp.observerHeightM;
     this.status.textContent =
-      `The values are for the nearest calculated step. The tool calculates a step each ${d.provenance?.step_minutes ?? '–'} min.`;
+      `The values are for the nearest calculated step. The steps are ${d.provenance?.step_minutes ?? '–'} min apart. The height is above the ${SPHERE_KM} km sphere.`;
     this.now.replaceChildren(
       row('Time (UTC)', utc.replace('T', ' ')),
       row('Sun azimuth', deg(s.sun_az[i])),
@@ -203,11 +203,9 @@ export class CheckPanel {
       row('Earth elevation', deg(s.earth_el[i])),
       row('Latitude', fmtLat(inp.point.latDeg)),
       row('Longitude', fmtLon(inp.point.lonDeg)),
-      row(
-        'Height above the 1737.4 km sphere',
-        `${heightM.toFixed(2)} m`,
-        `Surface height ${surfaceM.toFixed(2)} m + observer height ${inp.observerHeightM} m. The sphere radius is ${SPHERE_KM} km.`,
-      ),
+      row('Surface height', `${surfaceM.toFixed(2)} m`),
+      row('Observer height', `${inp.observerHeightM} m`),
+      row('Height above sphere', `${heightM.toFixed(2)} m`, `Surface height + observer height, above the ${SPHERE_KM} km sphere`),
     );
     this.setLinks({
       sun: horizonsUrl('sun', inp.point, heightM, utc),
