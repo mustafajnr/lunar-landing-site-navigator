@@ -20,3 +20,10 @@
 .dm .ol-scale-bar { bottom: 22px; left: 8px; }
 .dm .ol-attribution { top: 6px; right: 6px; bottom: auto; }
 .dm .ol-zoom { top: 6px; left: 6px; }
+/* Compact map (comparison panel). */
+.dm.dm-compact .dm-info { display: none; }
+.dm.dm-compact .ol-zoom button { width: 22px; height: 22px; font-size: 15px; line-height: 1; }
+.dm.dm-compact .ol-scale-bar { bottom: 6px; left: 6px; }
+.dm.dm-compact .ol-scale-bar .ol-scale-singlebar { height: 6px; }
+.dm.dm-compact .dm-progress { height: 3px; }
+.dm.dm-compact .dm-bar-text { display: none; }
