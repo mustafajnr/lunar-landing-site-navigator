@@ -30,7 +30,7 @@ import { makeLayer, nominalMpp, tileCacheOn, SLOPE_LAYER, type TrekLayer } from 
 import { POLAR_LAT, DEFAULT_START_MPP, RADIUS_VIEW_FACTOR, bestImageAt, hasDataAt, stackFor } from './stack';
 
 export { POLAR_LAT, DEFAULT_START_MPP, RADIUS_VIEW_FACTOR, bestImageAt };
-export { loadTileCache } from './layers';
+export { loadTileCache, tileCacheOn, ILLUM_SUN_LAYER, ILLUM_EARTH_LAYER } from './layers';
 const D2R = Math.PI / 180;
 
 export interface MapPoint {
@@ -71,6 +71,10 @@ export interface DetailMapOptions {
   pick?: boolean;
   /** Called after each view change with the top visible image layer and the view m/px. */
   onView?: (info: { title: string | null; mpp: number }) => void;
+  /** Ids of overlays that are on at the start. */
+  overlays?: string[];
+  /** Note under the layer list when it has a group of mutually exclusive overlays. */
+  groupHint?: string;
 }
 
 /** Point at angular distance `dist` (rad) along `bearing` (deg clockwise from north). */
@@ -117,6 +121,7 @@ export class DetailMap {
 
   constructor(root: HTMLElement, opts: DetailMapOptions = {}) {
     this.opts = opts;
+    for (const id of opts.overlays ?? []) this.userOn.add(id);
     root.classList.add('dm');
     root.classList.toggle('dm-compact', !!opts.compact);
     root.innerHTML = `
@@ -308,15 +313,25 @@ export class DetailMap {
     // Layer list with toggles for the overlays.
     const list = this.el.layers;
     list.innerHTML = '';
+    const boxes = new Map<TrekLayer, HTMLInputElement>();
+    let lastGroupRow: HTMLElement | null = null;
     for (const d of [...defs].reverse()) {
       const row = document.createElement('label');
       const cb = document.createElement('input');
       cb.type = 'checkbox';
+      boxes.set(d, cb);
       if (d.role === 'overlay') {
         cb.checked = this.userOn.has(d.id);
         cb.onchange = () => {
           if (cb.checked) this.userOn.add(d.id);
           else this.userOn.delete(d.id);
+          // Mutually exclusive overlays: turn off the others of the group.
+          if (cb.checked && d.group)
+            for (const [o, ob] of boxes)
+              if (o !== d && o.group === d.group) {
+                this.userOn.delete(o.id);
+                ob.checked = false;
+              }
           this.updateVisibility();
           this.showInfo();
           this.showLegend();
@@ -330,6 +345,14 @@ export class DetailMap {
       s.textContent = ` ${fmtMpp(nominalMpp(d))}`;
       row.append(cb, ` ${d.title}`, s);
       list.append(row);
+      if (d.group) lastGroupRow = row;
+    }
+    // Under the last row of the group: where to see them together.
+    if (this.opts.groupHint && lastGroupRow) {
+      const hint = document.createElement('div');
+      hint.className = 'dm-note dm-group-hint';
+      hint.textContent = this.opts.groupHint;
+      (lastGroupRow as HTMLElement).after(hint);
     }
     // The slope tiles stop at 80° S. North of it, say where to find slope.
     const p = this.point;
