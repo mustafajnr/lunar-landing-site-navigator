@@ -10,8 +10,8 @@ The short lists below go into the form: one entry for each resource. The full li
 | JPL Horizons System (validation) | https://ssd.jpl.nasa.gov/horizons/ |
 | LROC QuickMap (slope link) | https://quickmap.lroc.im-ldi.com/ |
 | NASA NAIF SPICE, with the JPL DE440 ephemeris (Sun, Earth and Moon positions) | https://naif.jpl.nasa.gov/naif/ |
-| LRO LOLA south pole elevation models (NASA PGDA product 90) | https://pgda.gsfc.nasa.gov/products/90 |
-| LRO LOLA lunar polar illumination maps (NASA PGDA product 69) | https://pgda.gsfc.nasa.gov/products/69 |
+| NASA GSFC Planetary Geodesy Data Archive (PGDA): "A New View of the Lunar South Pole from LOLA" (elevation data) | https://pgda.gsfc.nasa.gov/products/90 |
+| NASA GSFC Planetary Geodesy Data Archive (PGDA): "Lunar Polar Illumination" (sunlight and Earth visibility maps) | https://pgda.gsfc.nasa.gov/products/69 |
 | LRO Camera (LROC): landing site positions | https://www.lroc.asu.edu/ |
 | NASA NSSDC lunar landing sites | https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html |
 | NASA Artemis III candidate landing regions | https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/ |
