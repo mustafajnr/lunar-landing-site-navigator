@@ -29,7 +29,7 @@ import { LONLAT, SPS, R, siteStereo } from './moonproj';
 import { makeLayer, nominalMpp, tileCacheOn, type TrekLayer } from './layers';
 import { POLAR_LAT, DEFAULT_START_MPP, RADIUS_VIEW_FACTOR, bestImageAt, hasDataAt, stackFor } from './stack';
 
-export { POLAR_LAT, bestImageAt };
+export { POLAR_LAT, DEFAULT_START_MPP, RADIUS_VIEW_FACTOR, bestImageAt };
 export { loadTileCache } from './layers';
 const D2R = Math.PI / 180;
 
@@ -55,6 +55,13 @@ export interface DetailMapOptions {
   onPick?: (ll: { latDeg: number; lonDeg: number }) => void;
   /** Start view resolution in m/px if the point has no radius. Default DEFAULT_START_MPP. */
   resolution?: number;
+  /** Small map (comparison panel): no info box, no attribution control (the caller shows
+   *  the credit), a short scale bar. Default false. */
+  compact?: boolean;
+  /** A click on the map moves the point. Default true. */
+  pick?: boolean;
+  /** Called after each view change with the top visible image layer and the view m/px. */
+  onView?: (info: { title: string | null; mpp: number }) => void;
 }
 
 /** Point at angular distance `dist` (rad) along `bearing` (deg clockwise from north). */
@@ -93,10 +100,14 @@ export class DetailMap {
   private hideBarTimer = 0;
   /** Tile requests since the map was made (for tests). */
   tileStats = { requested: 0, loaded: 0, failed: 0, byLayer: {} as Record<string, number> };
+  /** Number of maps that are made and not disposed (for leak tests). */
+  static live = 0;
+  private disposed = false;
 
   constructor(root: HTMLElement, opts: DetailMapOptions = {}) {
     this.opts = opts;
     root.classList.add('dm');
+    root.classList.toggle('dm-compact', !!opts.compact);
     root.innerHTML = `
       <div class="dm-map"></div>
       <svg class="dm-arrows" aria-hidden="true"></svg>
@@ -134,17 +145,20 @@ export class DetailMap {
     this.map = new OlMap({
       target: this.el.map as HTMLElement,
       layers: [new VectorLayer({ source: this.markerSrc, zIndex: 100 })],
-      controls: [
-        new Zoom(),
-        new Attribution({ collapsible: true, collapsed: true }),
-        new ScaleLine({ units: 'metric', bar: true, steps: 4, text: false, minWidth: 100 }),
-      ],
+      controls: opts.compact
+        ? [new Zoom(), new ScaleLine({ units: 'metric', bar: true, steps: 2, text: false, minWidth: 64 })]
+        : [
+            new Zoom(),
+            new Attribution({ collapsible: true, collapsed: true }),
+            new ScaleLine({ units: 'metric', bar: true, steps: 4, text: false, minWidth: 100 }),
+          ],
       interactions: defaultInteractions({ altShiftDragRotate: false, pinchRotate: false }),
       // Trek serves HTTP/1.1 (6 tiles at a time per host). The tile cache bucket serves
       // HTTP/2, so more tiles can load at the same time.
       maxTilesLoading: tileCacheOn() ? 32 : 12,
     });
-    this.map.on('singleclick', (e) => {
+    DetailMap.live++;
+    if (opts.pick !== false) this.map.on('singleclick', (e) => {
       const [lon, lat] = transform(e.coordinate, this.map.getView().getProjection(), LONLAT);
       const ll = { latDeg: Math.max(-89.999, Math.min(89.999, lat)), lonDeg: normLon(lon) };
       this.setPoint({ ...ll }, { recenter: false });
@@ -218,6 +232,22 @@ export class DetailMap {
 
   updateSize() {
     this.map.updateSize();
+  }
+
+  /** Remove the map from the page and release its layers and sources. */
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    DetailMap.live--;
+    clearTimeout(this.hideBarTimer);
+    this.map.setTarget(undefined);
+    this.map.getLayers().clear();
+    for (const l of this.layerCache.values()) {
+      l.getSource()?.dispose();
+      l.dispose();
+    }
+    this.layerCache.clear();
+    this.map.dispose();
   }
 
   // ---------- layers ----------
@@ -394,6 +424,7 @@ export class DetailMap {
     const mpp = getPointResolution(view.getProjection(), r, c, 'm');
     const top = [...this.stack].reverse().find((d) => this.layerOf(d).getVisible() && this.layerOf(d).isVisible(view));
     this.el.showing.textContent = `${top ? top.title : '–'} (view ${fmtMpp(mpp)})`;
+    this.opts.onView?.({ title: top ? top.title : null, mpp });
   }
 
   private showProgress() {

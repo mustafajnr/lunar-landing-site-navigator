@@ -5,6 +5,7 @@
 import { ApiError, fetchSeries, type SeriesOut } from './api';
 import { horizonOf } from './results';
 import { searchKey, type SavedSearch } from './saved';
+import type { DetailMap } from './detail/detailmap';
 
 const DAY_MS = 86400000;
 const HOUR_MS = 3600000;
@@ -38,8 +39,19 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 let panel: HTMLElement | null = null;
 let ctrl: AbortController | null = null;
 let observer: ResizeObserver | null = null;
+/** Site image maps of the open panel. Disposed when the panel closes. */
+let maps: DetailMap[] = [];
+/** Counts panel openings, so a late map import does not add maps to a closed panel. */
+let generation = 0;
+
+function disposeMaps() {
+  for (const m of maps) m.dispose();
+  maps = [];
+}
 
 export function closeCompare() {
+  generation++;
+  disposeMaps();
   ctrl?.abort();
   ctrl = null;
   observer?.disconnect();
@@ -77,6 +89,31 @@ export function openCompare(searches: SavedSearch[]) {
   const note = el('p', 'cmp-note');
   note.hidden = true;
   const tableWrap = el('div', 'cmp-table');
+
+  // ---------- Site images (one DetailMap for each search) ----------
+  type Img = { cell: HTMLDivElement; host: HTMLDivElement; msg: HTMLDivElement; credit: HTMLDivElement; dm?: DetailMap; fitMpp: number };
+  const imgs: Img[] = entries.map(() => {
+    const cell = el('div', 'cmp-img');
+    const host = el('div', 'cmp-img-map');
+    const msg = el('div', 'cmp-img-msg', 'Loading image…');
+    const credit = el('div', 'cmp-img-credit', '');
+    cell.append(host, msg, credit);
+    return { cell, host, msg, credit, fitMpp: 30 };
+  });
+  let sameScale = true;
+  const scaleLabel = el('label', 'cmp-same small');
+  const scaleBox = el('input');
+  scaleBox.type = 'checkbox';
+  scaleBox.checked = sameScale;
+  scaleLabel.title = 'On: all images use the same metres per pixel. Off: each image fits its site.';
+  scaleLabel.append(scaleBox, ' Same scale');
+  const imgHead = el('div');
+  imgHead.append(el('div', '', 'Site image'), scaleLabel);
+  scaleBox.addEventListener('change', () => {
+    sameScale = scaleBox.checked;
+    applyScale();
+  });
+
   const tlHead = el('div', 'row cmp-tlhead');
   const tlTitle = el('h2', '', 'Timeline');
   const alignBox = el('div', 'cmp-align');
@@ -260,6 +297,17 @@ export function openCompare(searches: SavedSearch[]) {
     }
     thead.append(hr);
     const tb = el('tbody');
+    const ir = el('tr', 'cmp-imgrow');
+    const ith = el('th');
+    ith.scope = 'row';
+    ith.append(imgHead);
+    ir.append(ith);
+    for (const im of imgs) {
+      const td = el('td');
+      td.append(im.cell); // The same element each time, so the map stays.
+      ir.append(td);
+    }
+    tb.append(ir);
     rows.forEach((r, ri) => {
       const tr = el('tr');
       const th = el('th', '', r.label);
@@ -561,10 +609,108 @@ export function openCompare(searches: SavedSearch[]) {
     return Math.abs(t[hi] - ms) < Math.abs(ms - t[lo]) ? hi : lo;
   }
 
+  /** View resolution (projection units) that gives `mpp` ground m/px at the view centre. */
+  function setMpp(m: DetailMap, mpp: number) {
+    const v = m.map.getView();
+    const c = v.getCenter();
+    const r = v.getResolution();
+    if (!c || !r) return;
+    const k = getPointResolution(v.getProjection(), r, c, 'm') / r;
+    v.setResolution(mpp / k);
+  }
+  function mppOf(m: DetailMap): number | null {
+    const v = m.map.getView();
+    const c = v.getCenter();
+    const r = v.getResolution();
+    return c && r ? getPointResolution(v.getProjection(), r, c, 'm') : null;
+  }
+
+  /** Same scale: all images at the coarsest fit, so each site circle fits. Else each fits its own. */
+  function applyScale() {
+    const live = imgs.filter((im) => im.dm);
+    const common = Math.max(...live.map((im) => im.fitMpp));
+    syncing = true;
+    for (const im of live) {
+      const p = entries[imgs.indexOf(im)].s;
+      im.dm!.map.getView().setCenter(transform([p.lonDeg, p.latDeg], LONLAT, im.dm!.map.getView().getProjection()));
+      setMpp(im.dm!, sameScale ? common : im.fitMpp);
+    }
+    syncing = false;
+  }
+  let syncing = false;
+  let getPointResolution: typeof import('ol/proj.js').getPointResolution;
+  let transform: typeof import('ol/proj.js').transform;
+  let LONLAT: typeof import('./detail/moonproj').LONLAT;
+
+  async function loadMaps(gen: number) {
+    try {
+      const [dmod, proj, mp] = await Promise.all([import('./detail/detailmap'), import('ol/proj.js'), import('./detail/moonproj')]);
+      getPointResolution = proj.getPointResolution;
+      transform = proj.transform;
+      LONLAT = mp.LONLAT;
+      // The tile cache manifest first (waits at most 2.5 s), so the first tiles use the cache.
+      await dmod.loadTileCache();
+      if (gen !== generation) return;
+      imgs.forEach((im, i) => {
+        const s = entries[i].s;
+        const dm = new dmod.DetailMap(im.host, {
+          compact: true,
+          pick: false,
+          onView: ({ title, mpp }) => {
+            im.credit.textContent = `${title ?? 'No image'}, ${mpp < 10 ? mpp.toFixed(1) : mpp.toFixed(0)} m/px. NASA Moon Trek.`;
+          },
+        });
+        im.dm = dm;
+        maps.push(dm);
+        const w = im.host.clientWidth;
+        const h = im.host.clientHeight;
+        const minPx = w && h ? Math.max(100, Math.min(w, h)) : 220;
+        im.fitMpp = s.radiusM ? (s.radiusM * dmod.RADIUS_VIEW_FACTOR) / minPx : dmod.DEFAULT_START_MPP;
+        dm.setPoint({ latDeg: s.latDeg, lonDeg: s.lonDeg, name: s.siteName, radiusM: s.radiusM });
+        im.msg.hidden = true;
+        // Tile errors: a short message in the cell. The table and the timeline do not wait.
+        dm.map.on('loadend', () => {
+          const t = dm.tileStats;
+          if (t.failed && !t.loaded) {
+            im.msg.textContent = 'The image did not load. Check the network.';
+            im.msg.classList.add('bad');
+            im.msg.hidden = false;
+          } else if (t.failed) {
+            im.msg.textContent = 'Some image tiles did not load.';
+            im.msg.classList.add('bad');
+            im.msg.hidden = false;
+          } else {
+            im.msg.hidden = true;
+          }
+        });
+        // Same scale: a zoom in one image zooms all images.
+        dm.map.getView().on('change:resolution', () => {
+          if (!sameScale || syncing) return;
+          const mpp = mppOf(dm);
+          if (mpp === null) return;
+          syncing = true;
+          for (const o of imgs) if (o.dm && o.dm !== dm) setMpp(o.dm, mpp);
+          syncing = false;
+        });
+      });
+      applyScale();
+      if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__DetailMap = dmod.DetailMap;
+    } catch (err) {
+      console.error(err);
+      if (gen !== generation) return;
+      for (const im of imgs) {
+        im.msg.textContent = 'The image cannot load.';
+        im.msg.classList.add('bad');
+        im.msg.hidden = false;
+      }
+    }
+  }
+
   observer = new ResizeObserver(() => drawTimeline());
   observer.observe(tlWrap);
 
   renderTable();
   drawTimeline();
+  void loadMaps(generation);
   void loadAll();
 }
