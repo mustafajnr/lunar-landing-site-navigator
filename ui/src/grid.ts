@@ -15,16 +15,17 @@ const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true
 const equatorMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false });
 const polarMat = new THREE.LineBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0.6, depthWrite: false });
 
-// SPIKE (?view=...): dim the grid on the night side, so the terminator stays clear.
-// gridLight.sun is the Sun direction in the Moon body frame; night = brightness factor on
-// the night side (1 = no dimming, the old look).
-export const gridLight = { sun: { value: new THREE.Vector3(1, 0, 0) }, night: { value: 1 } };
+// The grid is dimmed on the night side. Without this, the white lines make the night side
+// look lit when the globe is small, and the terminator is hard to see.
+// gridLight.sun: the Sun direction in the Moon body frame (main.ts sets it every frame).
+// gridLight.night: line opacity factor on the night side (1 = no dimming).
+export const gridLight = { sun: { value: new THREE.Vector3(1, 0, 0) }, night: { value: 0.25 } };
 for (const m of [lineMat, equatorMat, polarMat]) {
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uSunBody = gridLight.sun;
     sh.uniforms.uNight = gridLight.night;
     sh.vertexShader = sh.vertexShader
-      .replace('void main() {', 'varying vec3 vBodyPos;\nvoid main() {\n  vBodyPos = position;')
+      .replace('void main() {', 'varying vec3 vBodyPos;\nvoid main() {\n  vBodyPos = position;');
     sh.fragmentShader = sh.fragmentShader
       .replace('void main() {', 'uniform vec3 uSunBody;\nuniform float uNight;\nvarying vec3 vBodyPos;\nvoid main() {')
       .replace(
@@ -102,6 +103,7 @@ function label(text: string, color: string, height: number, kind: LabelKind, deg
 const LABEL_MAX_PX = 24;
 const LABEL_MIN_PX = 15;
 const tmpPos = new THREE.Vector3();
+const tmpLit = new THREE.Vector3();
 /** A label is hidden when the gap to a neighbour label is less than MIN_GAP label heights. */
 const MIN_GAP = 1.5;
 /** Longitude labels are wide: the gap must be at least LON_MIN_GAP label widths. */
@@ -172,10 +174,9 @@ export function updateGridLabels(grid: THREE.Group, camera: THREE.PerspectiveCam
     const unitsPerPx = camera.position.distanceTo(tmpPos) / pxPerUnit;
     const hgt = Math.min(Math.max(info.height, info.minPx * unitsPerPx), LABEL_MAX_PX * unitsPerPx);
     obj.scale.set(hgt * info.aspect, hgt, 1);
-    if (gridLight.night.value < 1) {
-      const lit = obj.position.clone().normalize().dot(gridLight.sun.value);
-      ((obj as THREE.Sprite).material as THREE.SpriteMaterial).opacity = lit > 0 ? 1 : Math.max(gridLight.night.value * 1.5, 0.35);
-    }
+    // Night side labels are dimmed too (less than the lines, so they stay readable).
+    const lit = tmpLit.copy(obj.position).normalize().dot(gridLight.sun.value) > 0;
+    ((obj as THREE.Sprite).material as THREE.SpriteMaterial).opacity = lit ? 1 : Math.max(gridLight.night.value * 1.5, 0.35);
     const hPx = hgt / unitsPerPx;
     if (info.kind === 'latPolar' || info.kind === 'lonPolar') {
       obj.visible = hPx >= POLAR_MIN_PX;
