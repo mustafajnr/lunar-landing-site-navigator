@@ -166,4 +166,4 @@ TODO(developer): check that this list is complete. The guide asks for all code, 
 - TODO(developer): upload the demo video and add its link (see "Link to Project Demo").
 - TODO(developer): check that the reference list is complete (see the references field).
 - TODO(developer): FortiGuard Web Filter classification request for https://lunarsite.select (the developer will do it; recommended, not required).
-- TODO(developer): images for the project page (JPG or PNG, up to 10 MB). The files in `screenshots/` are suitable. Add a new screenshot of the Artemis IV example (Verdict tab, best points and next landing window).
+- TODO(developer): images for the project page (JPG or PNG, up to 10 MB). Use the files in `screenshots/`. Files 09 to 12 show the Artemis IV example.
