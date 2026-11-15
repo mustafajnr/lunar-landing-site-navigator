@@ -91,10 +91,11 @@ TODO(developer): confirm that the idea of how to solve the challenge came from y
 
 (About 1,000 characters.)
 
-From the challenge Resources tab, the tool uses two NASA resources:
+From the challenge Resources tab, the tool uses three NASA resources:
 
 - **NASA Moon Trek:** all site map images (WMTS tiles, see below).
 - **JPL Horizons System:** the independent reference for the validation tests, and the "Check the Sun/Earth in JPL Horizons" links in the tool's "Check this result" panel. The tool agrees with Horizons to within 4.5 × 10⁻⁷°.
+- **LROC QuickMap:** the "Open in LROC QuickMap (slope in degrees)" link opens the selected point in QuickMap with the TerrainSlope layer. The legend shows the slope in degrees.
 
 Other NASA data:
 

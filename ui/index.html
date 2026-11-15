@@ -101,6 +101,7 @@
       <p class="small note">
         Sun, Earth and Moon orientation come from the API (NASA SPICE kernels, DE440, MOON_ME frame).
         The globe view is not to scale (see the note at the top).
+        The LROC QuickMap link opens the point with the TerrainSlope layer: slope, with a legend in degrees.
       </p>
       <p class="small note" id="aiNote">
         Built with AI assistance. The code and the documentation were written with Claude Code (Anthropic) under the developer's direction and review.
@@ -216,6 +217,7 @@
       <header>
         <button id="mapFold" type="button" aria-expanded="true" aria-controls="mapBody">▾ Site map</button>
         <span id="mapTitle" class="small"></span>
+        <a id="mapQuickmap" class="small" hidden></a>
         <button id="mapFull" type="button">Full screen</button>
       </header>
       <div id="mapBody"><p id="mapStatus" class="small">Select a point to show the map.</p></div>

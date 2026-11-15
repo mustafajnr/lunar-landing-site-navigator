@@ -360,6 +360,16 @@ button.info {
 #mapFold {
   font-weight: 600;
 }
+#mapPanel header #mapQuickmap {
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #8cc8ff;
+}
+#mapPanel header #mapQuickmap[hidden] {
+  display: none;
+}
 #mapBody {
   position: relative;
   flex: 1;

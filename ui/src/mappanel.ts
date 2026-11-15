@@ -6,6 +6,7 @@
 import type { DetailMap, MapSky } from './detail/detailmap';
 import type { LatLon } from './ephemeris';
 import type { Site } from './api';
+import { setQuickmapLink } from './quickmap';
 
 export interface MapPanel {
   setPoint(ll: LatLon, site: Site | null, name: string, recenter: boolean): void;
@@ -24,6 +25,7 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
   const fullBtn = $<HTMLButtonElement>('mapFull');
   const title = $<HTMLSpanElement>('mapTitle');
   const status = $<HTMLParagraphElement>('mapStatus');
+  const qm = $<HTMLAnchorElement>('mapQuickmap');
 
   let dm: DetailMap | null = null;
   let loading: Promise<void> | null = null;
@@ -112,6 +114,8 @@ export function setupMapPanel(onPick: (ll: LatLon) => void, onLayout: () => void
   return {
     setPoint(ll, site, name, recenter) {
       title.textContent = name;
+      setQuickmapLink(qm, ll.latDeg, ll.lonDeg, site?.radius_m ?? null);
+      qm.hidden = false;
       pending = { ll, site, recenter };
       if (dm) apply();
       else load();

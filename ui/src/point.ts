@@ -4,6 +4,7 @@
 
 import type { LatLon } from './ephemeris';
 import type { Site } from './api';
+import { setQuickmapLink } from './quickmap';
 
 export type Validation = { ok: true; ll: LatLon } | { ok: false; error: string; field: 'lat' | 'lon' };
 
@@ -92,9 +93,17 @@ export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void):
     }
   });
 
-  function showSiteInfo(site: Site | null) {
+  function showSiteInfo(ll: LatLon, site: Site | null) {
     siteInfo.innerHTML = '';
-    if (!site) return;
+    const qm = document.createElement('a');
+    qm.className = 'quickmap';
+    setQuickmapLink(qm, ll.latDeg, ll.lonDeg, site?.radius_m ?? null);
+    const qmP = document.createElement('p');
+    qmP.append(qm);
+    if (!site) {
+      siteInfo.append(qmP);
+      return;
+    }
     const p = document.createElement('p');
     p.textContent = `${site.mission} (${site.agency}), ${site.status}. Site radius ${site.radius_m} m.`;
     siteInfo.append(p);
@@ -115,6 +124,7 @@ export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void):
       a.textContent = 'Coordinate source';
       siteInfo.append(a);
     }
+    siteInfo.append(qmP);
   }
 
   return {
@@ -122,7 +132,7 @@ export function setupPointUi(onSelect: (ll: LatLon, site: Site | null) => void):
       latIn.value = ll.latDeg.toFixed(4);
       lonIn.value = ll.lonDeg.toFixed(4);
       siteSel.value = site ? site.id : '';
-      showSiteInfo(site);
+      showSiteInfo(ll, site);
     },
     setSites(list) {
       sites = list;
