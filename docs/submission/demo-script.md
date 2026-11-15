@@ -56,12 +56,12 @@ Extra fact for the slides or the description: at the Shackleton–de Gerlache ri
 
 ## Alternative: 7-slide deck
 
-Use this outline if you do not make a video. Slides must be in English. The deck must show the team name, the team member names and the challenge.
+Use this outline if you do not make a video. Slides must be in English. The deck must show the team name, the team member names and the challenge. Use the values in "Values to show" above.
 
-1. **Title.** "Lunar Landing Site Navigator". Team name, member name, challenge name. Screenshot `01-overview-ridge-2026-11-22.jpg`.
-2. **The problem.** At the south pole, the Sun and Earth stay near the horizon. Terrain can hide them. A schedule slip can remove power or the link to Earth.
-3. **The tool.** Select a site and a date. See if the Sun and Earth are up, and the time to the next sunset and Earthset. Link: https://lunarsite.select.
-4. **The slip.** Screenshot `02-south-pole-sky-plot-2026-12-06.jpg`. Table: 7 days from 2026-11-22 gives 100 % Earth. 7 days from 2026-12-06 gives 0 % at three sites.
-5. **The better date.** Screenshot `03-ridge-2026-12-16-sky-zoom.jpg`. Earthset in 10 d 11 h 09 min. Earth margin +0.52°.
-6. **The data.** NASA NAIF SPICE, JPL DE440, LOLA (PGDA, Barker et al. 2023), NASA Moon Trek, JAXA Kaguya mosaic. Agreement with JPL Horizons at six test instants: 0.00000045°. Screenshot `04-site-map-malapert-2026-12-16.jpg`.
-7. **Next steps.** Side-by-side comparison, results over a site area, an antenna and Earth-disk model. Use of SI: built with Claude Code under the developer's direction and review.
+1. **Title.** "lunarsite.select". Team lunarspot. Mustafa Abdeltawwab. Challenge: Lunar Landing Site Navigator. Screenshot `01-overview-ridge-2026-11-22.jpg`.
+2. **The problem.** At the south pole, the Sun and Earth stay near the horizon. Terrain can hide them. NASA's VIPER rover will work about 100 days at Mons Mouton. VIPER survives 50 hours of darkness or less. Which point gives power and a link to Earth?
+3. **The tool.** Select a site, a start, a duration (up to 400 days) and an observer height. The Verdict tab gives a plain-language result and checks three NASA mission requirements: 50 h darkness (VIPER), 6.5 days of sunlight (Artemis), 25 % Earth visibility (Artemis HLS). Link: https://lunarsite.select. TODO(developer): new screenshot (Verdict tab).
+4. **IM-2 Athena point.** Example start 2027-09-01, 100 days, 2 m. NASA has not set the landing day. Illumination 52.4 %. Longest darkness 13 d 22 h. Earth 81 %. Meets 1 of 3. TODO(developer): new screenshot (Verdict tab, IM-2 Athena).
+5. **A better point.** Site map with the NASA PGDA "Average sunlight" layer and "Best points in this site". Point 1 in "Nobile Rim 1 and Mons Mouton", about 27 km away: illumination 86.0 %, longest darkness 4 d 18 h, Earth 100 %, meets 2 of 3. The night is 2.9 times shorter, but it is still longer than 50 h. TODO(developer): new screenshot (site map with best points).
+6. **Compare and check.** Compare up to 4 saved searches side by side. ★ marks the best value in each row. Screenshot `07-compare-saved-searches-calendar.jpg`. Data: NASA NAIF SPICE, JPL DE440, LOLA (PGDA product 90), NASA PGDA product 69, NASA Moon Trek, JAXA Kaguya mosaic. Agreement with JPL Horizons at six test instants: 0.00000045°.
+7. **Next steps.** Automatic search for the best point for a period and height, an antenna and Earth-disk model, export (iCalendar, CSV, JSON), more NASA mission requirement presets. Use of SI: built with Claude Code under the developer's direction and review.
